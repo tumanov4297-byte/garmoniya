@@ -19,7 +19,7 @@
 
   const CONFIG = {
     SUPABASE_URL: "https://lrlpipyotglokfllofng.supabase.co",       // ← сюда вставить URL проекта
-    SUPABASE_ANON_KEY: "sb_publishable_9KGNSgfN668A5JXuKRO6QQ_laTJnjmQ"   // ← сюда вставить anon public key
+    SUPABASE_ANON_KEY: "sb_secret_aMnb5ARcJcdEMUhIaxCfGA_KDuNl-Cm"   // ← сюда вставить anon public key
   };
 
   const SDK_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
