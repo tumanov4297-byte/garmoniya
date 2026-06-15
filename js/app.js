@@ -342,7 +342,7 @@ function showMainMenu(){
     dash.appendChild(menuSection("Услуги и информация",[
       {ico:"📋",ttl:"Прейскурант",sub:"Услуги и цены",cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showServices);}},
       {ico:"📝",ttl:"Записаться",sub:"Запись к специалисту",cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showBooking);}},
-      {ico:"🧮",ttl:"Право на бесплатно",sub:"Калькулятор льгот",cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showEligibility);}},
+      {ico:"🧮",ttl:"Льготы",sub:"Калькулятор льгот",cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showEligibility);}},
       {ico:"🏠",ttl:"Соцработник на дом",sub:"Вызвать на дом",cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showHomeWorker);}},
       {ico:"📞",ttl:"Обратный звонок",sub:"Перезвоним вам",cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showCallback);}},
       {ico:"🎟️",ttl:"Мероприятия",sub:"Афиша и запись",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showEvents);}},
