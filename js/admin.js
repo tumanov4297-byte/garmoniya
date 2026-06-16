@@ -1,18 +1,4 @@
-/* ═══════════════════════════════════════
-   АДМИНПАНЕЛЬ
-   ───────────────────────────────────────
-   ⚠️ ВАЖНО ПРО БЕЗОПАСНОСТЬ:
-   Это клиентская (браузерная) админка для статического сайта.
-   • Пароль ниже виден любому, кто откроет исходный код сайта.
-     Это НЕ защита, а лишь «мягкий замок» от случайного входа.
-   • Правки сохраняются только в браузере администратора (localStorage)
-     и НЕ видны другим пользователям.
-   Чтобы правки были общими и вход — защищённым, нужен бэкенд
-   (Supabase Auth + база, этап 5).
 
-   ПОЛЕЗНЫЙ ОБХОД: кнопка «Экспорт JSON» выгружает все правки в файл.
-   Передайте файл разработчику — он вошьёт изменения в проект навсегда.
-═══════════════════════════════════════ */
 (function(){
   "use strict";
 
@@ -68,7 +54,7 @@
   function renderLogin(ovl){
     ovl.innerHTML=`<div class="admin-card">
       <h3>🔐 Вход для администратора</h3>
-      <div class="admin-warn">Внимание: это клиентская админка. Правки сохраняются только в этом браузере. Для общих изменений нужен бэкенд.</div>
+      <div class="admin-warn">Внимание: это админпанель для редактирования</div>
       <label class="admin-lbl">Email</label>
       <input class="admin-inp" id="admEmail" type="email" placeholder="email@yanao.ru" autocomplete="username">
       <label class="admin-lbl">Пароль</label>
@@ -94,7 +80,7 @@
         <h3>⚙️ Админпанель</h3>
         <button class="admin-x" id="admClose" aria-label="Закрыть">✕</button>
       </div>
-      <div class="admin-warn">Правки сохраняются в этом браузере. Жмите «Экспорт JSON», чтобы передать изменения разработчику для постоянного сохранения.</div>
+      <div class="admin-warn">Правки сохраняются.</div>
       <label class="admin-lbl">Филиал для редактирования</label>
       <select class="admin-inp" id="admCity">${Object.keys(CITY_NAMES).map(c=>`<option value="${c}" ${c===editCity?"selected":""}>${CITY_NAMES[c]}</option>`).join("")}</select>
       <div class="admin-tabs">${tabs.map(([k,l])=>`<button class="admin-tab ${k===editTab?"active":""}" data-tab="${k}">${l}</button>`).join("")}</div>
