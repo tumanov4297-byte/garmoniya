@@ -128,6 +128,7 @@ function updateBadge(){const n=cart.reduce((s,i)=>s+i.qty,0);badgeEl.textContent
 function addToCart(id,name,price,btn,base,mor){
   const ex=cart.find(i=>i.id===id);
   if(ex)ex.qty++;else cart.push({id,name,price,qty:1,base:(base!==undefined?base:price),mor:(mor!==undefined?mor:null)});
+  if(typeof trackCartAdd==="function")trackCartAdd(name);
   saveCart();updateBadge();renderCart();
   if(btn){btn.classList.add("added");btn.textContent="✓";btn.setAttribute("aria-label","Добавлено");
     setTimeout(()=>{btn.classList.remove("added");btn.textContent="+";btn.setAttribute("aria-label","Добавить в корзину");},900);}
@@ -178,9 +179,18 @@ function repeatOrder(idx){
 
 /* ───────── ОТМЕНА ЗАПИСИ ───────── */
 function cancelBooking(idx){
+  // Ищем кнопку и меняем её на подтверждение (confirm() не работает в модалке на мобилках)
+  const btns=document.querySelectorAll("[data-cancel-idx]");
+  const btn=Array.from(btns).find(b=>+b.dataset.cancelIdx===idx);
+  if(btn&&!btn.dataset.confirm){
+    btn.dataset.confirm="1";
+    btn.textContent="⚠️ Точно отменить?";
+    btn.classList.add("confirm");
+    setTimeout(()=>{if(btn.dataset.confirm){delete btn.dataset.confirm;btn.textContent="✕ Отменить запись";btn.classList.remove("confirm");}},4000);
+    return;
+  }
   const bh=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
   const b=bh[idx];if(!b)return;
-  if(!confirm(`Отменить запись ${b.num} (${b.visitDate} в ${b.visitTime})?`))return;
   bh.splice(idx,1);
   localStorage.setItem("bookingsHistory",JSON.stringify(bh));
   bookingsHistory=bh;
@@ -188,7 +198,41 @@ function cancelBooking(idx){
   window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Отмена записи "+b.num)}&body=${encodeURIComponent(body)}`;
   showToast("Запись отменена");
   document.querySelector(".mo")?.remove();
-  setTimeout(openProfile,150);
+  setTimeout(openProfile,200);
+}
+
+function clearAllBookings(){
+  const btns=document.querySelectorAll("[data-clear-all]");
+  const btn=btns[0];
+  if(btn&&!btn.dataset.confirm){
+    btn.dataset.confirm="1";
+    btn.textContent="⚠️ Удалить все записи?";
+    btn.classList.add("confirm");
+    setTimeout(()=>{if(btn.dataset.confirm){delete btn.dataset.confirm;btn.textContent="🗑 Очистить список записей";btn.classList.remove("confirm");}},4000);
+    return;
+  }
+  localStorage.setItem("bookingsHistory","[]");
+  bookingsHistory=[];
+  showToast("Список записей очищен");
+  document.querySelector(".mo")?.remove();
+  setTimeout(openProfile,200);
+}
+
+function clearAllOrders(){
+  const btns=document.querySelectorAll("[data-clear-orders]");
+  const btn=btns[0];
+  if(btn&&!btn.dataset.confirm){
+    btn.dataset.confirm="1";
+    btn.textContent="⚠️ Удалить все заявки?";
+    btn.classList.add("confirm");
+    setTimeout(()=>{if(btn.dataset.confirm){delete btn.dataset.confirm;btn.textContent="🗑 Очистить список заявок";btn.classList.remove("confirm");}},4000);
+    return;
+  }
+  localStorage.setItem("ordersHistory","[]");
+  ordersHistory=[];
+  showToast("Список заявок очищен");
+  document.querySelector(".mo")?.remove();
+  setTimeout(openProfile,200);
 }
 function renderCart(){
   const body=document.getElementById("cartBody"),footer=document.getElementById("cartFooter");
@@ -245,6 +289,7 @@ function sendOrder(){
   cart=[];saveCart();updateBadge();renderCart();closeCart();
   addMsg("✅ Почтовый клиент открыт. Нажмите «Отправить» — заявка уйдёт специалисту!",true);
   showToast("✅ Заявка сформирована!");
+  if(typeof showRating==="function")showRating("order");
 }
 
 /* ═══════════════════════════════════════
@@ -298,13 +343,13 @@ function renderSearchResults(q){
 ═══════════════════════════════════════ */
 function greeting(){
   const h=new Date().getHours();
-  if(h>=5&&h<12)return"☀️ Доброе утро";
-  if(h>=12&&h<17)return"🌤 Добрый день";
-  return"🌙 Добрый вечер";
+  if(h>=5&&h<12)return t("greeting_morning");
+  if(h>=12&&h<17)return t("greeting_day");
+  return t("greeting_evening");
 }
 
 /* ═══════════════════════════════════════
-   MAIN MENU  (без акций)
+   MAIN MENU
 ═══════════════════════════════════════ */
 function menuCard(it){
   const c=document.createElement("div");c.className="card";c.setAttribute("role","button");c.setAttribute("tabindex","0");
@@ -312,7 +357,6 @@ function menuCard(it){
   c.onclick=it.fn;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();it.fn();}};
   return c;
 }
-// Сворачиваемая секция меню
 function menuSection(title,items,collapsed){
   const sec=document.createElement("div");sec.className="sec"+(collapsed?" collapsed":"");
   const h=document.createElement("button");h.type="button";h.className="sec-title";
@@ -327,41 +371,47 @@ function menuSection(title,items,collapsed){
 function showMainMenu(){
   document.getElementById("searchBar").classList.add("gone");
   clearActions();navHistory=[];setNav(false);currentSvcList=null;currentCatId=null;
-  addMsg(`${greeting()}, <b>${clientName}</b>! Город: <b>${currentCityName}</b>. Чем могу помочь?`,true);
+  addMsg(`${greeting()}, <b>${clientName}</b>! ${t("switched_to")}: <b>${currentCityName}</b>. ${t("how_help")}`,true);
+  if(typeof showSeasonalGreeting==="function")showSeasonalGreeting();
   setTimeout(()=>{
     clearActions();
     const dash=document.createElement("div");dash.className="dash";
-
-    // Помощник — выделенная кнопка сверху
     const cta=document.createElement("button");cta.type="button";cta.className="assistant-cta";
-    cta.setAttribute("aria-label","Спросить помощника");
-    cta.innerHTML='<span class="ac-ico" aria-hidden="true">🤖</span><span class="ac-txt"><span class="ac-ttl">Спросить помощника</span><span class="ac-sub">Задайте вопрос — подскажу нужный раздел</span></span><span class="ac-arrow" aria-hidden="true">→</span>';
+    cta.innerHTML=`<span class="ac-ico" aria-hidden="true">🤖</span><span class="ac-txt"><span class="ac-ttl">${t("ask_helper")}</span><span class="ac-sub">${t("ask_helper_sub")}</span></span><span class="ac-arrow" aria-hidden="true">→</span>`;
     cta.onclick=()=>{pushNav(showMainMenu);showTyping(showAssistant);};
     dash.appendChild(cta);
 
-    dash.appendChild(menuSection("Услуги и информация",[
-      {ico:"📋",ttl:"Прейскурант",sub:"Услуги и цены",cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showServices);}},
-      {ico:"📝",ttl:"Записаться",sub:"Запись к специалисту",cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showBooking);}},
-      {ico:"🧮",ttl:"Льготы",sub:"Калькулятор льгот",cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showEligibility);}},
-      {ico:"🏠",ttl:"Соцработник на дом",sub:"Вызвать на дом",cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showHomeWorker);}},
-      {ico:"📞",ttl:"Обратный звонок",sub:"Перезвоним вам",cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showCallback);}},
-      {ico:"🎟️",ttl:"Мероприятия",sub:"Афиша и запись",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showEvents);}},
-      {ico:"📰",ttl:"Новости",sub:"Анонсы и события",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showNews);}},
-      {ico:"👥",ttl:"Сотрудники",sub:"Контакты отделений",cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showStaff);}},
-      {ico:"📍",ttl:"Контакты",sub:"Адрес, телефон, email",cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showContacts);}},
-      {ico:"❓",ttl:"Вопросы",sub:"Частые вопросы",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showFAQ);}},
-      {ico:"🆘",ttl:"Экстренная помощь",sub:"Психологическая помощь",cl:"ci-red",fn:()=>{pushNav(showMainMenu);showTyping(showEmergency);}}
+    dash.appendChild(menuSection(t("sec_services"),[
+      {ico:"📋",ttl:t("menu_services"),sub:t("menu_services_sub"),cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showServices);}},
+      {ico:"📝",ttl:t("menu_booking"),sub:t("menu_booking_sub"),cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showBooking);}},
+      {ico:"🧮",ttl:t("menu_calc"),sub:t("menu_calc_sub"),cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showEligibility);}},
+      {ico:"🏠",ttl:t("menu_home_worker"),sub:t("menu_home_worker_sub"),cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showHomeWorker);}},
+      {ico:"📞",ttl:t("menu_callback"),sub:t("menu_callback_sub"),cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showCallback);}},
+      {ico:"🎟️",ttl:t("menu_events"),sub:t("menu_events_sub"),cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showEvents);}},
+      {ico:"📰",ttl:t("menu_news"),sub:t("menu_news_sub"),cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showNews);}},
+      {ico:"👥",ttl:t("menu_staff"),sub:t("menu_staff_sub"),cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showStaff);}},
+      {ico:"📍",ttl:t("menu_contacts"),sub:t("menu_contacts_sub"),cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showContacts);}},
+      {ico:"❓",ttl:t("menu_faq"),sub:t("menu_faq_sub"),cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showFAQ);}},
+      {ico:"🆘",ttl:t("menu_emergency"),sub:t("menu_emergency_sub"),cl:"ci-red",fn:()=>{pushNav(showMainMenu);showTyping(showEmergency);}},
+      {ico:"💬",ttl:"Написать оператору",sub:"VK Max, телефон, email",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showLiveChat);}}
     ],false));
 
-    dash.appendChild(menuSection("Кабинет",[
-      {ico:"🛒",ttl:"Корзина",sub:`${cart.reduce((s,i)=>s+i.qty,0)} услуг`,cl:"ci-teal",fn:openCart},
-      {ico:"💬",ttl:"Обратная связь",sub:"Оценить качество",cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showFeedback);}},
-      {ico:"🍊",ttl:"Карта Морошка",sub:"Льготы и скидки",cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showMoroshkaInfo);}},
-      {ico:"👤",ttl:"Мой кабинет",sub:"История, талоны",cl:"ci-blue",fn:openProfile},
-      {ico:"🔐",ttl:"Админпанель",sub:"Редактирование данных",cl:"ci-red",fn:openAdmin}
+    dash.appendChild(menuSection(t("sec_cabinet"),[
+      {ico:"🛒",ttl:t("menu_cart"),sub:`${cart.reduce((s,i)=>s+i.qty,0)} услуг`,cl:"ci-teal",fn:openCart},
+      {ico:"💬",ttl:t("menu_feedback"),sub:t("menu_feedback_sub"),cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showFeedback);}},
+      {ico:"🍊",ttl:t("menu_moroshka"),sub:t("menu_moroshka_sub"),cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showMoroshkaInfo);}},
+      {ico:"👤",ttl:t("menu_cabinet"),sub:t("menu_cabinet_sub"),cl:"ci-blue",fn:openProfile},
+      {ico:"👨‍👩‍👦",ttl:"Профили",sub:"Переключить получателя",cl:"ci-green",fn:openProfileSwitcher},
+      {ico:"📊",ttl:"Статистика",sub:"Популярные услуги",cl:"ci-teal",fn:showCartStats}
     ],true));
 
     actionsEl.appendChild(dash);
+    // Маленькая ссылка для админа — не видна как кнопка
+    const adm=document.createElement("button");adm.type="button";adm.className="admin-link";
+    adm.textContent="⚙️ Управление";adm.onclick=openAdmin;
+    actionsEl.appendChild(adm);
+    // Онбординг при первом входе
+    if(typeof showOnboarding==="function")showOnboarding();
   },200);
 }
 
@@ -517,6 +567,14 @@ function showBooking(){
       });
       addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${selDate}</b> в <b>${selTime}</b><br>👤 ${selSpec}`,true);
       showToast("✅ Талон "+ticketNum+" сохранён!");
+      // Кнопка экспорта в календарь
+      setTimeout(()=>{
+        clearActions();
+        const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
+        calBtn.textContent="📅 Добавить в календарь";
+        calBtn.onclick=()=>exportToCalendar({num:ticketNum,spec:selSpec,dept:selDept,visitDate:selDate,visitTime:selTime});
+        actionsEl.appendChild(calBtn);
+      },300);
     };
 
     [{lbl:"Отделение",el:dSel},{lbl:"Специалист",el:sSel},{lbl:"Дата приёма",el:dateInp},
@@ -723,15 +781,25 @@ function openProfile(){
 
   const ordersHtml=oh.length===0
     ?'<div class="hist-empty">📭 Нет заявок</div>'
-    :oh.map((o,i)=>`<div class="history-item"><div class="h-item-top"><span class="h-item-dt">📅 ${o.date}</span>${statusBadge(o.status)}</div><div class="h-item-title">${o.num?o.num+" — ":""}Сумма: ${o.sum} ₽</div><div class="h-item-detail">${o.items}</div>${o.itemsRaw?`<button class="h-act" onclick="repeatOrder(${i})">🔁 Повторить заявку</button>`:""}</div>`).join("");
+    :oh.map((o,i)=>`<div class="history-item"><div class="h-item-top"><span class="h-item-dt">📅 ${o.date}</span>${statusBadge(o.status)}</div><div class="h-item-title">${o.num?o.num+" — ":""}Сумма: ${o.sum} ₽</div><div class="h-item-detail">${o.items}</div>${o.itemsRaw?`<button class="h-act" onclick="repeatOrder(${i})">🔁 Повторить заявку</button>`:""}</div>`).join("")
+    +(oh.length?`<button class="h-act-clear" data-clear-orders onclick="clearAllOrders()">🗑 Очистить список заявок</button>`:"");
 
   const bookingsHtml=bh.length===0
     ?'<div class="hist-empty">📭 Нет записей</div>'
-    :bh.map((b,i)=>`<div class="history-item booking-item"><div class="h-item-dt">📋 Талон ${b.num} — оформлен ${b.date}</div><div class="h-item-title">${b.spec}</div><div class="h-item-detail">📅 ${b.visitDate} в ${b.visitTime}<br>${b.dept}</div><button class="h-act danger" onclick="cancelBooking(${i})">✕ Отменить запись</button></div>`).join("");
+    :bh.map((b,i)=>`<div class="history-item booking-item"><div class="h-item-dt">📋 Талон ${b.num} — оформлен ${b.date}</div><div class="h-item-title">${b.spec}</div><div class="h-item-detail">📅 ${b.visitDate} в ${b.visitTime}<br>${b.dept}</div><div class="h-act-row"><button class="h-act" onclick="exportToCalendar(JSON.parse(localStorage.getItem('bookingsHistory'))[${i}])">📅 В календарь</button><button class="h-act danger" data-cancel-idx="${i}" onclick="cancelBooking(${i})">✕ Отменить</button></div></div>`).join("")
+    +(bh.length?`<button class="h-act-clear" data-clear-all onclick="clearAllBookings()">🗑 Очистить список записей</button>`:"");
 
   const favHtml=fav.length===0
     ?'<div class="hist-empty">⭐ Нет избранных услуг<br><span style="font-size:13px;color:#8AA0A0;">Нажмите ★ у услуги в прейскуранте</span></div>'
     :fav.map(f=>`<div class="history-item"><div class="h-item-title">${f.n}</div><div class="h-item-detail">${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString()} ₽</div><button class="h-act" onclick="addFavToCart('${f.id}')">🛒 В корзину</button></div>`).join("");
+
+  const docsHtml=`<div class="docs-list">
+    <div class="doc-card" onclick="downloadDoc('application')"><div class="doc-ico">📄</div><div><div class="doc-name">Заявление на обслуживание</div><div class="doc-desc">Заявление на получение социальных услуг</div></div><span class="doc-dl">⬇</span></div>
+    <div class="doc-card" onclick="downloadDoc('consent')"><div class="doc-ico">🔒</div><div><div class="doc-name">Согласие на обработку данных</div><div class="doc-desc">Согласие на обработку персональных данных (ФЗ-152)</div></div><span class="doc-dl">⬇</span></div>
+    <div class="doc-card" onclick="downloadDoc('moroshka')"><div class="doc-ico">🍊</div><div><div class="doc-name">Памятка «Морошка»</div><div class="doc-desc">Как оформить и использовать карту «Морошка»</div></div><span class="doc-dl">⬇</span></div>
+    <div class="doc-card" onclick="downloadDoc('rights')"><div class="doc-ico">📋</div><div><div class="doc-name">Права получателя услуг</div><div class="doc-desc">Перечень прав получателя социальных услуг</div></div><span class="doc-dl">⬇</span></div>
+    <div class="doc-card" onclick="downloadDoc('complaint')"><div class="doc-ico">📝</div><div><div class="doc-name">Бланк жалобы / предложения</div><div class="doc-desc">Обращение в администрацию центра</div></div><span class="doc-dl">⬇</span></div>
+  </div>`;
 
   modal.innerHTML=`<div class="mc">
     <h3>👤 Личный кабинет</h3>
@@ -742,13 +810,15 @@ function openProfile(){
       <p style="margin-bottom:0"><span class="lbl">Морошка:</span><span class="val">${hasMoroshka?"🍊 Активна":"❌ Нет"}</span></p>
     </div>
     <div class="history-tabs" role="tablist">
-      <button class="h-tab active" id="tab-orders" role="tab" aria-selected="true" onclick="switchTab('orders',this)">🛒 Заявки (${oh.length})</button>
-      <button class="h-tab" id="tab-bookings" role="tab" aria-selected="false" onclick="switchTab('bookings',this)">📋 Записи (${bh.length})</button>
-      <button class="h-tab" id="tab-fav" role="tab" aria-selected="false" onclick="switchTab('fav',this)">⭐ Избранное (${fav.length})</button>
+      <button class="h-tab active" id="tab-orders" role="tab" aria-selected="true" onclick="switchTab('orders',this)">🛒 <span class="htab-text">Заявки</span> (${oh.length})</button>
+      <button class="h-tab" id="tab-bookings" role="tab" aria-selected="false" onclick="switchTab('bookings',this)">📋 <span class="htab-text">Записи</span> (${bh.length})</button>
+      <button class="h-tab" id="tab-fav" role="tab" aria-selected="false" onclick="switchTab('fav',this)">⭐ <span class="htab-text">Избр.</span> (${fav.length})</button>
+      <button class="h-tab" id="tab-docs" role="tab" aria-selected="false" onclick="switchTab('docs',this)">📁 <span class="htab-text">Док-ты</span></button>
     </div>
     <div class="history-list" id="hist-orders" role="tabpanel">${ordersHtml}</div>
     <div class="history-list" id="hist-bookings" role="tabpanel" style="display:none">${bookingsHtml}</div>
     <div class="history-list" id="hist-fav" role="tabpanel" style="display:none">${favHtml}</div>
+    <div class="history-list" id="hist-docs" role="tabpanel" style="display:none">${docsHtml}</div>
     <button class="close-mo" onclick="this.closest('.mo').remove()">Закрыть</button>
     <button class="act-btn logout" onclick="doLogout(this)" style="margin-top:10px;">🚪 Выйти / Сменить пользователя</button>
   </div>`;
@@ -759,9 +829,26 @@ function openProfile(){
 function switchTab(which,btn){
   document.querySelectorAll(".h-tab").forEach(t=>{t.classList.remove("active");t.setAttribute("aria-selected","false");});
   btn.classList.add("active");btn.setAttribute("aria-selected","true");
-  document.getElementById("hist-orders").style.display=which==="orders"?"":"none";
-  document.getElementById("hist-bookings").style.display=which==="bookings"?"":"none";
-  document.getElementById("hist-fav").style.display=which==="fav"?"":"none";
+  ["orders","bookings","fav","docs"].forEach(k=>{
+    const el=document.getElementById("hist-"+k);if(el)el.style.display=k===which?"":"none";
+  });
+}
+
+/* ───────── ДОКУМЕНТЫ — генерация ───────── */
+function downloadDoc(type){
+  const templates={
+    application:`ЗАЯВЛЕНИЕ\nна предоставление социальных услуг\n\nВ ГБУ ЯНАО «ЦСОН Гармония»\nг. ${currentCityName}\n\nот ___________________________________\n(фамилия, имя, отчество)\n\nДата рождения: __.__.____\nАдрес: ___________________________________\nТелефон: ___________________________________\nСНИЛС: ___________________________________\n\nПрошу предоставить мне следующие социальные услуги:\n___________________________________\n___________________________________\n___________________________________\n\nС порядком и условиями предоставления услуг ознакомлен(а).\n\nДата: __.__.____\nПодпись: ___________`,
+    consent:`СОГЛАСИЕ\nна обработку персональных данных\n\nЯ, ___________________________________,\nдата рождения __.__.____,\nадрес ___________________________________,\nдокумент ___________________________________,\n\nдаю согласие ГБУ ЯНАО «ЦСОН Гармония» на обработку\nмоих персональных данных: ФИО, дата рождения, адрес,\nтелефон, СНИЛС, данные о состоянии здоровья, сведения\nо доходах — в целях предоставления социальных услуг.\n\nСогласие действует до момента письменного отзыва.\n\nДата: __.__.____\nПодпись: ___________`,
+    moroshka:`ПАМЯТКА\nКарта «Морошка» — единая карта жителя ЯНАО\n\n1. Что это? Электронная карта, подтверждающая проживание в ЯНАО.\n\n2. Как оформить?\n   - В МФЦ (с паспортом и СНИЛС)\n   - На сайте государственных услуг ЯНАО\n\n3. Что даёт в центре «Гармония»?\n   - Скидка 5% на все платные услуги\n   - Скидка применяется автоматически при предъявлении карты\n\n4. Как активировать?\n   Покажите карту специалисту центра или укажите при входе\n   в онлайн-помощник (тумблер «🍊 Морошка» в шапке).`,
+    rights:`ПРАВА ПОЛУЧАТЕЛЯ СОЦИАЛЬНЫХ УСЛУГ\n(извлечение из ФЗ №442)\n\n1. Уважительное и гуманное отношение.\n2. Выбор поставщика социальных услуг.\n3. Информация о своих правах и обязанностях.\n4. Информация о видах, сроках и условиях предоставления услуг.\n5. Отказ от предоставления социальных услуг.\n6. Обеспечение условий пребывания, соответствующих санитарно-гигиеническим требованиям.\n7. Свободное посещение законными представителями, адвокатами, нотариусами.\n8. Защита своих прав и законных интересов.\n9. Социальное сопровождение.\n\nПо вопросам — обращайтесь к специалисту центра.`,
+    complaint:`ОБРАЩЕНИЕ\nв ГБУ ЯНАО «ЦСОН Гармония»\nг. ${currentCityName}\n\nот ___________________________________\n(фамилия, имя, отчество)\nТелефон: ___________________________________\n\nТип обращения: [ ] Жалоба  [ ] Предложение  [ ] Благодарность\n\nСодержание обращения:\n___________________________________\n___________________________________\n___________________________________\n___________________________________\n___________________________________\n\nДата: __.__.____\nПодпись: ___________`
+  };
+  const text=templates[type];if(!text)return;
+  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download=type+".txt";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  showToast("📄 Документ скачан");
 }
 
 function doLogout(btn){
@@ -814,10 +901,9 @@ function showAuth(){
     </div>
     <button class="auth-btn" id="aBtn" disabled aria-label="Войти в систему">Войти →</button>
     <button class="auth-esia" type="button" onclick="esiaLogin()" aria-label="Войти через Госуслуги">
-      <span class="esia-badge" aria-hidden="true">Г</span> Войти через Госуслуги
+      <img src="img/gosuslugi.jpg" alt="Госуслуги" class="esia-logo"> Войти через Госуслуги
     </button>
     <button class="auth-skip" onclick="skipAuth(this)">Пропустить (ограниченный режим)</button>
-    <button class="auth-admin" type="button" onclick="openAdmin()" aria-label="Вход для администратора">🔐 Вход для администратора</button>
   </div>`;
   document.body.appendChild(modal);
   const ni=modal.querySelector("#aName"),pi=modal.querySelector("#aPhone"),si=modal.querySelector("#aSnils"),cb=modal.querySelector("#aCb"),btn=modal.querySelector("#aBtn");
@@ -889,3 +975,15 @@ updateHoursBanner();
 setInterval(updateHoursBanner,60000);
 initSearch();
 showAuth();
+
+/* Секретный вход в админку: 5 быстрых тапов по логотипу «Г» в шапке */
+(function(){
+  let tapCount=0,tapTimer=null;
+  const logo=document.querySelector(".hdr-logo");
+  if(logo)logo.addEventListener("click",()=>{
+    tapCount++;
+    clearTimeout(tapTimer);
+    tapTimer=setTimeout(()=>{tapCount=0;},1200);
+    if(tapCount>=5){tapCount=0;openAdmin();}
+  });
+})();

@@ -35,6 +35,8 @@
       if(o.services){b.services.length=0;o.services.forEach(x=>b.services.push(x));}
       if(o.staff){b.staff.length=0;o.staff.forEach(x=>b.staff.push(x));}
     }
+    if(ov.newsData&&typeof newsData!=="undefined"){newsData.length=0;ov.newsData.forEach(x=>newsData.push(x));}
+    if(ov.eventsData&&typeof eventsData!=="undefined"){eventsData.length=0;ov.eventsData.forEach(x=>eventsData.push(x));}
   }
 
   /* — Сохранение всех правок — */
@@ -47,6 +49,8 @@
     for(const c in branchContent){
       ov.branchContent[c]={services:branchContent[c].services,staff:branchContent[c].staff};
     }
+    if(typeof newsData!=="undefined")ov.newsData=newsData;
+    if(typeof eventsData!=="undefined")ov.eventsData=eventsData;
     localStorage.setItem("adminOverrides",JSON.stringify(ov));
   }
 
@@ -64,7 +68,7 @@
   function renderLogin(ovl){
     ovl.innerHTML=`<div class="admin-card">
       <h3>🔐 Вход для администратора</h3>
-      <div class="admin-warn">Внимание: это клиентская админка.</div>
+      <div class="admin-warn">Внимание: это клиентская админка. Правки сохраняются только в этом браузере. Для общих изменений нужен бэкенд.</div>
       <label class="admin-lbl">Email</label>
       <input class="admin-inp" id="admEmail" type="email" placeholder="email@yanao.ru" autocomplete="username">
       <label class="admin-lbl">Пароль</label>
@@ -84,13 +88,13 @@
   }
 
   function renderPanel(ovl){
-    const tabs=[["contacts","📍 Контакты"],["services","📋 Услуги"],["staff","👥 Сотрудники"]];
+    const tabs=[["contacts","📍 Контакты"],["services","📋 Услуги"],["staff","👥 Сотрудники"],["news","📰 Новости"]];
     ovl.innerHTML=`<div class="admin-card wide">
       <div class="admin-head">
         <h3>⚙️ Админпанель</h3>
         <button class="admin-x" id="admClose" aria-label="Закрыть">✕</button>
       </div>
-      <div class="admin-warn">Правки сохраняются. Жмите «Экспорт JSON», чтобы передать изменения разработчику для постоянного сохранения.</div>
+      <div class="admin-warn">Правки сохраняются в этом браузере. Жмите «Экспорт JSON», чтобы передать изменения разработчику для постоянного сохранения.</div>
       <label class="admin-lbl">Филиал для редактирования</label>
       <select class="admin-inp" id="admCity">${Object.keys(CITY_NAMES).map(c=>`<option value="${c}" ${c===editCity?"selected":""}>${CITY_NAMES[c]}</option>`).join("")}</select>
       <div class="admin-tabs">${tabs.map(([k,l])=>`<button class="admin-tab ${k===editTab?"active":""}" data-tab="${k}">${l}</button>`).join("")}</div>
@@ -118,6 +122,7 @@
     const body=ovl.querySelector("#admBody");
     if(editTab==="contacts")renderContacts(body);
     else if(editTab==="services")renderServices(body);
+    else if(editTab==="news")renderNews(body);
     else renderStaff(body);
   }
 
@@ -201,6 +206,64 @@
     body.querySelector("#saveSt").onclick=()=>{collect();saveOverrides();showToast("💾 Сотрудники сохранены");refreshActive();};
     body.querySelector("#addSt").onclick=()=>{collect();staff.push({dept:"",name:"",pos:"",ext:"",email:""});saveOverrides();renderStaff(body);};
     body.querySelectorAll("[data-delst]").forEach(b=>b.onclick=()=>{collect();staff.splice(+b.dataset.delst,1);saveOverrides();renderStaff(body);});
+  }
+
+  /* — НОВОСТИ И МЕРОПРИЯТИЯ — */
+  function renderNews(body){
+    const TAGS=["Новость","Анонс","Мероприятие","Важно"];
+    let html='<div class="adm-hint">Новости видят все пользователи бота. Тег определяет цвет метки.</div>';
+    newsData.forEach((n,i)=>{
+      html+=`<div class="adm-staff">
+        <div style="display:flex;gap:6px">
+          <select class="admin-inp" data-ni="${i}" data-f="tag" style="width:120px">${TAGS.map(t=>`<option ${n.tag===t?"selected":""}>${t}</option>`).join("")}</select>
+          <input class="admin-inp tiny" data-ni="${i}" data-f="date" value="${(n.date||"").replace(/"/g,"&quot;")}" placeholder="Дата">
+          <button class="adm-del" data-delnews="${i}" aria-label="Удалить">🗑</button>
+        </div>
+        <input class="admin-inp" data-ni="${i}" data-f="title" value="${(n.title||"").replace(/"/g,"&quot;")}" placeholder="Заголовок">
+        <textarea class="admin-inp" data-ni="${i}" data-f="text" rows="2" placeholder="Текст новости">${(n.text||"").replace(/</g,"&lt;")}</textarea>
+      </div>`;
+    });
+    if(!newsData.length)html+='<div class="adm-hint">Новостей пока нет. Добавьте первую.</div>';
+    html+=`<button class="admin-btn small" id="addNews">+ новость</button>`;
+    html+=`<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px"><div class="adm-hint"><b>Мероприятия</b> (афиша с записью)</div>`;
+    eventsData.forEach((e,i)=>{
+      html+=`<div class="adm-staff">
+        <input class="admin-inp" data-ei="${i}" data-f="date" value="${(e.date||"").replace(/"/g,"&quot;")}" placeholder="Дата и время">
+        <input class="admin-inp" data-ei="${i}" data-f="title" value="${(e.title||"").replace(/"/g,"&quot;")}" placeholder="Название">
+        <input class="admin-inp" data-ei="${i}" data-f="place" value="${(e.place||"").replace(/"/g,"&quot;")}" placeholder="Место">
+        <textarea class="admin-inp" data-ei="${i}" data-f="desc" rows="2" placeholder="Описание">${(e.desc||"").replace(/</g,"&lt;")}</textarea>
+        <input class="admin-inp tiny" type="number" data-ei="${i}" data-f="seats" value="${e.seats||""}" placeholder="Мест">
+        <button class="adm-del" data-delevt="${i}" aria-label="Удалить">🗑</button>
+      </div>`;
+    });
+    if(!eventsData.length)html+='<div class="adm-hint">Мероприятий пока нет.</div>';
+    html+=`<button class="admin-btn small" id="addEvt">+ мероприятие</button></div>`;
+    html+=`<button class="admin-btn" id="saveNews">💾 Сохранить новости и мероприятия</button>`;
+    body.innerHTML=html;
+
+    const collectNews=()=>{
+      const map={};
+      body.querySelectorAll("[data-ni]").forEach(inp=>{
+        const i=+inp.dataset.ni;(map[i]=map[i]||{});
+        const f=inp.dataset.f;map[i][f]=inp.tagName==="TEXTAREA"?inp.value:inp.value;
+      });
+      newsData.length=0;Object.keys(map).sort((a,b)=>a-b).forEach(k=>newsData.push(map[k]));
+    };
+    const collectEvents=()=>{
+      const map={};
+      body.querySelectorAll("[data-ei]").forEach(inp=>{
+        const i=+inp.dataset.ei;(map[i]=map[i]||{});
+        const f=inp.dataset.f;
+        map[i][f]=f==="seats"?(parseInt(inp.value)||0):(inp.tagName==="TEXTAREA"?inp.value:inp.value);
+      });
+      eventsData.length=0;let id=1;
+      Object.keys(map).sort((a,b)=>a-b).forEach(k=>{map[k].id="ev"+id++;eventsData.push(map[k]);});
+    };
+    body.querySelector("#saveNews").onclick=()=>{collectNews();collectEvents();saveOverrides();showToast("💾 Новости и мероприятия сохранены");};
+    body.querySelector("#addNews").onclick=()=>{collectNews();collectEvents();newsData.push({date:"",tag:"Новость",title:"",text:""});saveOverrides();renderNews(body);};
+    body.querySelector("#addEvt").onclick=()=>{collectNews();collectEvents();eventsData.push({id:"ev"+(eventsData.length+1),date:"",title:"",place:"",desc:"",seats:0});saveOverrides();renderNews(body);};
+    body.querySelectorAll("[data-delnews]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();newsData.splice(+b.dataset.delnews,1);saveOverrides();renderNews(body);});
+    body.querySelectorAll("[data-delevt]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();eventsData.splice(+b.dataset.delevt,1);saveOverrides();renderNews(body);});
   }
 
   // Обновить активные данные текущего города, если редактировали его
