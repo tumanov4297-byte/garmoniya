@@ -199,7 +199,7 @@ function showCartStats(){
     const pct=Math.round(count/maxVal*100);
     return `<div class="stat-row"><span class="stat-pos">${i+1}</span><div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%"></div><span class="stat-name">${name}</span></div><span class="stat-count">${count}×</span></div>`;
   }).join("");
-  modal.innerHTML=`<div class="mc"><h3>📊 Популярные услуги</h3><div class="stat-hint">Что чаще добавляют в корзину на этом устройстве</div>${bars}<button class="close-mo" onclick="this.closest('.mo').remove()">Закрыть</button></div>`;
+  modal.innerHTML=`<div class="mc"><h3>📊 Популярные услуги</h3><div class="stat-hint">Что чаще добавляют в корзину</div>${bars}<button class="close-mo" onclick="this.closest('.mo').remove()">Закрыть</button></div>`;
   document.body.appendChild(modal);
 }
 
@@ -464,7 +464,7 @@ function showLiveChat(){
     const wrap=document.createElement("div");wrap.className="chat-channels";
     const channels=[
       {icon:"📞",name:"Позвонить",sub:cd.phone||"8(34936)2-70-77",action:`tel:+${phone}`,cl:"ch-phone"},
-      {icon:"💬",name:"VK Мессенджер",sub:"Написать в Max",action:`https://vk.me/cson_garmoniya`,cl:"ch-vk"},
+      {icon:"💬",name:"MAX Мессенджер",sub:"Написать в Max",action:`#`,cl:"ch-vk"},
       {icon:"📧",name:"Email",sub:email,action:`mailto:${email}?subject=${encodeURIComponent("Обращение из бота «Гармония»")}&body=${encodeURIComponent("Здравствуйте!\n\nИмя: "+(typeof clientName!=="undefined"?clientName:"")+"\nТелефон: "+(typeof clientPhone!=="undefined"?clientPhone:"")+"\n\nМой вопрос:\n")}`,cl:"ch-email"}
     ];
     channels.forEach(ch=>{
