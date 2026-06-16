@@ -820,7 +820,7 @@ function showAuth(){
     <button class="auth-esia" type="button" onclick="esiaLogin()" aria-label="Войти через Госуслуги">
       <img src="img/gosuslugi.jpg" alt="Госуслуги" class="esia-logo"> Войти через Госуслуги
     </button>
-    <button class="auth-skip" onclick="skipAuth(this)">Пропустить (ограниченный режим)</button>
+    <button class="auth-skip" onclick="skipAuth(this)">Войти как "Гость"</button>
   </div>`;
   document.body.appendChild(modal);
   const ni=modal.querySelector("#aName"),pi=modal.querySelector("#aPhone"),si=modal.querySelector("#aSnils"),cb=modal.querySelector("#aCb"),btn=modal.querySelector("#aBtn");
