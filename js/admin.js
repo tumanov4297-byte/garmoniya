@@ -77,7 +77,7 @@
         <h3>⚙️ Админпанель</h3>
         <button class="admin-x" id="admClose" aria-label="Закрыть">✕</button>
       </div>
-      <div class="admin-warn">Правки сохраняются в этом браузере. Жмите «Экспорт JSON», чтобы передать изменения разработчику для постоянного сохранения.</div>
+      <div class="admin-warn">Правки сохраняются.</div>
       <label class="admin-lbl">Филиал для редактирования</label>
       <select class="admin-inp" id="admCity">${Object.keys(CITY_NAMES).map(c=>`<option value="${c}" ${c===editCity?"selected":""}>${CITY_NAMES[c]}</option>`).join("")}</select>
       <div class="admin-tabs">${tabs.map(([k,l])=>`<button class="admin-tab ${k===editTab?"active":""}" data-tab="${k}">${l}</button>`).join("")}</div>
