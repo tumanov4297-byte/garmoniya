@@ -445,7 +445,7 @@ function showLiveChat(){
     const wrap=document.createElement("div");wrap.className="chat-channels";
     const channels=[
       {icon:"📞",name:"Позвонить",sub:cd.phone||"8(34936)2-70-77",action:`tel:+${phone}`,cl:"ch-phone"},
-      {icon:"💬",name:"Макс",sub:"Мессенджер max.ru",action:`https://max.ru/`,cl:"ch-max"},
+      {icon:"💬",name:"Max",sub:"Мессенджер MAX",action:`https://max.ru/`,cl:"ch-max"},
       {icon:"📧",name:"Email",sub:email,action:`mailto:${email}?subject=${encodeURIComponent("Обращение из бота «Гармония»")}&body=${encodeURIComponent("Здравствуйте!\n\nИмя: "+(typeof clientName!=="undefined"?clientName:"")+"\nТелефон: "+(typeof clientPhone!=="undefined"?clientPhone:"")+"\n\nМой вопрос:\n")}`,cl:"ch-email"}
     ];
     channels.forEach(ch=>{
