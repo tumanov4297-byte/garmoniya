@@ -393,7 +393,7 @@ function showMainMenu(){
       {ico:"📍",ttl:t("menu_contacts"),sub:t("menu_contacts_sub"),cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showContacts);}},
       {ico:"❓",ttl:t("menu_faq"),sub:t("menu_faq_sub"),cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showFAQ);}},
       {ico:"🆘",ttl:t("menu_emergency"),sub:t("menu_emergency_sub"),cl:"ci-red",fn:()=>{pushNav(showMainMenu);showTyping(showEmergency);}},
-      {ico:"💬",ttl:"Написать оператору",sub:"VK Max, телефон, email",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showLiveChat);}}
+      {ico:"💬",ttl:"Написать оператору",sub:"Max, телефон, email",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showLiveChat);}}
     ],false));
 
     dash.appendChild(menuSection(t("sec_cabinet"),[
