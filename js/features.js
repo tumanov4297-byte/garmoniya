@@ -1,18 +1,8 @@
-/* ═══════════════════════════════════════
-   ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ
-   Умный помощник-маршрутизатор, калькулятор льгот,
-   новости, заготовка входа через Госуслуги (ЕСИА).
-   Использует глобальные функции из app.js (addMsg, showTyping,
-   clearActions, pushNav, showBooking, showServices, showCategory…).
-═══════════════════════════════════════ */
 
-/* ───────── УМНЫЙ ПОМОЩНИК ───────── */
 function asstNorm(s){
   return (s||"").toLowerCase().replace(/ё/g,"е").replace(/[^a-zа-я0-9 ]/gi," ").replace(/\s+/g," ").trim();
 }
 
-// База «намерений». kw — ключевые слова/корни (ищутся как подстроки,
-// поэтому ловятся разные формы и мелкие опечатки).
 const ASST_INTENTS=[
   {kw:["записа","запис","талон","прием","приём","к специалист","к врач","на прием"],
    answer:"Чтобы записаться к специалисту, выберите отделение, специалиста, дату и время. Открываю форму записи 👇",
@@ -68,8 +58,8 @@ const ASST_INTENTS=[
   {kw:["документ","бланк","заявлен","скачать","памятк","согласие","жалоб","образец"],
    answer:"В личном кабинете во вкладке «Документы» можно скачать заявления, согласия и памятки.",
    actions:[{label:"👤 Открыть кабинет",fn:"openProfile",cl:"teal"}]},
-  {kw:["оператор","живой","человек","написать","связат","чат с","позвонить","vk","вк","макс","мессенджер"],
-   answer:"Связаться с оператором можно через VK Мессенджер (Max), по телефону или email.",
+  {kw:["оператор","живой","человек","написать","связат","чат с","позвонить","макс","max","мессенджер","max.ru"],
+   answer:"Связаться с оператором можно через мессенджер Макс (max.ru), по телефону или email.",
    actions:[{label:"💬 Написать оператору",fn:"showLiveChat",cl:"blue"}]},
   {kw:["на дом","соцработ","соц работ","социальн работ","выезд","вызвать на дом","прийти домой","надомн"],
    answer:"Можно вызвать социального работника на дом — оформим заявку.",
@@ -97,10 +87,9 @@ function asstName(){
   const n=(clientName||"").trim();
   if(!n||n==="Гость"||n==="—")return "";
   const parts=n.split(/\s+/);
-  return parts.length>=3?(parts[1]+" "+parts[2]):n; // Имя Отчество, если есть
+  return parts.length>=3?(parts[1]+" "+parts[2]):n;
 }
 
-// Светская беседа
 function smallTalk(q){
   const nm=asstName();const hi=nm?(", "+nm):"";
   if(/(привет|здравству|добрый день|доброе утро|добрый вечер|доброго времени|здравий|приветствую)/.test(q))
@@ -117,7 +106,6 @@ function smallTalk(q){
   return null;
 }
 
-// Поиск ответа в FAQ
 function faqAnswer(q){
   if(typeof faqData==="undefined")return null;
   let best=null,bestScore=0;
@@ -132,9 +120,9 @@ function faqAnswer(q){
 
 function smartAsk(query){
   const q=asstNorm(query);
-  // 1) светская беседа
+
   const st=smallTalk(q);if(st)return st;
-  // 2) намерения (разделы)
+
   let best=null,bestScore=0;
   ASST_INTENTS.forEach(it=>{
     let score=0;
@@ -142,15 +130,15 @@ function smartAsk(query){
     if(score>bestScore){bestScore=score;best=it;}
   });
   if(best&&bestScore>=2)return{answer:best.answer,actions:best.actions};
-  // 3) ответ из FAQ
+
   const fq=faqAnswer(q);if(fq)return fq;
-  // 4) слабое совпадение по намерению
+
   if(best&&bestScore>0)return{answer:best.answer,actions:best.actions};
-  // 5) поиск по услугам
+
   const hit=findServiceCategory(q);
   if(hit)return{answer:`Кажется, вам подойдёт раздел «${hit.name}». Открыть его?`,
     actions:[{label:`${hit.icon} ${hit.name}`,fn:"showCategory",arg:hit.id,cl:"teal"}]};
-  // 6) ничего не нашли
+
   const nm=asstName();
   return{answer:`Не уверен, что верно понял вопрос${nm?(", "+nm):""} 🙈 Вот основные разделы — выберите ближайший, или позвоните нам: <b>${typeof MAIN_PHONE!=="undefined"?MAIN_PHONE:""}</b>`,
     actions:[
@@ -160,7 +148,6 @@ function smartAsk(query){
     ]};
 }
 
-// Диспетчер для кнопок внутри ответа (вызывается из inline onclick)
 function asstGo(fnName,arg){
   if(typeof window[fnName]==="function"){
     pushNav(showAssistant);
@@ -220,7 +207,6 @@ function askFlow(query){
   });
 }
 
-/* ───────── НОВОСТИ И АНОНСЫ ───────── */
 function showNews(){
   clearActions();setNav(true);
   document.getElementById("searchBar").classList.add("gone");
@@ -241,9 +227,6 @@ function showNews(){
   },200);
 }
 
-/* ───────── КАЛЬКУЛЯТОР ЛЬГОТ ─────────
-   Предварительная оценка по правилам из FAQ. Точное решение —
-   за специалистом центра. */
 function showEligibility(){
   clearActions();setNav(true);
   document.getElementById("searchBar").classList.add("gone");
@@ -307,18 +290,11 @@ function showEligibility(){
   ]);
 }
 
-/* ───────── ВХОД ЧЕРЕЗ ГОСУСЛУГИ (ЕСИА) — ЗАГОТОВКА ─────────
-   Полноценный вход через Госуслуги требует серверной части и
-   регистрации информационной системы в Минцифры (секрет OAuth
-   нельзя хранить в коде статического сайта). Это заглушка UI:
-   когда появится бэкенд, здесь будет редирект на ЕСИА. */
 function esiaLogin(){
-  showToast("🔐 В разработке!");
-  // Боевой вариант (с бэкендом):
-  // window.location.href = "/api/esia/login";
+  showToast("🔐 Вход через Госуслуги появится после подключения сервера");
+
 }
 
-/* ───────── ОБРАТНЫЙ ЗВОНОК ───────── */
 function showCallback(){
   clearActions();setNav(true);
   document.getElementById("searchBar").classList.add("gone");
@@ -350,7 +326,6 @@ function showCallback(){
   },200);
 }
 
-/* ───────── СОЦРАБОТНИК НА ДОМ ───────── */
 function showHomeWorker(){
   clearActions();setNav(true);
   document.getElementById("searchBar").classList.add("gone");
@@ -381,7 +356,6 @@ function showHomeWorker(){
   },200);
 }
 
-/* ───────── МЕРОПРИЯТИЯ ───────── */
 function showEvents(){
   clearActions();setNav(true);
   document.getElementById("searchBar").classList.add("gone");

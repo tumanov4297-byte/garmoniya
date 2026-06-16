@@ -1,10 +1,4 @@
-/* ═══════════════════════════════════════
-   ЛОГИКА ПРИЛОЖЕНИЯ «Гармония»
-   Использует данные из data.js и слой БД из db.js.
-═══════════════════════════════════════ */
-/* ═══════════════════════════════════════
-   СОСТОЯНИЕ
-═══════════════════════════════════════ */
+
 let currentCity="gubkin",currentCityName="Губкинский",hasMoroshka=null;
 let navHistory=[],cart=JSON.parse(localStorage.getItem("cart")||"[]");
 let clientName="",clientPhone="",clientSnils="",ordersHistory=[],bookingsHistory=[];
@@ -15,9 +9,6 @@ const chatEl=document.getElementById("chat"),actionsEl=document.getElementById("
 const badgeEl=document.getElementById("cartBadge");
 let ticketCounter=parseInt(localStorage.getItem("ticketCounter")||"100");
 
-/* ═══════════════════════════════════════
-   CHAT HELPERS
-═══════════════════════════════════════ */
 function addMsg(html,isBot=true){
   const r=document.createElement("div");r.className="msg-row "+(isBot?"bot":"usr");
   const b=document.createElement("div");b.className="bubble "+(isBot?"bot":"usr");
@@ -40,9 +31,6 @@ function setNav(showBack){document.getElementById("backBtn").classList.toggle("g
 function pushNav(fn){navHistory.push(fn);}
 function goBack(){if(navHistory.length>0){const fn=navHistory.pop();fn();}}
 
-/* ═══════════════════════════════════════
-   HOURS BANNER
-═══════════════════════════════════════ */
 function updateHoursBanner(){
   const b=document.getElementById("hoursBanner");
   const cd=cityData[currentCity]||cityData.gubkin;
@@ -62,18 +50,12 @@ function updateHoursBanner(){
   }
 }
 
-/* ═══════════════════════════════════════
-   PRICES
-═══════════════════════════════════════ */
 function pHtml(p,m){
   if(hasMoroshka&&m!==null)
-    return`<div class="price-wrap"><span class="p-old">${p} ₽</span><span class="p-new">${m} ₽</span><div class="mbadge" aria-label="Скидка Морошка">🍊</div></div>`;
+    return`<div class="price-wrap"><span class="p-old">${p} ₽</span><span class="p-new">${m} ₽</span><div class="mbadge" aria-label="Скидка Морошка"><img src="img/moroshka-logo.jpg" class="moroshka-ico" alt=""></div></div>`;
   return`<div class="price-wrap"><span class="p-normal">${p} ₽</span></div>`;
 }
 
-/* ═══════════════════════════════════════
-   RATING STARS
-═══════════════════════════════════════ */
 function rStars(sid,rating){
   const f=Math.round(rating);let s="";
   for(let i=1;i<=5;i++)
@@ -92,9 +74,6 @@ function bindRatings(){
   });
 }
 
-/* ═══════════════════════════════════════
-   MOROSHKA
-═══════════════════════════════════════ */
 function updateMToggle(){
   const t=document.getElementById("mToggle");
   if(hasMoroshka===null){t.classList.add("gone");return;}
@@ -105,7 +84,7 @@ function toggleMoroshka(){
   if(hasMoroshka===null)return;
   hasMoroshka=!hasMoroshka;localStorage.setItem("hasMoroshka",String(hasMoroshka));
   updateMToggle();updateSvcPrices();
-  addMsg(hasMoroshka?"🍊 Морошка включена — льготные цены активированы!":"❌ Морошка отключена. Базовые цены.",true);
+  addMsg(hasMoroshka?'<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Морошка включена — льготные цены активированы!':'<img src="img/no-moroshka.jpg" class="moroshka-ico-sm" alt=""> Морошка отключена. Базовые цены.',true);
   showToast(hasMoroshka?"🍊 Морошка ON":"❌ Морошка OFF");
 }
 function updateSvcPrices(){
@@ -120,9 +99,6 @@ function updateSvcPrices(){
   });
 }
 
-/* ═══════════════════════════════════════
-   CART
-═══════════════════════════════════════ */
 function saveCart(){localStorage.setItem("cart",JSON.stringify(cart));}
 function updateBadge(){const n=cart.reduce((s,i)=>s+i.qty,0);badgeEl.textContent=n;badgeEl.classList.toggle("gone",n===0);}
 function addToCart(id,name,price,btn,base,mor){
@@ -144,7 +120,6 @@ function openCart(){document.getElementById("cartPanel").classList.add("open");r
 function closeCart(){document.getElementById("cartPanel").classList.remove("open");}
 function clearCart(){cart=[];saveCart();updateBadge();renderCart();closeCart();}
 
-/* ───────── ИЗБРАННОЕ ───────── */
 let favorites=JSON.parse(localStorage.getItem("favorites")||"[]");
 function saveFav(){localStorage.setItem("favorites",JSON.stringify(favorites));}
 function isFav(id){return favorites.some(f=>f.id===id);}
@@ -162,7 +137,6 @@ function addFavToCart(id){
   addToCart(f.id,f.n,rp,null,f.p,f.m);
 }
 
-/* ───────── ПОВТОРИТЬ ЗАЯВКУ ───────── */
 function repeatOrder(idx){
   const oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
   const o=oh[idx];if(!o||!o.itemsRaw){showToast("Не удалось повторить заявку");return;}
@@ -177,9 +151,8 @@ function repeatOrder(idx){
   showToast("🛒 Услуги добавлены в корзину");
 }
 
-/* ───────── ОТМЕНА ЗАПИСИ ───────── */
 function cancelBooking(idx){
-  // Ищем кнопку и меняем её на подтверждение (confirm() не работает в модалке на мобилках)
+
   const btns=document.querySelectorAll("[data-cancel-idx]");
   const btn=Array.from(btns).find(b=>+b.dataset.cancelIdx===idx);
   if(btn&&!btn.dataset.confirm){
@@ -254,7 +227,7 @@ function renderCart(){
   const baseTotal=cart.reduce((s,i)=>s+(i.base!=null?i.base:i.price)*i.qty,0);
   const savings=baseTotal-total;
   const savingsHtml=(hasMoroshka&&savings>0)
-    ?`<div class="cart-save">🍊 Скидка «Морошка»: −${savings.toLocaleString()} ₽ <span>(без скидки ${baseTotal.toLocaleString()} ₽)</span></div>`
+    ?`<div class="cart-save"><img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Скидка «Морошка»: −${savings.toLocaleString()} ₽ <span>(без скидки ${baseTotal.toLocaleString()} ₽)</span></div>`
     :"";
   footer.innerHTML=`
     <div class="cart-total"><span>Итого:</span><span aria-live="polite">${total.toLocaleString()} ₽</span></div>
@@ -281,7 +254,7 @@ function sendOrder(){
     status:"new"
   });
   localStorage.setItem("ordersHistory",JSON.stringify(ordersHistory));
-  // Сохранение в БД (если настроена); иначе тихо остаётся только localStorage
+
   window.GarmoniyaDB?.saveOrder({
     clientName, clientPhone, cityName:currentCityName, moroshka:hasMoroshka, total,
     items:cart.map(i=>({name:i.name,qty:i.qty,price:i.price}))
@@ -292,18 +265,12 @@ function sendOrder(){
   if(typeof showRating==="function")showRating("order");
 }
 
-/* ═══════════════════════════════════════
-   SHARE
-═══════════════════════════════════════ */
 function tryShare(){
   const data={title:"Гармония — ЦСОН ЯНАО",text:"Помощник социального центра «Гармония» (ЯНАО). Услуги, запись, контакты.",url:location.href};
   if(navigator.share){navigator.share(data).catch(()=>{});}
   else{navigator.clipboard?.writeText(location.href);showToast("📋 Ссылка скопирована!");}
 }
 
-/* ═══════════════════════════════════════
-   SEARCH
-═══════════════════════════════════════ */
 function initSearch(){
   const inp=document.getElementById("searchInp"),clr=document.getElementById("searchClear");
   inp.oninput=()=>{
@@ -338,9 +305,6 @@ function renderSearchResults(q){
   const gb=document.createElement("button");gb.className="go-cart-btn";gb.innerHTML="🛒 Посмотреть корзину →";gb.onclick=openCart;actionsEl.appendChild(gb);
 }
 
-/* ═══════════════════════════════════════
-   GREETING
-═══════════════════════════════════════ */
 function greeting(){
   const h=new Date().getHours();
   if(h>=5&&h<12)return t("greeting_morning");
@@ -348,12 +312,10 @@ function greeting(){
   return t("greeting_evening");
 }
 
-/* ═══════════════════════════════════════
-   MAIN MENU
-═══════════════════════════════════════ */
 function menuCard(it){
   const c=document.createElement("div");c.className="card";c.setAttribute("role","button");c.setAttribute("tabindex","0");
-  c.innerHTML=`<div class="card-ico ${it.cl}" aria-hidden="true">${it.ico}</div><div class="card-ttl">${it.ttl}</div><div class="card-sub">${it.sub}</div>`;
+  const icoHtml=it.ico==="moroshka"?'<img src="img/moroshka-logo.jpg" class="moroshka-ico-card" alt="">':it.ico;
+  c.innerHTML=`<div class="card-ico ${it.cl}" aria-hidden="true">${icoHtml}</div><div class="card-ttl">${it.ttl}</div><div class="card-sub">${it.sub}</div>`;
   c.onclick=it.fn;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();it.fn();}};
   return c;
 }
@@ -376,8 +338,8 @@ function showMainMenu(){
   setTimeout(()=>{
     clearActions();
     const dash=document.createElement("div");dash.className="dash";
-    const cta=document.createElement("button");cta.type="button";cta.className="assistant-cta";
-    cta.innerHTML=`<span class="ac-ico" aria-hidden="true">🤖</span><span class="ac-txt"><span class="ac-ttl">${t("ask_helper")}</span><span class="ac-sub">${t("ask_helper_sub")}</span></span><span class="ac-arrow" aria-hidden="true">→</span>`;
+    const cta=document.createElement("button");cta.type="button";cta.className="asst-fab";
+    cta.innerHTML='<span class="fab-ico">🤖</span> '+t("ask_helper");
     cta.onclick=()=>{pushNav(showMainMenu);showTyping(showAssistant);};
     dash.appendChild(cta);
 
@@ -393,31 +355,26 @@ function showMainMenu(){
       {ico:"📍",ttl:t("menu_contacts"),sub:t("menu_contacts_sub"),cl:"ci-teal",fn:()=>{pushNav(showMainMenu);showTyping(showContacts);}},
       {ico:"❓",ttl:t("menu_faq"),sub:t("menu_faq_sub"),cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showFAQ);}},
       {ico:"🆘",ttl:t("menu_emergency"),sub:t("menu_emergency_sub"),cl:"ci-red",fn:()=>{pushNav(showMainMenu);showTyping(showEmergency);}},
-      {ico:"💬",ttl:"Написать оператору",sub:"Max, телефон, email",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showLiveChat);}}
+      {ico:"💬",ttl:"Написать оператору",sub:"Макс, телефон, email",cl:"ci-blue",fn:()=>{pushNav(showMainMenu);showTyping(showLiveChat);}}
     ],false));
 
     dash.appendChild(menuSection(t("sec_cabinet"),[
       {ico:"🛒",ttl:t("menu_cart"),sub:`${cart.reduce((s,i)=>s+i.qty,0)} услуг`,cl:"ci-teal",fn:openCart},
       {ico:"💬",ttl:t("menu_feedback"),sub:t("menu_feedback_sub"),cl:"ci-green",fn:()=>{pushNav(showMainMenu);showTyping(showFeedback);}},
-      {ico:"🍊",ttl:t("menu_moroshka"),sub:t("menu_moroshka_sub"),cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showMoroshkaInfo);}},
+      {ico:"moroshka",ttl:t("menu_moroshka"),sub:t("menu_moroshka_sub"),cl:"ci-gold",fn:()=>{pushNav(showMainMenu);showTyping(showMoroshkaInfo);}},
       {ico:"👤",ttl:t("menu_cabinet"),sub:t("menu_cabinet_sub"),cl:"ci-blue",fn:openProfile},
       {ico:"👨‍👩‍👦",ttl:"Профили",sub:"Переключить получателя",cl:"ci-green",fn:openProfileSwitcher},
       {ico:"📊",ttl:"Статистика",sub:"Популярные услуги",cl:"ci-teal",fn:showCartStats}
     ],true));
 
     actionsEl.appendChild(dash);
-    // Маленькая ссылка для админа — не видна как кнопка
     const adm=document.createElement("button");adm.type="button";adm.className="admin-link";
     adm.textContent="⚙️ Управление";adm.onclick=openAdmin;
     actionsEl.appendChild(adm);
-    // Онбординг при первом входе
     if(typeof showOnboarding==="function")showOnboarding();
   },200);
 }
 
-/* ═══════════════════════════════════════
-   SERVICES + SEARCH
-═══════════════════════════════════════ */
 function showServices(){
   clearActions();setNav(true);
   const cd=cityData[currentCity];
@@ -466,9 +423,6 @@ function showCategory(catId){
   },200);
 }
 
-/* ═══════════════════════════════════════
-   BOOKING  — исправленные слоты + выходные
-═══════════════════════════════════════ */
 function showBooking(){
   clearActions();setNav(true);
   const cd=cityData[currentCity];
@@ -491,7 +445,6 @@ function showBooking(){
 
     const dateInp=document.createElement("input");dateInp.type="date";dateInp.className="book-inp";
     dateInp.setAttribute("aria-label","Дата записи");
-    // Min = завтра, max = через 30 дней
     const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
     dateInp.min=tomorrow.toISOString().split("T")[0];
     const maxD=new Date(tomorrow);maxD.setDate(maxD.getDate()+30);
@@ -513,9 +466,7 @@ function showBooking(){
         notice.innerHTML="🚫 Центр не работает в субботу и воскресенье.<br>Пожалуйста, выберите рабочий день (пн–пт).";
         timeWrap.appendChild(notice);return;
       }
-      // Слоты: обед 12:30–13:30 занят (не включает 14:00)
       const slots=["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
-      // Индексы обеда: 6=12:30, 7=13:00, 8=13:30
       const lunchIdxs=new Set([6,7,8]);
       const g=document.createElement("div");g.className="time-grid";g.setAttribute("role","group");g.setAttribute("aria-label","Выберите время приёма");
       slots.forEach((sl,idx)=>{
@@ -542,14 +493,12 @@ function showBooking(){
     sendBtn.textContent="📧 Подтвердить запись";
     sendBtn.onclick=()=>{
       if(!selDept||!selSpec||!selDate||!selTime){showToast("⚠️ Заполните все поля");return;}
-      // Генерируем талон
       ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
       const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
       const spec=staffData.find(s=>s.name===selSpec);
       const cd2=cityData[currentCity]||cityData.gubkin;
       const body=`ЗАПИСЬ К СПЕЦИАЛИСТУ\nТалон: ${ticketNum}\nДата: ${selDate}, Время: ${selTime}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nОТДЕЛЕНИЕ: ${selDept}\nСПЕЦИАЛИСТ: ${selSpec}\nКОММЕНТАРИЙ: ${cInp.value||"—"}`;
       window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent(`Запись: ${clientName} на ${selDate} ${selTime} — ${ticketNum}`)}&body=${encodeURIComponent(body)}`;
-      // Сохраняем талон
       bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
       bookingsHistory.unshift({
         num:ticketNum,
@@ -559,7 +508,6 @@ function showBooking(){
         comment:cInp.value||""
       });
       localStorage.setItem("bookingsHistory",JSON.stringify(bookingsHistory));
-      // Сохранение в БД (если настроена); иначе тихо остаётся только localStorage
       window.GarmoniyaDB?.saveBooking({
         num:ticketNum, clientName, clientPhone, cityName:currentCityName,
         dept:selDept, spec:selSpec, visitDate:selDate, visitTime:selTime,
@@ -567,7 +515,6 @@ function showBooking(){
       });
       addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${selDate}</b> в <b>${selTime}</b><br>👤 ${selSpec}`,true);
       showToast("✅ Талон "+ticketNum+" сохранён!");
-      // Кнопка экспорта в календарь
       setTimeout(()=>{
         clearActions();
         const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
@@ -590,9 +537,6 @@ function showBooking(){
   },200);
 }
 
-/* ═══════════════════════════════════════
-   STAFF
-═══════════════════════════════════════ */
 function showStaff(){
   clearActions();setNav(true);
   const cd=cityData[currentCity];
@@ -629,9 +573,6 @@ function showDept(dept){
   },200);
 }
 
-/* ═══════════════════════════════════════
-   CONTACTS
-═══════════════════════════════════════ */
 function showContacts(){
   clearActions();setNav(true);
   addMsg(`📍 Контакты — <b>г. ${currentCityName}</b>`,true);
@@ -653,9 +594,6 @@ function showContacts(){
   },200);
 }
 
-/* ═══════════════════════════════════════
-   FAQ
-═══════════════════════════════════════ */
 function showFAQ(){
   clearActions();setNav(true);
   addMsg("❓ Часто задаваемые вопросы:",true);
@@ -671,9 +609,6 @@ function showFAQ(){
   },200);
 }
 
-/* ═══════════════════════════════════════
-   EMERGENCY
-═══════════════════════════════════════ */
 function showEmergency(){
   clearActions();setNav(true);
   addMsg("🆘 Экстренная психологическая помощь",true);
@@ -692,25 +627,19 @@ function showEmergency(){
   },200);
 }
 
-/* ═══════════════════════════════════════
-   MOROSHKA INFO
-═══════════════════════════════════════ */
 function showMoroshkaInfo(){
   clearActions();setNav(true);
-  addMsg("🍊 Карта «Морошка» — Единая карта жителя ЯНАО",true);
+  addMsg('<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Карта «Морошка» — Единая карта жителя ЯНАО',true);
   setTimeout(()=>{
     addMsg(`<b>Что даёт карта?</b><br>✅ Скидка ~5% на услуги центра<br>✅ Льготы в транспорте и торговле ЯНАО<br>✅ Привилегии в учреждениях региона<br><br><b>Как получить?</b><br>📍 В любом МФЦ ЯНАО<br>🌐 На портале «Госуслуги ЯНАО»<br>📞 МФЦ: 8-800-200-82-00 (бесплатно)<br><span class="note">Оформление бесплатно для жителей ЯНАО</span>`,true);
     const tog=document.createElement("button");tog.className="act-btn gold";
-    tog.innerHTML=hasMoroshka?"🍊 Морошка уже активирована ✓":"🍊 Активировать скидку";
-    if(!hasMoroshka){tog.onclick=()=>{hasMoroshka=true;localStorage.setItem("hasMoroshka","true");updateMToggle();addMsg("🍊 Льготные цены активированы!",true);showToast("🍊 Морошка ON");};}
+    tog.innerHTML=hasMoroshka?"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Морошка уже активирована ✓":"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Активировать скидку";
+    if(!hasMoroshka){tog.onclick=()=>{hasMoroshka=true;localStorage.setItem("hasMoroshka","true");updateMToggle();addMsg('<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Льготные цены активированы!',true);showToast("🍊 Морошка ON");};}
     else{tog.style.opacity="0.6";tog.disabled=true;}
     actionsEl.appendChild(tog);
   },200);
 }
 
-/* ═══════════════════════════════════════
-   FEEDBACK
-═══════════════════════════════════════ */
 function showFeedback(){
   clearActions();setNav(true);
   addMsg("💬 Обратная связь — нам важно ваше мнение!",true);
@@ -750,9 +679,6 @@ function showFeedback(){
   },200);
 }
 
-/* ═══════════════════════════════════════
-   CITY PLACEHOLDER
-═══════════════════════════════════════ */
 function showCityPlaceholder(section){
   const cd=cityData[currentCity]||cityData.gubkin;
   const ph=document.createElement("div");ph.className="city-ph";ph.setAttribute("role","status");
@@ -765,9 +691,6 @@ function showCityPlaceholder(section){
   actionsEl.appendChild(ph);actionsEl.appendChild(sw);
 }
 
-/* ═══════════════════════════════════════
-   PROFILE MODAL  — с историей и ВЫХОДОМ
-═══════════════════════════════════════ */
 function statusBadge(st){
   const map={new:["Принята","st-new"],progress:["В работе","st-prog"],done:["Выполнена","st-done"]};
   const v=map[st]||map.new;
@@ -796,7 +719,7 @@ function openProfile(){
   const docsHtml=`<div class="docs-list">
     <div class="doc-card" onclick="downloadDoc('application')"><div class="doc-ico">📄</div><div><div class="doc-name">Заявление на обслуживание</div><div class="doc-desc">Заявление на получение социальных услуг</div></div><span class="doc-dl">⬇</span></div>
     <div class="doc-card" onclick="downloadDoc('consent')"><div class="doc-ico">🔒</div><div><div class="doc-name">Согласие на обработку данных</div><div class="doc-desc">Согласие на обработку персональных данных (ФЗ-152)</div></div><span class="doc-dl">⬇</span></div>
-    <div class="doc-card" onclick="downloadDoc('moroshka')"><div class="doc-ico">🍊</div><div><div class="doc-name">Памятка «Морошка»</div><div class="doc-desc">Как оформить и использовать карту «Морошка»</div></div><span class="doc-dl">⬇</span></div>
+    <div class="doc-card" onclick="downloadDoc('moroshka')"><div class="doc-ico"><img src="img/moroshka-logo.jpg" class="moroshka-ico" alt=""></div><div><div class="doc-name">Памятка «Морошка»</div><div class="doc-desc">Как оформить и использовать карту «Морошка»</div></div><span class="doc-dl">⬇</span></div>
     <div class="doc-card" onclick="downloadDoc('rights')"><div class="doc-ico">📋</div><div><div class="doc-name">Права получателя услуг</div><div class="doc-desc">Перечень прав получателя социальных услуг</div></div><span class="doc-dl">⬇</span></div>
     <div class="doc-card" onclick="downloadDoc('complaint')"><div class="doc-ico">📝</div><div><div class="doc-name">Бланк жалобы / предложения</div><div class="doc-desc">Обращение в администрацию центра</div></div><span class="doc-dl">⬇</span></div>
   </div>`;
@@ -807,7 +730,7 @@ function openProfile(){
       <p><span class="lbl">Получатель:</span><span class="val">${clientName}</span></p>
       <p><span class="lbl">Телефон:</span><span class="val">${clientPhone}</span></p>
       <p><span class="lbl">СНИЛС:</span><span class="val">${clientSnils}</span></p>
-      <p style="margin-bottom:0"><span class="lbl">Морошка:</span><span class="val">${hasMoroshka?"🍊 Активна":"❌ Нет"}</span></p>
+      <p style="margin-bottom:0"><span class="lbl">Морошка:</span><span class="val">${hasMoroshka?"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Активна":"<img src=\"img/no-moroshka.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Нет карты"}</span></p>
     </div>
     <div class="history-tabs" role="tablist">
       <button class="h-tab active" id="tab-orders" role="tab" aria-selected="true" onclick="switchTab('orders',this)">🛒 <span class="htab-text">Заявки</span> (${oh.length})</button>
@@ -834,7 +757,6 @@ function switchTab(which,btn){
   });
 }
 
-/* ───────── ДОКУМЕНТЫ — генерация ───────── */
 function downloadDoc(type){
   const templates={
     application:`ЗАЯВЛЕНИЕ\nна предоставление социальных услуг\n\nВ ГБУ ЯНАО «ЦСОН Гармония»\nг. ${currentCityName}\n\nот ___________________________________\n(фамилия, имя, отчество)\n\nДата рождения: __.__.____\nАдрес: ___________________________________\nТелефон: ___________________________________\nСНИЛС: ___________________________________\n\nПрошу предоставить мне следующие социальные услуги:\n___________________________________\n___________________________________\n___________________________________\n\nС порядком и условиями предоставления услуг ознакомлен(а).\n\nДата: __.__.____\nПодпись: ___________`,
@@ -867,13 +789,8 @@ function doLogout(btn){
     location.reload();
 }
 
-/* ═══════════════════════════════════════
-   AUTH  — фиксированный логотип
-═══════════════════════════════════════ */
 function showAuth(){
-  // Убираем дублирующиеся overlays
   document.querySelectorAll(".auth-ovl").forEach(el=>el.remove());
-  // Проверяем сохранённые данные
   const n=localStorage.getItem("clientName"),ph=localStorage.getItem("clientPhone"),s=localStorage.getItem("clientSnils");
   if(n&&ph&&s){
     clientName=n;clientPhone=ph;clientSnils=s;
@@ -916,7 +833,6 @@ function showAuth(){
     localStorage.setItem("clientName",clientName);localStorage.setItem("clientPhone",clientPhone);localStorage.setItem("clientSnils",clientSnils);
     modal.remove();showWelcome();
   };
-  // Enter → следующее поле
   ni.addEventListener("keydown",e=>{if(e.key==="Enter")pi.focus();});
   pi.addEventListener("keydown",e=>{if(e.key==="Enter")si.focus();});
 }
@@ -925,9 +841,6 @@ function skipAuth(el){
   el.closest(".auth-ovl").remove();showWelcome();
 }
 
-/* ═══════════════════════════════════════
-   WELCOME / MOROSHKA
-═══════════════════════════════════════ */
 function showWelcome(){
   clearActions();navHistory=[];setNav(false);
   const saved=localStorage.getItem("hasMoroshka");
@@ -940,19 +853,16 @@ function showWelcome(){
       clearActions();
       const g=document.createElement("div");g.className="m-grid";
       const yes=document.createElement("button");yes.type="button";yes.className="m-card yes";yes.setAttribute("aria-label","Да, у меня есть карта Морошка");
-      yes.innerHTML='<span class="mi" aria-hidden="true">🍊</span><span>Да, есть карта</span>';
-      yes.onclick=()=>{hasMoroshka=true;localStorage.setItem("hasMoroshka","true");updateMToggle();addMsg("🍊 Льготные цены активированы!",true);showToast("🍊 Морошка активирована!");setTimeout(showMainMenu,400);};
+      yes.innerHTML='<img src="img/moroshka-logo.jpg" class="moroshka-ico-md" alt=""><span>Да, есть карта</span>';
+      yes.onclick=()=>{hasMoroshka=true;localStorage.setItem("hasMoroshka","true");updateMToggle();addMsg('<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Льготные цены активированы!',true);showToast("🍊 Морошка активирована!");setTimeout(showMainMenu,400);};
       const no=document.createElement("button");no.type="button";no.className="m-card no";no.setAttribute("aria-label","Нет, карты нет");
-      no.innerHTML='<span class="mi" aria-hidden="true">✨</span><span>Нет карты</span>';
+      no.innerHTML='<img src="img/no-moroshka.jpg" class="moroshka-ico-md" alt=""><span>Нет карты</span>';
       no.onclick=()=>{hasMoroshka=false;localStorage.setItem("hasMoroshka","false");updateMToggle();addMsg("Принято. Базовые цены.",true);setTimeout(showMainMenu,400);};
       g.appendChild(yes);g.appendChild(no);actionsEl.appendChild(g);
     },500);
   },500);
 }
 
-/* ═══════════════════════════════════════
-   CITY TABS
-═══════════════════════════════════════ */
 document.getElementById("cities").addEventListener("click",e=>{
   const btn=e.target.closest(".city-btn");if(!btn||btn.classList.contains("active"))return;
   document.querySelectorAll(".city-btn").forEach(b=>{b.classList.remove("active");b.setAttribute("aria-selected","false");});
@@ -967,16 +877,12 @@ document.getElementById("cities").addEventListener("click",e=>{
   showMainMenu();
 });
 
-/* ═══════════════════════════════════════
-   BOOT
-═══════════════════════════════════════ */
 updateBadge();
 updateHoursBanner();
 setInterval(updateHoursBanner,60000);
 initSearch();
 showAuth();
 
-/* Секретный вход в админку: 5 быстрых тапов по логотипу «Г» в шапке */
 (function(){
   let tapCount=0,tapTimer=null;
   const logo=document.querySelector(".hdr-logo");

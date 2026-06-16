@@ -1,9 +1,4 @@
-/* ═══════════════════════════════════════
-   EXTRAS — Размер шрифта, тёмная тема,
-   профили, календарь, статистика, языки
-═══════════════════════════════════════ */
 
-/* ───────── А+/А− РАЗМЕР ШРИФТА ───────── */
 const FONT_STEPS=[13,14.5,16,18,20];
 let fontIdx=parseInt(localStorage.getItem("fontIdx"))||1;
 function applyFontSize(){
@@ -17,7 +12,6 @@ function changeFontSize(dir){
 }
 applyFontSize();
 
-/* ───────── 🌙 ТЁМНАЯ ТЕМА ───────── */
 let darkMode=localStorage.getItem("darkMode")==="1";
 function applyTheme(){
   document.getElementById("shell")?.classList.toggle("dark",darkMode);
@@ -30,11 +24,10 @@ function toggleDarkTheme(){
   localStorage.setItem("darkMode",darkMode?"1":"0");
   applyTheme();
 }
-// Применяем при загрузке (после DOM ready)
+
 document.addEventListener("DOMContentLoaded",applyTheme);
 setTimeout(applyTheme,0);
 
-/* ───────── 👨‍👩‍👦 НЕСКОЛЬКО ПРОФИЛЕЙ ───────── */
 function getProfiles(){
   try{return JSON.parse(localStorage.getItem("profiles")||"[]");}catch(e){return [];}
 }
@@ -43,20 +36,19 @@ function getActiveProfileIdx(){return parseInt(localStorage.getItem("activeProfi
 
 function openProfileSwitcher(){
   const profiles=getProfiles();
+  const activeIdx=localStorage.getItem("activeProfile");
+  const isOnSub=activeIdx!==null;
   const ovl=document.createElement("div");ovl.className="mo";ovl.setAttribute("role","dialog");
   ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
-
-  let html=`<div class="mc"><h3>👨‍👩‍👦 Профили получателей</h3>
-    <div class="profile-hint">Переключайтесь между получателями, не выходя из системы. Например: вы оформляете услуги для мамы.</div>`;
-
-  // Текущий профиль
-  html+=`<div class="prof-card active-prof"><div class="prof-ico">👤</div><div><div class="prof-name">${clientName||"Текущий пользователь"}</div><div class="prof-sub">${clientPhone||""}</div></div><span class="prof-badge">Активен</span></div>`;
-
-  // Сохранённые профили
+  let mainName=clientName,mainPhone=clientPhone;
+  if(isOnSub){try{const m=JSON.parse(localStorage.getItem("mainProfile")||"null");if(m){mainName=m.name;mainPhone=m.phone;}}catch(e){}}
+  let html=`<div class="mc"><h3>Профили получателей</h3>
+    <div class="profile-hint">Переключайтесь между получателями, не выходя из системы.</div>`;
+  html+=`<div class="prof-card ${!isOnSub?"active-prof":""}" ${isOnSub?'onclick="restoreAndRefresh()"':''}><div class="prof-ico">👤</div><div><div class="prof-name">${mainName||"Основной"}</div><div class="prof-sub">${mainPhone||""} · Основной</div></div>${!isOnSub?'<span class="prof-badge">Активен</span>':'<span class="prof-badge" style="color:var(--teal)">Выбрать</span>'}</div>`;
   profiles.forEach((p,i)=>{
-    html+=`<div class="prof-card" onclick="activateProfile(${i})"><div class="prof-ico">${p.icon||"👤"}</div><div><div class="prof-name">${p.name}</div><div class="prof-sub">${p.phone||""} ${p.label?"· "+p.label:""}</div></div><button class="adm-del" onclick="event.stopPropagation();removeProfile(${i})" aria-label="Удалить">✕</button></div>`;
+    const isActive=isOnSub&&+activeIdx===i;
+    html+=`<div class="prof-card ${isActive?"active-prof":""}" ${!isActive?`onclick="activateProfile(${i})"`:""}><div class="prof-ico">${p.icon||"👤"}</div><div><div class="prof-name">${p.name}</div><div class="prof-sub">${p.phone||""} ${p.label?"· "+p.label:""}</div></div>${isActive?'<span class="prof-badge">Активен</span>':`<button class="adm-del" onclick="event.stopPropagation();removeProfile(${i})" aria-label="Удалить">✕</button>`}</div>`;
   });
-
   html+=`<button class="admin-btn" onclick="addProfileForm()">➕ Добавить получателя</button>
     <div id="profForm"></div>
     <button class="close-mo" onclick="this.closest('.mo').remove()">Закрыть</button></div>`;
@@ -64,63 +56,84 @@ function openProfileSwitcher(){
   document.body.appendChild(ovl);
 }
 
-function addProfileForm(){
-  const f=document.getElementById("profForm");if(!f)return;
-  f.innerHTML=`<div class="prof-form">
-    <label class="admin-lbl">Кем приходится</label>
-    <div class="prof-icons">${["👨 Папа","👩 Мама","👴 Дедушка","👵 Бабушка","👦 Сын","👧 Дочь","👤 Другое"].map(x=>{
-      const[ico,lbl]=x.split(" ");
-      return `<button type="button" class="prof-icon-btn" data-icon="${ico}" data-label="${lbl}" onclick="selectProfIcon(this)">${ico}<br><span>${lbl}</span></button>`;
-    }).join("")}</div>
-    <label class="admin-lbl">ФИО получателя</label>
-    <input class="admin-inp" id="profName" placeholder="Фамилия Имя Отчество">
-    <label class="admin-lbl">Телефон</label>
-    <input class="admin-inp" id="profPhone" placeholder="+7 (___) ___-__-__" inputmode="tel">
-    <label class="admin-lbl">СНИЛС</label>
-    <input class="admin-inp" id="profSnils" placeholder="000-000-000 00" inputmode="numeric">
-    <button class="admin-btn" onclick="saveNewProfile()">💾 Сохранить</button>
-  </div>`;
+function activateProfile(idx){
+  const profiles=getProfiles();
+  const p=profiles[idx];if(!p)return;
+  if(!localStorage.getItem("mainProfile")){
+    localStorage.setItem("mainProfile",JSON.stringify({name:clientName,phone:clientPhone,snils:clientSnils}));
+  }
+  clientName=p.name;clientPhone=p.phone||"";clientSnils=p.snils||"";
+  localStorage.setItem("clientName",clientName);
+  localStorage.setItem("clientPhone",clientPhone);
+  localStorage.setItem("clientSnils",clientSnils);
+  localStorage.setItem("activeProfile",String(idx));
+  showToast("👤 "+p.name);
+  document.querySelector(".mo")?.remove();
+  if(typeof showMainMenu==="function")setTimeout(showMainMenu,200);
 }
 
-let _profIcon="👤",_profLabel="";
+function restoreAndRefresh(){
+  restoreMainProfile();
+  document.querySelector(".mo")?.remove();
+  if(typeof showMainMenu==="function")setTimeout(showMainMenu,200);
+}
+
+function restoreMainProfile(){
+  try{
+    const m=JSON.parse(localStorage.getItem("mainProfile")||"null");
+    if(m){clientName=m.name;clientPhone=m.phone;clientSnils=m.snils||"";
+      localStorage.setItem("clientName",clientName);localStorage.setItem("clientPhone",clientPhone);localStorage.setItem("clientSnils",clientSnils);}
+  }catch(e){}
+  localStorage.removeItem("activeProfile");
+  localStorage.removeItem("mainProfile");
+}
+
+function addProfileForm(){
+  var f=document.getElementById("profForm");if(!f)return;
+  f.innerHTML='<div class="prof-form">'+
+    '<label class="admin-lbl">Кем приходится</label>'+
+    '<div class="prof-icons">'+
+    ["👨 Папа","👩 Мама","👴 Дедушка","👵 Бабушка","👦 Сын","👧 Дочь","👤 Другое"].map(function(x){
+      var parts=x.split(" ");
+      return '<button type="button" class="prof-icon-btn" data-icon="'+parts[0]+'" data-label="'+parts[1]+'" onclick="selectProfIcon(this)">'+parts[0]+'<br><span>'+parts[1]+'</span></button>';
+    }).join("")+
+    '</div>'+
+    '<label class="admin-lbl">ФИО получателя</label>'+
+    '<input class="admin-inp" id="profName" placeholder="Фамилия Имя Отчество">'+
+    '<label class="admin-lbl">Телефон</label>'+
+    '<input class="admin-inp" id="profPhone" placeholder="+7 (___) ___-__-__" inputmode="tel">'+
+    '<label class="admin-lbl">СНИЛС</label>'+
+    '<input class="admin-inp" id="profSnils" placeholder="000-000-000 00" inputmode="numeric">'+
+    '<button class="admin-btn" onclick="saveNewProfile()">Сохранить</button>'+
+    '</div>';
+}
+
+var _profIcon="👤",_profLabel="";
 function selectProfIcon(btn){
-  document.querySelectorAll(".prof-icon-btn").forEach(b=>b.classList.remove("sel"));
+  document.querySelectorAll(".prof-icon-btn").forEach(function(b){b.classList.remove("sel");});
   btn.classList.add("sel");
   _profIcon=btn.dataset.icon;
   _profLabel=btn.dataset.label;
 }
 
 function saveNewProfile(){
-  const name=document.getElementById("profName")?.value.trim();
-  const phone=document.getElementById("profPhone")?.value.trim();
-  const snils=document.getElementById("profSnils")?.value.trim();
-  if(!name){showToast("⚠️ Укажите ФИО");return;}
-  const profiles=getProfiles();
-  profiles.push({name,phone,snils,icon:_profIcon,label:_profLabel});
+  var nameEl=document.getElementById("profName");
+  var phoneEl=document.getElementById("profPhone");
+  var snilsEl=document.getElementById("profSnils");
+  var name=nameEl?nameEl.value.trim():"";
+  var phone=phoneEl?phoneEl.value.trim():"";
+  var snils=snilsEl?snilsEl.value.trim():"";
+  if(!name){showToast("Укажите ФИО");return;}
+  var profiles=getProfiles();
+  profiles.push({name:name,phone:phone,snils:snils,icon:_profIcon,label:_profLabel});
   saveProfiles(profiles);
-  showToast("✅ Профиль сохранён");
+  showToast("Профиль сохранён");
   document.querySelector(".mo")?.remove();
   openProfileSwitcher();
 }
 
-function activateProfile(idx){
-  const profiles=getProfiles();
-  const p=profiles[idx];if(!p)return;
-  // Сохраняем текущий как «основной» если ещё не сохранён
-  const main={name:clientName,phone:clientPhone,snils:clientSnils,icon:"👤",label:"Основной"};
-  localStorage.setItem("mainProfile",JSON.stringify(main));
-  // Переключаемся
-  clientName=p.name;clientPhone=p.phone||"";clientSnils=p.snils||"";
-  localStorage.setItem("clientName",clientName);
-  localStorage.setItem("clientPhone",clientPhone);
-  localStorage.setItem("clientSnils",clientSnils);
-  localStorage.setItem("activeProfile",String(idx));
-  showToast(`👤 Переключено на: ${p.name}`);
-  document.querySelector(".mo")?.remove();
-}
-
 function removeProfile(idx){
-  const profiles=getProfiles();
+  var profiles=getProfiles();
   profiles.splice(idx,1);
   saveProfiles(profiles);
   showToast("Профиль удалён");
@@ -128,20 +141,9 @@ function removeProfile(idx){
   openProfileSwitcher();
 }
 
-function restoreMainProfile(){
-  try{
-    const m=JSON.parse(localStorage.getItem("mainProfile")||"null");
-    if(m){clientName=m.name;clientPhone=m.phone;clientSnils=m.snils;
-      localStorage.setItem("clientName",clientName);localStorage.setItem("clientPhone",clientPhone);localStorage.setItem("clientSnils",clientSnils);}
-  }catch(e){}
-  localStorage.removeItem("activeProfile");
-  showToast("👤 Основной профиль");
-}
-
-/* ───────── 📅 ЭКСПОРТ В КАЛЕНДАРЬ (.ics) ───────── */
 function exportToCalendar(booking){
   if(!booking)return;
-  // Парсим дату: формат "ДД.ММ.ГГГГ" и время "ЧЧ:ММ"
+
   const dp=(booking.visitDate||"").split(".");
   const tp=(booking.visitTime||"09:00").split(":");
   let dt;
@@ -150,7 +152,7 @@ function exportToCalendar(booking){
   }else{
     dt=new Date();dt.setHours(9,0,0,0);dt.setDate(dt.getDate()+1);
   }
-  const end=new Date(dt.getTime()+60*60000); // +1 час
+  const end=new Date(dt.getTime()+60*60000);
   const fmt=d=>{
     const pad=n=>String(n).padStart(2,"0");
     return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"T"+pad(d.getHours())+pad(d.getMinutes())+"00";
@@ -173,7 +175,6 @@ function exportToCalendar(booking){
   showToast("📅 Добавлено в календарь");
 }
 
-/* ───────── 📊 СТАТИСТИКА КОРЗИНЫ ───────── */
 function trackCartAdd(name){
   try{
     const stats=JSON.parse(localStorage.getItem("cartStats")||"{}");
@@ -199,15 +200,10 @@ function showCartStats(){
     const pct=Math.round(count/maxVal*100);
     return `<div class="stat-row"><span class="stat-pos">${i+1}</span><div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%"></div><span class="stat-name">${name}</span></div><span class="stat-count">${count}×</span></div>`;
   }).join("");
-  modal.innerHTML=`<div class="mc"><h3>📊 Популярные услуги</h3><div class="stat-hint">Что чаще добавляют в корзину</div>${bars}<button class="close-mo" onclick="this.closest('.mo').remove()">Закрыть</button></div>`;
+  modal.innerHTML=`<div class="mc"><h3>📊 Популярные услуги</h3><div class="stat-hint">Что чаще добавляют в корзину на этом устройстве</div>${bars}<button class="close-mo" onclick="this.closest('.mo').remove()">Закрыть</button></div>`;
   document.body.appendChild(modal);
 }
 
-/* ───────── 🌐 МУЛЬТИЯЗЫЧНОСТЬ ─────────
-   Инфраструктура: ключи → переводы.
-   Русский и английский заполнены. Ненецкий и хантыйский —
-   заготовки с основными фразами (дополняет носитель языка).
-   ═══════════════════════════════════════ */
 const I18N={
   ru:{
     greeting_morning:"☀️ Доброе утро",greeting_day:"🌤 Добрый день",greeting_evening:"🌙 Добрый вечер",
@@ -305,21 +301,17 @@ function switchLang(lang){
   const sel=document.getElementById("langSel");
   if(sel)sel.value=lang;
   showToast("🌐 "+t("lang_name"));
-  // Перерисуем меню, если уже показано
+
   if(typeof showMainMenu==="function"&&document.querySelector(".dash")){
     showMainMenu();
   }
 }
 
-// Восстановить язык при загрузке
 document.addEventListener("DOMContentLoaded",()=>{
   const sel=document.getElementById("langSel");
   if(sel)sel.value=currentLang;
 });
 
-/* ═══════════════════════════════════════
-   ⭐ ОЦЕНКА УСЛУГ (после заявки/записи)
-═══════════════════════════════════════ */
 function showRating(context){
   setTimeout(()=>{
     const wrap=document.createElement("div");wrap.className="rating-card";
@@ -347,7 +339,7 @@ function showRating(context){
     });
     wrap.querySelector("#ratingSend").onclick=()=>{
       const comment=document.getElementById("ratingComment")?.value||"";
-      // Сохраняем в localStorage (с бэкендом — в БД)
+
       try{
         const ratings=JSON.parse(localStorage.getItem("ratings")||"[]");
         ratings.push({date:new Date().toISOString(),stars:selectedVal,comment,context});
@@ -364,33 +356,30 @@ function showRating(context){
   },800);
 }
 
-/* ═══════════════════════════════════════
-   🎄 СЕЗОННЫЕ ПОЗДРАВЛЕНИЯ
-═══════════════════════════════════════ */
 function getSeasonalGreeting(){
   const now=new Date(),d=now.getDate(),m=now.getMonth()+1;
-  // Новый год и Рождество (25 дек — 8 янв)
+
   if((m===12&&d>=25)||(m===1&&d<=8))
     return{emoji:"🎄",text:"С Новым годом и Рождеством! Желаем здоровья, тепла и благополучия вашей семье! 🎉"};
-  // 23 февраля
+
   if(m===2&&d>=22&&d<=24)
     return{emoji:"🎖️",text:"С Днём защитника Отечества! Мира, силы и здоровья! 💪"};
-  // 8 марта
+
   if(m===3&&d>=7&&d<=9)
     return{emoji:"💐",text:"С Международным женским днём! Красоты, радости и весеннего настроения! 🌷"};
-  // 9 мая — День Победы
+
   if(m===5&&d>=8&&d<=10)
     return{emoji:"🎗️",text:"С Днём Победы! Вечная память героям. Мирного неба над головой! 🕊️"};
-  // 1 июня — День защиты детей
+
   if(m===6&&d===1)
     return{emoji:"👶",text:"С Днём защиты детей! Пусть каждый ребёнок будет счастлив и любим! 🌈"};
-  // 1 октября — Международный день пожилых людей
+
   if(m===10&&d>=1&&d<=2)
     return{emoji:"🤍",text:"С Днём пожилого человека! Спасибо за мудрость и доброту. Здоровья и долгих лет! 🌿"};
-  // 3 декабря — Международный день инвалидов
+
   if(m===12&&d>=2&&d<=4)
     return{emoji:"💙",text:"С Международным днём людей с инвалидностью. Каждый человек достоин уважения и поддержки. 🤝"};
-  // День социального работника (8 июня)
+
   if(m===6&&d>=7&&d<=9)
     return{emoji:"❤️",text:"С Днём социального работника! Спасибо за ваш труд и заботу о людях! 🌟"};
   return null;
@@ -399,7 +388,7 @@ function getSeasonalGreeting(){
 function showSeasonalGreeting(){
   const g=getSeasonalGreeting();if(!g)return;
   const key="seasonal_"+new Date().toISOString().slice(0,10);
-  if(localStorage.getItem(key))return; // уже показывали сегодня
+  if(localStorage.getItem(key))return;
   localStorage.setItem(key,"1");
   setTimeout(()=>{
     if(typeof addMsg==="function"){
@@ -408,9 +397,6 @@ function showSeasonalGreeting(){
   },600);
 }
 
-/* ═══════════════════════════════════════
-   📖 ОНБОРДИНГ-ТУР (первый вход)
-═══════════════════════════════════════ */
 function showOnboarding(){
   if(localStorage.getItem("onboardingDone"))return;
   const steps=[
@@ -447,11 +433,6 @@ function showOnboarding(){
   document.body.appendChild(ovl);
 }
 
-/* ═══════════════════════════════════════
-   💬 НАПИСАТЬ ОПЕРАТОРУ
-   Мультиканальный выбор: WhatsApp, Telegram, email, телефон.
-   С бэкендом можно заменить на встроенный чат (Tawk.to / JivoChat / свой).
-═══════════════════════════════════════ */
 function showLiveChat(){
   if(typeof clearActions==="function")clearActions();
   if(typeof setNav==="function")setNav(true);
@@ -464,7 +445,7 @@ function showLiveChat(){
     const wrap=document.createElement("div");wrap.className="chat-channels";
     const channels=[
       {icon:"📞",name:"Позвонить",sub:cd.phone||"8(34936)2-70-77",action:`tel:+${phone}`,cl:"ch-phone"},
-      {icon:"💬",name:"MAX Мессенджер",sub:"Написать в Max",action:`https://max.ru/`,cl:"ch-vk"},
+      {icon:"💬",name:"Макс",sub:"Мессенджер max.ru",action:`https://max.ru/`,cl:"ch-max"},
       {icon:"📧",name:"Email",sub:email,action:`mailto:${email}?subject=${encodeURIComponent("Обращение из бота «Гармония»")}&body=${encodeURIComponent("Здравствуйте!\n\nИмя: "+(typeof clientName!=="undefined"?clientName:"")+"\nТелефон: "+(typeof clientPhone!=="undefined"?clientPhone:"")+"\n\nМой вопрос:\n")}`,cl:"ch-email"}
     ];
     channels.forEach(ch=>{

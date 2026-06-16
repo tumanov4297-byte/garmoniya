@@ -8,7 +8,6 @@
 
   let editCity="gubkin", editTab="contacts";
 
-  /* — Применение сохранённых правок при загрузке — */
   function applyOverrides(){
     let ov;try{ov=JSON.parse(localStorage.getItem("adminOverrides")||"null");}catch(e){ov=null;}
     if(!ov)return;
@@ -25,7 +24,6 @@
     if(ov.eventsData&&typeof eventsData!=="undefined"){eventsData.length=0;ov.eventsData.forEach(x=>eventsData.push(x));}
   }
 
-  /* — Сохранение всех правок — */
   function saveOverrides(){
     const ov={cityData:{},branchContent:{}};
     for(const c in cityData){
@@ -42,7 +40,6 @@
 
   function isAuthed(){return sessionStorage.getItem("adminAuthed")==="1";}
 
-  /* — Точка входа — */
   window.openAdmin=function(){
     document.querySelectorAll(".admin-ovl").forEach(e=>e.remove());
     const ovl=document.createElement("div");ovl.className="admin-ovl";ovl.setAttribute("role","dialog");ovl.setAttribute("aria-modal","true");
@@ -54,7 +51,7 @@
   function renderLogin(ovl){
     ovl.innerHTML=`<div class="admin-card">
       <h3>🔐 Вход для администратора</h3>
-      <div class="admin-warn">Внимание: это админпанель для редактирования</div>
+      <div class="admin-warn">Внимание: это клиентская админка. Правки сохраняются только в этом браузере. Для общих изменений нужен бэкенд.</div>
       <label class="admin-lbl">Email</label>
       <input class="admin-inp" id="admEmail" type="email" placeholder="email@yanao.ru" autocomplete="username">
       <label class="admin-lbl">Пароль</label>
@@ -80,7 +77,7 @@
         <h3>⚙️ Админпанель</h3>
         <button class="admin-x" id="admClose" aria-label="Закрыть">✕</button>
       </div>
-      <div class="admin-warn">Правки сохраняются.</div>
+      <div class="admin-warn">Правки сохраняются в этом браузере. Жмите «Экспорт JSON», чтобы передать изменения разработчику для постоянного сохранения.</div>
       <label class="admin-lbl">Филиал для редактирования</label>
       <select class="admin-inp" id="admCity">${Object.keys(CITY_NAMES).map(c=>`<option value="${c}" ${c===editCity?"selected":""}>${CITY_NAMES[c]}</option>`).join("")}</select>
       <div class="admin-tabs">${tabs.map(([k,l])=>`<button class="admin-tab ${k===editTab?"active":""}" data-tab="${k}">${l}</button>`).join("")}</div>
@@ -112,7 +109,6 @@
     else renderStaff(body);
   }
 
-  /* — КОНТАКТЫ — */
   function renderContacts(body){
     const cd=cityData[editCity];
     body.innerHTML=CONTACT_FIELDS.map(([f,l])=>
@@ -128,7 +124,6 @@
     };
   }
 
-  /* — УСЛУГИ — */
   function renderServices(body){
     const svc=branchContent[editCity].services;
     let html='<div class="adm-hint">Цена p — обычная, m — по «Морошке» (пусто = без скидки).</div>';
@@ -170,7 +165,6 @@
     body.querySelectorAll("[data-delitem]").forEach(b=>b.onclick=()=>{collect();const[ci,ii]=b.dataset.delitem.split("_").map(Number);svc[ci].items.splice(ii,1);saveOverrides();renderServices(body);});
   }
 
-  /* — СОТРУДНИКИ — */
   function renderStaff(body){
     const staff=branchContent[editCity].staff;
     const F=[["dept","Отделение"],["name","ФИО"],["pos","Должность"],["ext","Доб."],["email","Email"]];
@@ -194,7 +188,6 @@
     body.querySelectorAll("[data-delst]").forEach(b=>b.onclick=()=>{collect();staff.splice(+b.dataset.delst,1);saveOverrides();renderStaff(body);});
   }
 
-  /* — НОВОСТИ И МЕРОПРИЯТИЯ — */
   function renderNews(body){
     const TAGS=["Новость","Анонс","Мероприятие","Важно"];
     let html='<div class="adm-hint">Новости видят все пользователи бота. Тег определяет цвет метки.</div>';
@@ -252,7 +245,6 @@
     body.querySelectorAll("[data-delevt]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();eventsData.splice(+b.dataset.delevt,1);saveOverrides();renderNews(body);});
   }
 
-  // Обновить активные данные текущего города, если редактировали его
   function refreshActive(){
     if(typeof currentCity!=="undefined"){
       servicesData=branchContent[currentCity].services;
@@ -260,7 +252,6 @@
     }
   }
 
-  /* — ЭКСПОРТ / ИМПОРТ — */
   function exportJSON(){
     saveOverrides();
     const data=localStorage.getItem("adminOverrides")||"{}";
@@ -284,6 +275,5 @@
     r.readAsText(file);
   }
 
-  // Применяем сохранённые правки сразу при загрузке скрипта
   applyOverrides();
 })();
