@@ -51,7 +51,7 @@
   function renderLogin(ovl){
     ovl.innerHTML=`<div class="admin-card">
       <h3>🔐 Вход для администратора</h3>
-      <div class="admin-warn">Внимание:Данная функция только для администратора.</div>
+      <div class="admin-warn">Внимание: вход только администратору</div>
       <label class="admin-lbl">Email</label>
       <input class="admin-inp" id="admEmail" type="email" placeholder="email@yanao.ru" autocomplete="username">
       <label class="admin-lbl">Пароль</label>
@@ -77,7 +77,7 @@
         <h3>⚙️ Админпанель</h3>
         <button class="admin-x" id="admClose" aria-label="Закрыть">✕</button>
       </div>
-      <div class="admin-warn">Правки сохраняются.</div>
+      <div class="admin-warn">Правки сохраняются в этом браузере. Жмите «Экспорт JSON», чтобы передать изменения разработчику для постоянного сохранения.</div>
       <label class="admin-lbl">Филиал для редактирования</label>
       <select class="admin-inp" id="admCity">${Object.keys(CITY_NAMES).map(c=>`<option value="${c}" ${c===editCity?"selected":""}>${CITY_NAMES[c]}</option>`).join("")}</select>
       <div class="admin-tabs">${tabs.map(([k,l])=>`<button class="admin-tab ${k===editTab?"active":""}" data-tab="${k}">${l}</button>`).join("")}</div>

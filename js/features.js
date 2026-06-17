@@ -291,7 +291,7 @@ function showEligibility(){
 }
 
 function esiaLogin(){
-  showToast("🔐 Вход через Госуслуги появится после подключения сервера");
+  showToast("🔐 В разработке!");
 
 }
 
