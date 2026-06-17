@@ -51,7 +51,7 @@
   function renderLogin(ovl){
     ovl.innerHTML=`<div class="admin-card">
       <h3>🔐 Вход для администратора</h3>
-      <div class="admin-warn">Внимание: вход только администратору</div>
+      <div class="admin-warn">Внимание: это клиентская админка. Правки сохраняются только в этом браузере. Для общих изменений нужен бэкенд.</div>
       <label class="admin-lbl">Email</label>
       <input class="admin-inp" id="admEmail" type="email" placeholder="email@yanao.ru" autocomplete="username">
       <label class="admin-lbl">Пароль</label>

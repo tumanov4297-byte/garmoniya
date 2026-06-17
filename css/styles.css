@@ -114,7 +114,7 @@ body{font-family:'Inter',sans-serif;font-size:var(--fz-base);background:linear-g
 @keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-6px);}}
 
 /* ACTIONS */
-.actions{flex-shrink:0;padding:10px 12px 4px;background:rgba(255,255,255,0.99);border-top:1px solid var(--border);max-height:38vh;overflow-y:auto;overflow-x:hidden;position:relative;}
+.actions{flex-shrink:0;padding:10px 12px 4px;background:rgba(255,255,255,0.99);border-top:1px solid var(--border);max-height:38vh;overflow-y:auto;position:relative;}
 .actions::-webkit-scrollbar{width:4px;}
 .actions::-webkit-scrollbar-thumb{background:rgba(27,133,133,0.12);border-radius:3px;}
 
@@ -130,7 +130,7 @@ body{font-family:'Inter',sans-serif;font-size:var(--fz-base);background:linear-g
 /* CARDS GRID */
 .dash{display:flex;flex-direction:column;gap:8px;padding:2px 0;overflow:hidden;width:100%;box-sizing:border-box;}
 .sec-title{font-size:11px;font-weight:800;color:var(--text-tertiary);letter-spacing:1px;margin-bottom:10px;text-transform:uppercase;padding-left:2px;}
-.cards{display:flex;flex-direction:row;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 2px 8px;scrollbar-width:none;}
+.cards{display:flex;flex-direction:row;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 12px 8px;margin:0 -12px;scrollbar-width:none;}
 .cards::-webkit-scrollbar{display:none;}
 .card{background:white;border-radius:var(--r-lg);padding:18px 13px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;cursor:pointer;transition:all 0.28s cubic-bezier(0.34,1.2,0.64,1);border:1.5px solid var(--border);min-height:110px;}
 .card:hover{transform:translateY(-5px);border-color:rgba(27,133,133,0.3);box-shadow:var(--shadow-lg);}
@@ -352,8 +352,9 @@ body{font-family:'Inter',sans-serif;font-size:var(--fz-base);background:linear-g
 .sec-title:hover{color:var(--teal);}
 .sec-chev{font-size:17px;transition:transform 0.3s ease;line-height:1;}
 .sec.collapsed .sec-chev{transform:rotate(-90deg);}
-.sec .cards{overflow:hidden;max-height:1600px;opacity:1;transition:max-height 0.35s ease,opacity 0.25s ease;}
-.sec.collapsed .cards{max-height:0;opacity:0;}
+.sec .cards{overflow-x:auto;overflow-y:hidden;max-height:200px;opacity:1;transition:max-height 0.35s ease,opacity 0.25s ease;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.sec .cards::-webkit-scrollbar{display:none;}
+.sec.collapsed .cards{max-height:0;opacity:0;overflow:hidden;padding:0;}
 
 /* — Выделенная кнопка помощника — */
 .assistant-cta{display:flex;align-items:center;gap:13px;width:100%;text-align:left;cursor:pointer;border:none;padding:15px 16px;border-radius:var(--r-lg);background:linear-gradient(135deg,var(--teal),var(--teal-mid));color:#fff;box-shadow:0 8px 24px var(--teal-glow);transition:transform 0.2s,filter 0.2s;font-family:inherit;}
@@ -770,7 +771,7 @@ body{font-family:'Inter',sans-serif;font-size:var(--fz-base);background:linear-g
 .card .card-ico{width:40px;height:40px;border-radius:12px;font-size:20px;}
 .card .card-ttl{font-size:11px;line-height:1.2;}
 .card .card-sub{font-size:9.5px;line-height:1.2;opacity:0.6;}
-.sec .cards{max-height:none;opacity:1;}
+.sec .cards{overflow-x:auto;overflow-y:hidden;}
 .sec.collapsed .cards{max-height:0;opacity:0;overflow:hidden;padding:0;}
 
 .cab-actions{display:flex;gap:6px;margin:10px 0;}
@@ -790,3 +791,9 @@ body{font-family:'Inter',sans-serif;font-size:var(--fz-base);background:linear-g
 .dark .set-row{border-color:rgba(255,255,255,0.04);}
 .dark .set-row span{color:#d0d8e8;}
 .dark .set-btn{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.08);color:#8899bb;}
+
+.dash{position:relative;}
+.sec{position:relative;}
+.sec::after{content:"";position:absolute;right:0;top:0;bottom:0;width:24px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9));pointer-events:none;z-index:1;opacity:0.7;}
+.sec.collapsed::after{display:none;}
+.dark .sec::after{background:linear-gradient(90deg,transparent,rgba(26,26,46,0.9));}
