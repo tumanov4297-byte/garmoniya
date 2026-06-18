@@ -10,10 +10,19 @@ const badgeEl=document.getElementById("cartBadge");
 let ticketCounter=parseInt(localStorage.getItem("ticketCounter")||"100");
 
 function addMsg(html,isBot=true){
-  const r=document.createElement("div");r.className="msg-row "+(isBot?"bot":"usr");
+  const r=document.createElement("div");r.className="msg-row "+(isBot?"bot":"usr")+" msg-enter";
+  if(isBot){
+    const av=document.createElement("div");av.className="msg-avatar";
+    av.innerHTML='<img src="img/bot-avatar.jpg" alt="" class="av-img">';
+    r.appendChild(av);
+  }
   const b=document.createElement("div");b.className="bubble "+(isBot?"bot":"usr");
-  b.innerHTML=html;r.appendChild(b);chatEl.appendChild(r);
-  setTimeout(()=>chatEl.scrollTo({top:chatEl.scrollHeight,behavior:"smooth"}),50);
+  b.innerHTML=html;
+  const tm=document.createElement("span");tm.className="msg-time";
+  var now=new Date();tm.textContent=(now.getHours()<10?"0":"")+now.getHours()+":"+(now.getMinutes()<10?"0":"")+now.getMinutes();
+  b.appendChild(tm);
+  r.appendChild(b);chatEl.appendChild(r);
+  setTimeout(()=>{r.classList.remove("msg-enter");chatEl.scrollTo({top:chatEl.scrollHeight,behavior:"smooth"});},30);
 }
 function clearActions(){actionsEl.innerHTML="";}
 function showTyping(cb,delay=360){
@@ -109,6 +118,8 @@ function addToCart(id,name,price,btn,base,mor){
   if(btn){btn.classList.add("added");btn.textContent="✓";btn.setAttribute("aria-label","Добавлено");
     setTimeout(()=>{btn.classList.remove("added");btn.textContent="+";btn.setAttribute("aria-label","Добавить в корзину");},900);}
   showToast("✅ Добавлено в корзину");
+  var cartBtn=document.querySelector(".icb-wrap .icb");
+  if(cartBtn){cartBtn.classList.add("cart-pulse");setTimeout(function(){cartBtn.classList.remove("cart-pulse");},600);}
 }
 function chgQty(id,d){
   const it=cart.find(i=>i.id===id);if(!it)return;
@@ -358,45 +369,63 @@ function menuSection(title,items,collapsed){
 function showMainMenu(){
   document.getElementById("searchBar").classList.add("gone");
   clearActions();navHistory=[];setNav(false);currentSvcList=null;currentCatId=null;
-  addMsg(greeting()+', <b>'+clientName+'</b>! '+t("how_help"),true);
   if(typeof showSeasonalGreeting==="function")showSeasonalGreeting();
+  var gr=greeting();
+  var menuHtml='<div class="menu-hero">'+
+    '<div class="hero-greet"><span class="hero-wave">'+gr.split(" ")[0]+'</span> '+gr.split(" ").slice(1).join(" ")+',<br><b>'+clientName+'</b><br><span class="hero-sub">'+t("how_help")+'</span></div>'+
+    '</div>'+
+    '<div class="hero-cards">'+
+    '<button class="hc hc-white" data-act="assistant"><img src="img/bot-avatar.jpg" class="hc-ava"> '+t("ask_helper")+'<span class="hc-arr">\u2192</span></button>'+
+    '<button class="hc hc-teal" data-act="services"><span class="hc-ico">\ud83d\udccb</span><div><b>'+t("menu_services")+'</b><br><span>'+t("menu_services_sub")+'</span></div><span class="hc-arr">\u2192</span></button>'+
+    '<button class="hc hc-dark" data-act="booking"><span class="hc-ico">\ud83d\udcdd</span><div><b>'+t("menu_booking")+'</b><br><span>'+t("menu_booking_sub")+'</span></div><span class="hc-arr">\u2192</span></button>'+
+    '</div>'+
+    '<div class="menu-section-title">'+t("sec_services")+'</div>'+
+    '<div class="menu-grid">'+
+    '<button class="mg-card" data-act="calc"><span class="mg-ico ci-green">\ud83e\uddee</span><b>'+t("menu_calc")+'</b><span class="mg-sub">'+t("menu_calc_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="homeWorker"><span class="mg-ico ci-gold">\ud83c\udfe0</span><b>'+t("menu_home_worker")+'</b><span class="mg-sub">'+t("menu_home_worker_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="callback"><span class="mg-ico ci-teal">\ud83d\udcde</span><b>'+t("menu_callback")+'</b><span class="mg-sub">'+t("menu_callback_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="events"><span class="mg-ico ci-blue">\ud83c\udf9f\ufe0f</span><b>'+t("menu_events")+'</b><span class="mg-sub">'+t("menu_events_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="news"><span class="mg-ico ci-blue">\ud83d\udcf0</span><b>'+t("menu_news")+'</b><span class="mg-sub">'+t("menu_news_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="staff"><span class="mg-ico ci-green">\ud83d\udc65</span><b>'+t("menu_staff")+'</b><span class="mg-sub">'+t("menu_staff_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="contacts"><span class="mg-ico ci-teal">\ud83d\udccd</span><b>'+t("menu_contacts")+'</b><span class="mg-sub">'+t("menu_contacts_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="faq"><span class="mg-ico ci-blue">\u2753</span><b>'+t("menu_faq")+'</b><span class="mg-sub">'+t("menu_faq_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="emergency"><span class="mg-ico ci-red">\ud83c\udd98</span><b>'+t("menu_emergency")+'</b><span class="mg-sub">'+t("menu_emergency_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="liveChat"><span class="mg-ico ci-blue">\ud83d\udcac</span><b>\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440</b><span class="mg-sub">\u041c\u0430\u043a\u0441, \u0442\u0435\u043b\u0435\u0444\u043e\u043d</span></button>'+
+    '</div>'+
+    '<div class="menu-section-title">'+t("sec_cabinet")+'</div>'+
+    '<div class="menu-grid">'+
+    '<button class="mg-card" data-act="cart"><span class="mg-ico ci-gold">\ud83d\uded2</span><b>'+t("menu_cart")+'</b><span class="mg-sub">'+cart.reduce(function(s,i){return s+i.qty;},0)+' \u0443\u0441\u043b\u0443\u0433</span></button>'+
+    '<button class="mg-card" data-act="moroshka"><span class="mg-ico ci-gold"><img src="img/moroshka-logo.jpg" class="moroshka-ico-card"></span><b>'+t("menu_moroshka")+'</b><span class="mg-sub">'+t("menu_moroshka_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="cabinet"><span class="mg-ico ci-blue">\ud83d\udc64</span><b>'+t("menu_cabinet")+'</b><span class="mg-sub">'+t("menu_cabinet_sub")+'</span></button>'+
+    '<button class="mg-card" data-act="feedback"><span class="mg-ico ci-green">\ud83d\udcac</span><b>'+t("menu_feedback")+'</b><span class="mg-sub">'+t("menu_feedback_sub")+'</span></button>'+
+    '</div>';
+  addMsg(menuHtml,true);
+  var actions={
+    assistant:function(){pushNav(showMainMenu);showTyping(showAssistant);},
+    services:function(){pushNav(showMainMenu);showTyping(showServices);},
+    booking:function(){pushNav(showMainMenu);showTyping(showBooking);},
+    calc:function(){pushNav(showMainMenu);showTyping(showEligibility);},
+    homeWorker:function(){pushNav(showMainMenu);showTyping(showHomeWorker);},
+    callback:function(){pushNav(showMainMenu);showTyping(showCallback);},
+    events:function(){pushNav(showMainMenu);showTyping(showEvents);},
+    news:function(){pushNav(showMainMenu);showTyping(showNews);},
+    staff:function(){pushNav(showMainMenu);showTyping(showStaff);},
+    contacts:function(){pushNav(showMainMenu);showTyping(showContacts);},
+    faq:function(){pushNav(showMainMenu);showTyping(showFAQ);},
+    emergency:function(){pushNav(showMainMenu);showTyping(showEmergency);},
+    liveChat:function(){pushNav(showMainMenu);showTyping(showLiveChat);},
+    cart:function(){openCart();},
+    moroshka:function(){pushNav(showMainMenu);showTyping(showMoroshkaInfo);},
+    cabinet:function(){openProfile();},
+    feedback:function(){pushNav(showMainMenu);showTyping(showFeedback);}
+  };
   setTimeout(function(){
-    clearActions();
-    var dash=document.createElement("div");dash.className="dash";
-
-    var cta=document.createElement("button");cta.type="button";cta.className="asst-fab";
-    cta.innerHTML='<span class="fab-ico">🤖</span> '+t("ask_helper");
-    cta.onclick=function(){pushNav(showMainMenu);showTyping(showAssistant);};
-    dash.appendChild(cta);
-
-    dash.appendChild(menuSection(t("sec_services"),[
-      {ico:"📋",ttl:t("menu_services"),sub:t("menu_services_sub"),cl:"ci-teal",fn:function(){pushNav(showMainMenu);showTyping(showServices);}},
-      {ico:"📝",ttl:t("menu_booking"),sub:t("menu_booking_sub"),cl:"ci-gold",fn:function(){pushNav(showMainMenu);showTyping(showBooking);}},
-      {ico:"🧮",ttl:t("menu_calc"),sub:t("menu_calc_sub"),cl:"ci-green",fn:function(){pushNav(showMainMenu);showTyping(showEligibility);}},
-      {ico:"🏠",ttl:t("menu_home_worker"),sub:t("menu_home_worker_sub"),cl:"ci-teal",fn:function(){pushNav(showMainMenu);showTyping(showHomeWorker);}},
-      {ico:"📞",ttl:t("menu_callback"),sub:t("menu_callback_sub"),cl:"ci-gold",fn:function(){pushNav(showMainMenu);showTyping(showCallback);}},
-      {ico:"🎟️",ttl:t("menu_events"),sub:t("menu_events_sub"),cl:"ci-blue",fn:function(){pushNav(showMainMenu);showTyping(showEvents);}},
-      {ico:"📰",ttl:t("menu_news"),sub:t("menu_news_sub"),cl:"ci-blue",fn:function(){pushNav(showMainMenu);showTyping(showNews);}},
-      {ico:"👥",ttl:t("menu_staff"),sub:t("menu_staff_sub"),cl:"ci-green",fn:function(){pushNav(showMainMenu);showTyping(showStaff);}},
-      {ico:"📍",ttl:t("menu_contacts"),sub:t("menu_contacts_sub"),cl:"ci-teal",fn:function(){pushNav(showMainMenu);showTyping(showContacts);}},
-      {ico:"❓",ttl:t("menu_faq"),sub:t("menu_faq_sub"),cl:"ci-blue",fn:function(){pushNav(showMainMenu);showTyping(showFAQ);}},
-      {ico:"🆘",ttl:t("menu_emergency"),sub:t("menu_emergency_sub"),cl:"ci-red",fn:function(){pushNav(showMainMenu);showTyping(showEmergency);}},
-      {ico:"💬",ttl:"Оператор",sub:"Макс, телефон",cl:"ci-blue",fn:function(){pushNav(showMainMenu);showTyping(showLiveChat);}}
-    ],false));
-
-    dash.appendChild(menuSection(t("sec_cabinet"),[
-      {ico:"🛒",ttl:t("menu_cart"),sub:cart.reduce(function(s,i){return s+i.qty;},0)+" услуг",cl:"ci-teal",fn:openCart},
-      {ico:"💬",ttl:t("menu_feedback"),sub:t("menu_feedback_sub"),cl:"ci-green",fn:function(){pushNav(showMainMenu);showTyping(showFeedback);}},
-      {ico:"moroshka",ttl:t("menu_moroshka"),sub:t("menu_moroshka_sub"),cl:"ci-gold",fn:function(){pushNav(showMainMenu);showTyping(showMoroshkaInfo);}},
-      {ico:"👤",ttl:t("menu_cabinet"),sub:t("menu_cabinet_sub"),cl:"ci-blue",fn:openProfile},
-      {ico:"👨‍👩‍👦",ttl:"Профили",sub:"Получатели",cl:"ci-green",fn:openProfileSwitcher},
-      {ico:"📊",ttl:"Статистика",sub:"Популярные",cl:"ci-teal",fn:showCartStats}
-    ],true));
-
-    actionsEl.appendChild(dash);
-
+    document.querySelectorAll("[data-act]").forEach(function(btn){
+      var act=btn.dataset.act;
+      if(actions[act])btn.onclick=function(){actions[act]();};
+    });
     if(typeof showOnboarding==="function")showOnboarding();
-  },200);
+  },50);
 }
 
 function showServices(){
@@ -701,17 +730,17 @@ function openProfile(){
   const fav=JSON.parse(localStorage.getItem("favorites")||"[]");
 
   const ordersHtml=oh.length===0
-    ?'<div class="hist-empty">📭 Нет заявок</div>'
+    ?'<div class="hist-empty"><div class="empty-ico">📭</div><div class="empty-title">Нет заявок</div><div class="empty-sub">Добавьте услуги из прейскуранта и оформите первую заявку</div></div>'
     :oh.map((o,i)=>`<div class="history-item"><div class="h-item-top"><span class="h-item-dt">📅 ${o.date}</span>${statusBadge(o.status)}</div><div class="h-item-title">${o.num?o.num+" — ":""}Сумма: ${o.sum} ₽</div><div class="h-item-detail">${o.items}</div>${o.itemsRaw?`<button class="h-act" onclick="repeatOrder(${i})">🔁 Повторить заявку</button>`:""}</div>`).join("")
     +(oh.length?`<button class="h-act-clear" data-clear-orders onclick="clearAllOrders()">🗑 Очистить список заявок</button>`:"");
 
   const bookingsHtml=bh.length===0
-    ?'<div class="hist-empty">📭 Нет записей</div>'
+    ?'<div class="hist-empty"><div class="empty-ico">📋</div><div class="empty-title">Нет записей</div><div class="empty-sub">Запишитесь к специалисту через раздел «Записаться»</div></div>'
     :bh.map((b,i)=>`<div class="history-item booking-item"><div class="h-item-dt">📋 Талон ${b.num} — оформлен ${b.date}</div><div class="h-item-title">${b.spec}</div><div class="h-item-detail">📅 ${b.visitDate} в ${b.visitTime}<br>${b.dept}</div><div class="h-act-row"><button class="h-act" onclick="exportToCalendar(JSON.parse(localStorage.getItem('bookingsHistory'))[${i}])">📅 В календарь</button><button class="h-act danger" data-cancel-idx="${i}" onclick="cancelBooking(${i})">✕ Отменить</button></div></div>`).join("")
     +(bh.length?`<button class="h-act-clear" data-clear-all onclick="clearAllBookings()">🗑 Очистить список записей</button>`:"");
 
   const favHtml=fav.length===0
-    ?'<div class="hist-empty">⭐ Нет избранных услуг<br><span style="font-size:13px;color:#8AA0A0;">Нажмите ★ у услуги в прейскуранте</span></div>'
+    ?'<div class="hist-empty"><div class="empty-ico">⭐</div><div class="empty-title">Нет избранных</div><div class="empty-sub">Нажмите ★ у любой услуги в прейскуранте</div></div>'
     :fav.map(f=>`<div class="history-item"><div class="h-item-title">${f.n}</div><div class="h-item-detail">${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString()} ₽</div><button class="h-act" onclick="addFavToCart('${f.id}')">🛒 В корзину</button></div>`).join("");
 
   const docsHtml=`<div class="docs-list">
@@ -854,7 +883,7 @@ function showAuth(){
     <button class="auth-esia" type="button" onclick="esiaLogin()" aria-label="Войти через Госуслуги">
       <img src="img/gosuslugi.jpg" alt="Госуслуги" class="esia-logo"> Войти через Госуслуги
     </button>
-    <button class="auth-skip" onclick="skipAuth(this)">Пропустить (ограниченный режим)</button>
+    <button class="auth-skip" onclick="skipAuth(this)">Войти как Гость</button>
   </div>`;
   document.body.appendChild(modal);
   const ni=modal.querySelector("#aName"),pi=modal.querySelector("#aPhone"),cb=modal.querySelector("#aCb"),btn=modal.querySelector("#aBtn");
@@ -915,6 +944,28 @@ updateHoursBanner();
 setInterval(updateHoursBanner,60000);
 initSearch();
 showAuth();
+
+(function(){
+  var startY=0,pulling=false;
+  var chat=document.getElementById("chat");
+  chat.addEventListener("touchstart",function(e){
+    if(chat.scrollTop<=0)startY=e.touches[0].clientY;
+  },{passive:true});
+  chat.addEventListener("touchmove",function(e){
+    if(chat.scrollTop<=0&&e.touches[0].clientY-startY>60&&!pulling){
+      pulling=true;
+      chat.classList.add("ptr-active");
+    }
+  },{passive:true});
+  chat.addEventListener("touchend",function(){
+    if(pulling){
+      pulling=false;
+      chat.classList.remove("ptr-active");
+      if(navHistory.length===0)showMainMenu();
+      else goBack();
+    }
+  });
+})();
 
 (function(){
   let tapCount=0,tapTimer=null;

@@ -291,7 +291,7 @@ function showEligibility(){
 }
 
 function esiaLogin(){
-  showToast("🔐 Скоро!");
+  showToast("🔐 Скоро...");
 
 }
 
