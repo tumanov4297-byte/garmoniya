@@ -39,6 +39,7 @@ function showToast(msg,dur=2800){
 function setNav(showBack){document.getElementById("backBtn").classList.toggle("gone",!showBack);}
 function pushNav(fn){navHistory.push(fn);}
 function goBack(){if(navHistory.length>0){const fn=navHistory.pop();fn();}}
+  hideFloatBar();
 
 function updateHoursBanner(){
   const b=document.getElementById("hoursBanner");
@@ -93,6 +94,8 @@ function toggleMoroshka(){
   if(hasMoroshka===null)return;
   hasMoroshka=!hasMoroshka;localStorage.setItem("hasMoroshka",String(hasMoroshka));
   updateMToggle();updateSvcPrices();
+  cart.forEach(function(item){if(hasMoroshka&&item.mor!=null)item.price=item.mor;else if(item.base!=null)item.price=item.base;});
+  saveCart();renderCart();
   addMsg(hasMoroshka?'<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Морошка включена — льготные цены активированы!':'<img src="img/no-moroshka.jpg" class="moroshka-ico-sm" alt=""> Морошка отключена. Базовые цены.',true);
   showToast(hasMoroshka?"🍊 Морошка ON":"❌ Морошка OFF");
 }
@@ -114,7 +117,7 @@ function addToCart(id,name,price,btn,base,mor){
   const ex=cart.find(i=>i.id===id);
   if(ex)ex.qty++;else cart.push({id,name,price,qty:1,base:(base!==undefined?base:price),mor:(mor!==undefined?mor:null)});
   if(typeof trackCartAdd==="function")trackCartAdd(name);
-  saveCart();updateBadge();renderCart();
+  saveCart();updateBadge();renderCart();updateFloatBar();
   if(btn){btn.classList.add("added");btn.textContent="✓";btn.setAttribute("aria-label","Добавлено");
     setTimeout(()=>{btn.classList.remove("added");btn.textContent="+";btn.setAttribute("aria-label","Добавить в корзину");},900);}
   showToast("✅ Добавлено в корзину");
@@ -125,11 +128,11 @@ function chgQty(id,d){
   const it=cart.find(i=>i.id===id);if(!it)return;
   it.qty=Math.max(0,it.qty+d);
   if(it.qty===0)cart=cart.filter(i=>i.id!==id);
-  saveCart();updateBadge();renderCart();
+  saveCart();updateBadge();renderCart();updateFloatBar();
 }
 function openCart(){document.getElementById("cartPanel").classList.add("open");renderCart();}
 function closeCart(){document.getElementById("cartPanel").classList.remove("open");}
-function clearCart(){cart=[];saveCart();updateBadge();renderCart();closeCart();}
+function clearCart(){cart=[];saveCart();updateBadge();renderCart();updateFloatBar();closeCart();}
 
 let favorites=JSON.parse(localStorage.getItem("favorites")||"[]");
 function saveFav(){localStorage.setItem("favorites",JSON.stringify(favorites));}
@@ -295,7 +298,7 @@ function doSendOrder(){
     clientName, clientPhone, cityName:currentCityName, moroshka:hasMoroshka, total,
     items:cart.map(i=>({name:i.name,qty:i.qty,price:i.price}))
   });
-  cart=[];saveCart();updateBadge();renderCart();closeCart();
+  cart=[];saveCart();updateBadge();renderCart();updateFloatBar();closeCart();
   addMsg("✅ Почтовый клиент открыт. Нажмите «Отправить» — заявка уйдёт специалисту!",true);
   showToast("✅ Заявка сформирована!");
   if(typeof showRating==="function")showRating("order");
@@ -367,6 +370,7 @@ function menuSection(title,items,collapsed){
   return sec;
 }
 function showMainMenu(){
+  hideFloatBar();
   document.getElementById("searchBar").classList.add("gone");
   clearActions();navHistory=[];setNav(false);currentSvcList=null;currentCatId=null;
   if(typeof showSeasonalGreeting==="function")showSeasonalGreeting();
@@ -429,6 +433,7 @@ function showMainMenu(){
 }
 
 function showServices(){
+  showFloatBar();
   clearActions();setNav(true);
   if(!servicesData.length){showCityPlaceholder("прейскуранта");return;}
   document.getElementById("searchBar").classList.remove("gone");
@@ -445,6 +450,7 @@ function showServices(){
   },50);
 }
 function showCategory(catId){
+  showFloatBar();
   currentCatId=catId;clearActions();setNav(true);
   document.getElementById("searchBar").classList.remove("gone");
   const cat=servicesData.find(c=>c.id===catId);if(!cat)return;
@@ -857,7 +863,7 @@ function doLogout(btn){
 function showAuth(){
   document.querySelectorAll(".auth-ovl").forEach(el=>el.remove());
   const n=localStorage.getItem("clientName"),ph=localStorage.getItem("clientPhone");
-  if(n&&ph&&s){
+  if(n&&ph){
     clientName=n;clientPhone=ph;clientSnils=localStorage.getItem("clientSnils")||"";
     ordersHistory=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
     bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
@@ -938,6 +944,22 @@ document.getElementById("cities").addEventListener("click",e=>{
   addMsg(`📍 Переключено на: <b>г. ${currentCityName}</b>`,true);
   showMainMenu();
 });
+
+function showFloatBar(){
+  hideFloatBar();
+  var fb=document.createElement('div');fb.id='floatBar';fb.className='float-bar';
+  var m=document.createElement('button');m.type='button';m.className='fb-btn fb-mor'+(hasMoroshka?' on':'');
+  m.innerHTML='<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm"> '+(hasMoroshka?'ON':'OFF');
+  m.onclick=function(){toggleMoroshka();m.classList.toggle('on',hasMoroshka);m.innerHTML='<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm"> '+(hasMoroshka?'ON':'OFF');};
+  fb.appendChild(m);
+  var c=document.createElement('button');c.type='button';c.className='fb-btn fb-cart';
+  c.innerHTML='🛒 '+cart.reduce(function(s,i){return s+i.qty;},0);
+  c.onclick=openCart;
+  fb.appendChild(c);
+  document.getElementById('shell').appendChild(fb);
+}
+function hideFloatBar(){var f=document.getElementById('floatBar');if(f)f.remove();}
+function updateFloatBar(){var f=document.getElementById('floatBar');if(!f)return;var c=f.querySelector('.fb-cart');if(c)c.innerHTML='🛒 '+cart.reduce(function(s,i){return s+i.qty;},0);}
 
 updateBadge();
 updateHoursBanner();

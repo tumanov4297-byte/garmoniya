@@ -925,3 +925,12 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 /* Аватар бота - улучшенный с новой картинкой */
 .msg-avatar{width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
 .av-img{width:100%;height:100%;object-fit:cover;}
+
+.float-bar{position:absolute;bottom:0;left:0;right:0;display:flex;gap:6px;padding:8px 12px;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:50;}
+.fb-btn{flex:1;padding:10px 14px;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s;}
+.fb-cart{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 3px 12px rgba(245,158,11,.3);}
+.fb-mor{background:#fff;border:1.5px solid var(--border);color:var(--text-secondary);}
+.fb-mor.on{background:linear-gradient(135deg,#ff8c00,#e67e00);color:#fff;border-color:transparent;}
+.fb-mor .moroshka-ico-sm{width:16px;height:16px;}
+.dark .float-bar{background:rgba(26,26,46,.95);}
+.dark .fb-mor{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:#8899bb;}
