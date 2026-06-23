@@ -222,7 +222,7 @@ const I18N={
     menu_moroshka:"Карта Морошка",menu_moroshka_sub:"Льготы и скидки",
     menu_cabinet:"Мой кабинет",menu_cabinet_sub:"История, талоны",
     sec_services:"Услуги и информация",sec_cabinet:"Кабинет",
-    ask_helper:"Помощник «Гармония»",ask_helper_sub:"ИИ-помощник центра Гармония",
+    ask_helper:"Спросить помощника",ask_helper_sub:"Задайте вопрос — подскажу нужный раздел",
     btn_close:"Закрыть",btn_back:"← Назад",btn_home:"🏠 Главная",
     cart_title:"🛒 Корзина заявки",cart_empty:"🛒 Корзина пуста",
     cart_send:"📧 Отправить заявку",cart_clear:"🗑 Очистить корзину",
@@ -251,7 +251,7 @@ const I18N={
     menu_moroshka:"Moroshka card",menu_moroshka_sub:"Discounts",
     menu_cabinet:"My account",menu_cabinet_sub:"History, tickets",
     sec_services:"Services & Info",sec_cabinet:"Account",
-    ask_helper:"Assistant «Garmoniya»",ask_helper_sub:"AI assistant of Garmoniya — I'll find the right section",
+    ask_helper:"Ask assistant",ask_helper_sub:"Ask a question — I'll find the right section",
     btn_close:"Close",btn_back:"← Back",btn_home:"🏠 Home",
     cart_title:"🛒 Service cart",cart_empty:"🛒 Cart is empty",
     cart_send:"📧 Send request",cart_clear:"🗑 Clear cart",
@@ -378,7 +378,7 @@ function getSeasonalGreeting(){
     return{emoji:"🤍",text:"С Днём пожилого человека! Спасибо за мудрость и доброту. Здоровья и долгих лет! 🌿"};
 
   if(m===12&&d>=2&&d<=4)
-    return{emoji:"💙",text:"С Международным днём людей с инвалидностью. Каждый человек достоин уважения и поддержки. "};
+    return{emoji:"💙",text:"С Международным днём людей с инвалидностью. Каждый человек достоин уважения и поддержки. 🤝"};
 
   if(m===6&&d>=7&&d<=9)
     return{emoji:"❤️",text:"С Днём социального работника! Спасибо за ваш труд и заботу о людях! 🌟"};
@@ -434,7 +434,6 @@ function showOnboarding(){
 }
 
 function showLiveChat(){
-  ymGoal("contact_operator");
   if(typeof clearActions==="function")clearActions();
   if(typeof setNav==="function")setNav(true);
   document.getElementById("searchBar")?.classList.add("gone");
@@ -457,4 +456,80 @@ function showLiveChat(){
     });
     if(typeof actionsEl!=="undefined")actionsEl.appendChild(wrap);
   },200);
+}
+
+
+function showQuestionnaire(onDone){
+  if(localStorage.getItem("questionnaireDone")){if(onDone)onDone();return;}
+  var ovl=document.createElement("div");ovl.className="mo";
+  ovl.innerHTML='<div class="mc" style="max-width:400px">'+
+    '<h3 style="text-align:center">Анкета получателя</h3>'+
+    '<p style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:14px">Заполните для персональных рекомендаций</p>'+
+    '<label class="admin-lbl">Дата рождения</label>'+
+    '<input type="date" class="admin-inp" id="qBirth" style="border-radius:12px;padding:12px">'+
+    '<label class="admin-lbl">Категория</label>'+
+    '<select class="admin-inp" id="qCat" style="border-radius:12px;padding:12px">'+
+      '<option value="">Выберите...</option>'+
+      '<option value="pensioner">Пенсионер</option>'+
+      '<option value="disabled">Инвалид</option>'+
+      '<option value="family">Семья с детьми</option>'+
+      '<option value="large_family">Многодетная семья</option>'+
+      '<option value="veteran">Ветеран</option>'+
+      '<option value="other">Другое</option>'+
+    '</select>'+
+    '<label class="admin-lbl">Адрес проживания</label>'+
+    '<input class="admin-inp" id="qAddr" placeholder="Город, улица, дом" style="border-radius:12px;padding:12px">'+
+    '<label class="admin-lbl">Особые потребности</label>'+
+    '<textarea class="admin-inp" id="qNote" rows="2" placeholder="Пожелания..." style="border-radius:12px;padding:12px;resize:none"></textarea>'+
+    '<button class="act-btn teal" id="qSave" style="width:100%;margin-top:12px;min-height:48px">Сохранить</button>'+
+    '<button style="width:100%;background:none;border:none;color:var(--text-tertiary);font-size:13px;padding:10px;cursor:pointer;font-family:inherit" id="qSkip">Пропустить</button>'+
+  '</div>';
+  document.body.appendChild(ovl);
+  ovl.querySelector("#qSave").onclick=function(){
+    var data={birthDate:document.getElementById("qBirth").value,category:document.getElementById("qCat").value,address:document.getElementById("qAddr").value,note:document.getElementById("qNote").value,filledAt:new Date().toISOString()};
+    localStorage.setItem("userProfile",JSON.stringify(data));
+    localStorage.setItem("questionnaireDone","1");
+    ovl.remove();showToast("Анкета сохранена");if(onDone)onDone();
+  };
+  ovl.querySelector("#qSkip").onclick=function(){
+    localStorage.setItem("questionnaireDone","1");
+    ovl.remove();if(onDone)onDone();
+  };
+}
+
+function editQuestionnaire(){
+  document.querySelector(".mo")?.remove();
+  var p={};try{p=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
+  var cats={pensioner:"Пенсионер",disabled:"Инвалид",family:"Семья с детьми",large_family:"Многодетная семья",veteran:"Ветеран",other:"Другое"};
+  var ovl=document.createElement("div");ovl.className="mo";
+  ovl.onclick=function(e){if(e.target===ovl)ovl.remove();};
+  ovl.innerHTML='<div class="mc" style="max-width:400px">'+
+    '<h3 style="text-align:center">Редактировать анкету</h3>'+
+    '<label class="admin-lbl">Дата рождения</label>'+
+    '<input type="date" class="admin-inp" id="eqBirth" value="'+(p.birthDate||"")+'" style="border-radius:12px;padding:12px">'+
+    '<label class="admin-lbl">Категория</label>'+
+    '<select class="admin-inp" id="eqCat" style="border-radius:12px;padding:12px">'+
+      '<option value="">Выберите...</option>'+
+      '<option value="pensioner" '+(p.category==="pensioner"?"selected":"")+'>Пенсионер</option>'+
+      '<option value="disabled" '+(p.category==="disabled"?"selected":"")+'>Инвалид</option>'+
+      '<option value="family" '+(p.category==="family"?"selected":"")+'>Семья с детьми</option>'+
+      '<option value="large_family" '+(p.category==="large_family"?"selected":"")+'>Многодетная семья</option>'+
+      '<option value="veteran" '+(p.category==="veteran"?"selected":"")+'>Ветеран</option>'+
+      '<option value="other" '+(p.category==="other"?"selected":"")+'>Другое</option>'+
+    '</select>'+
+    '<label class="admin-lbl">Адрес</label>'+
+    '<input class="admin-inp" id="eqAddr" value="'+(p.address||"").replace('"','&quot;')+'" placeholder="Город, улица, дом" style="border-radius:12px;padding:12px">'+
+    '<label class="admin-lbl">Особые потребности</label>'+
+    '<textarea class="admin-inp" id="eqNote" rows="2" style="border-radius:12px;padding:12px;resize:none">'+(p.note||"")+'</textarea>'+
+    '<button class="act-btn teal" style="width:100%;margin-top:12px;min-height:48px" id="eqSave">Сохранить</button>'+
+    '<button class="close-mo" style="width:100%;margin-top:6px" onclick="this.closest(&quot;.mo&quot;).remove();openProfile()">Отмена</button>'+
+  '</div>';
+  document.body.appendChild(ovl);
+  ovl.querySelector("#eqSave").onclick=function(){
+    var data={birthDate:document.getElementById("eqBirth").value,category:document.getElementById("eqCat").value,address:document.getElementById("eqAddr").value,note:document.getElementById("eqNote").value,filledAt:new Date().toISOString()};
+    localStorage.setItem("userProfile",JSON.stringify(data));
+    localStorage.setItem("questionnaireDone","1");
+    showToast("Анкета обновлена");
+    ovl.remove();openProfile();
+  };
 }

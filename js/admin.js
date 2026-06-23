@@ -71,7 +71,7 @@
   }
 
   function renderPanel(ovl){
-    const tabs=[["contacts","📍 Контакты"],["services","📋 Услуги"],["staff","👥 Сотрудники"],["news","📰 Новости"],["stats","📊 Статистика"]];
+    const tabs=[["contacts","📍 Контакты"],["services","📋 Услуги"],["staff","👥 Сотрудники"],["news","📰 Новости"]];
     ovl.innerHTML=`<div class="admin-card wide">
       <div class="admin-head">
         <h3>⚙️ Админпанель</h3>
@@ -106,7 +106,6 @@
     if(editTab==="contacts")renderContacts(body);
     else if(editTab==="services")renderServices(body);
     else if(editTab==="news")renderNews(body);
-    else if(editTab==="stats")renderStats(body);
     else renderStaff(body);
   }
 
@@ -277,57 +276,4 @@
   }
 
   applyOverrides();
-
-  function renderStats(body){
-    var stats=JSON.parse(localStorage.getItem("ym_local")||"{}");
-    var cartS=JSON.parse(localStorage.getItem("cartStats")||"{}");
-    var ratings=JSON.parse(localStorage.getItem("ratings")||"[]");
-    var orders=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
-    var bookings=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
-
-    var html='<div class="adm-hint">Локальная статистика (данные этого устройства). Для полной аналитики по всем пользователям откройте <a href="https://metrika.yandex.ru/dashboard?id=110025020" target="_blank" style="color:var(--teal);text-decoration:underline">Яндекс Метрику</a>.</div>';
-
-    html+='<div class="stat-cards">';
-    html+='<div class="stat-c"><div class="stat-v">'+orders.length+'</div><div class="stat-l">Заявок</div></div>';
-    html+='<div class="stat-c"><div class="stat-v">'+bookings.length+'</div><div class="stat-l">Записей</div></div>';
-    var avgR=0;if(ratings.length){var sum=0;ratings.forEach(function(r){sum+=r.stars;});avgR=(sum/ratings.length).toFixed(1);}
-    html+='<div class="stat-c"><div class="stat-v">'+(ratings.length?avgR+"⭐":"—")+'</div><div class="stat-l">Оценка ('+ratings.length+')</div></div>';
-    html+='</div>';
-
-    var topS=Object.entries(cartS).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-    if(topS.length){
-      html+='<div class="adm-hint" style="margin-top:14px"><b>Популярные услуги</b> (добавления в корзину)</div>';
-      var maxV=topS[0][1];
-      topS.forEach(function(s,i){
-        var pct=Math.round(s[1]/maxV*100);
-        html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:18px;font-size:11px;color:var(--text-tertiary);font-weight:800">'+(i+1)+'</span><div style="flex:1;height:28px;background:var(--teal-xlight);border-radius:6px;overflow:hidden;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:'+pct+'%;background:linear-gradient(90deg,var(--teal-light),var(--teal));border-radius:6px"></div><span style="position:relative;padding-left:8px;font-size:11px;font-weight:600;line-height:28px">'+s[0]+'</span></div><span style="width:30px;text-align:right;font-size:12px;font-weight:800;color:var(--teal)">'+s[1]+'</span></div>';
-      });
-    }
-
-    var days=Object.keys(stats).sort().reverse().slice(0,7);
-    if(days.length){
-      html+='<div class="adm-hint" style="margin-top:14px"><b>Активность по дням</b></div>';
-      html+='<table class="stat-tbl"><tr><th>Дата</th><th>Входы</th><th>Каталог</th><th>Запись</th><th>Заявки</th><th>Помощник</th></tr>';
-      days.forEach(function(d){
-        var ds=stats[d]||{};
-        html+='<tr><td>'+d.slice(5)+'</td><td>'+(ds.login||0)+'</td><td>'+(ds.view_services||0)+'</td><td>'+(ds.view_booking||0)+'</td><td>'+(ds.order_sent||0)+'</td><td>'+(ds.open_assistant||0)+'</td></tr>';
-      });
-      html+='</table>';
-    }
-
-    if(ratings.length){
-      html+='<div class="adm-hint" style="margin-top:14px"><b>Последние отзывы</b></div>';
-      ratings.slice(-5).reverse().forEach(function(r){
-        html+='<div style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,.04);font-size:12px">';
-        html+='<span style="color:var(--gold)">'+("★".repeat(r.stars))+'</span> ';
-        html+=(r.comment?r.comment:'<span style="color:var(--text-tertiary)">(без комментария)</span>');
-        html+='<span style="float:right;color:var(--text-tertiary);font-size:10px">'+new Date(r.date).toLocaleDateString("ru-RU")+'</span></div>';
-      });
-    }
-
-    html+='<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)"><a href="https://metrika.yandex.ru/dashboard?id=110025020" target="_blank" class="admin-btn" style="text-decoration:none;text-align:center;display:block">📊 Открыть Яндекс Метрику (все пользователи)</a></div>';
-
-    body.innerHTML=html;
-  }
-
 })();
