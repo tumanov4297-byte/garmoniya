@@ -1,3 +1,13 @@
+function ymGoal(g){
+  try{ym(110025020,"reachGoal",g);}catch(e){}
+  try{
+    var stats=JSON.parse(localStorage.getItem("ym_local")||"{}");
+    var today=new Date().toISOString().slice(0,10);
+    if(!stats[today])stats[today]={};
+    stats[today][g]=(stats[today][g]||0)+1;
+    localStorage.setItem("ym_local",JSON.stringify(stats));
+  }catch(e2){}
+}
 
 let currentCity="gubkin",currentCityName="Губкинский",hasMoroshka=null;
 let navHistory=[],cart=JSON.parse(localStorage.getItem("cart")||"[]");
@@ -39,7 +49,6 @@ function showToast(msg,dur=2800){
 function setNav(showBack){document.getElementById("backBtn").classList.toggle("gone",!showBack);}
 function pushNav(fn){navHistory.push(fn);}
 function goBack(){if(navHistory.length>0){const fn=navHistory.pop();fn();}}
-  hideFloatBar();
 
 function updateHoursBanner(){
   const b=document.getElementById("hoursBanner");
@@ -120,7 +129,7 @@ function addToCart(id,name,price,btn,base,mor){
   saveCart();updateBadge();renderCart();updateFloatBar();
   if(btn){btn.classList.add("added");btn.textContent="✓";btn.setAttribute("aria-label","Добавлено");
     setTimeout(()=>{btn.classList.remove("added");btn.textContent="+";btn.setAttribute("aria-label","Добавить в корзину");},900);}
-  showToast("✅ Добавлено в корзину");
+  showToast("✅ Добавлено в корзину");ymGoal("add_to_cart");
   var cartBtn=document.querySelector(".icb-wrap .icb");
   if(cartBtn){cartBtn.classList.add("cart-pulse");setTimeout(function(){cartBtn.classList.remove("cart-pulse");},600);}
 }
@@ -300,7 +309,7 @@ function doSendOrder(){
   });
   cart=[];saveCart();updateBadge();renderCart();updateFloatBar();closeCart();
   addMsg("✅ Почтовый клиент открыт. Нажмите «Отправить» — заявка уйдёт специалисту!",true);
-  showToast("✅ Заявка сформирована!");
+  showToast("✅ Заявка сформирована!");ymGoal("order_sent");
   if(typeof showRating==="function")showRating("order");
 }
 
@@ -370,7 +379,6 @@ function menuSection(title,items,collapsed){
   return sec;
 }
 function showMainMenu(){
-  hideFloatBar();
   document.getElementById("searchBar").classList.add("gone");
   clearActions();navHistory=[];setNav(false);currentSvcList=null;currentCatId=null;
   if(typeof showSeasonalGreeting==="function")showSeasonalGreeting();
@@ -433,7 +441,6 @@ function showMainMenu(){
 }
 
 function showServices(){
-  showFloatBar();
   clearActions();setNav(true);
   if(!servicesData.length){showCityPlaceholder("прейскуранта");return;}
   document.getElementById("searchBar").classList.remove("gone");
@@ -450,7 +457,6 @@ function showServices(){
   },50);
 }
 function showCategory(catId){
-  showFloatBar();
   currentCatId=catId;clearActions();setNav(true);
   document.getElementById("searchBar").classList.remove("gone");
   const cat=servicesData.find(c=>c.id===catId);if(!cat)return;
@@ -481,6 +487,7 @@ function showCategory(catId){
 }
 
 function showBooking(){
+  ymGoal("view_booking");
   clearActions();setNav(true);
   const cd=cityData[currentCity];
   if(!staffData.length){showCityPlaceholder("записи");return;}
@@ -730,6 +737,7 @@ function statusBadge(st){
   return `<span class="st-badge ${v[1]}">${v[0]}</span>`;
 }
 function openProfile(){
+  ymGoal("open_cabinet");
   const modal=document.createElement("div");modal.className="mo";modal.setAttribute("role","dialog");modal.setAttribute("aria-modal","true");modal.setAttribute("aria-label","Личный кабинет");
   const oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
   const bh=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
@@ -899,7 +907,7 @@ function showAuth(){
   btn.onclick=()=>{
     clientName=ni.value.trim();clientPhone=pi.value.trim();clientSnils="";
     localStorage.setItem("clientName",clientName);localStorage.setItem("clientPhone",clientPhone);
-    modal.remove();showWelcome();
+    modal.remove();ymGoal("login");showWelcome();
   };
   ni.addEventListener("keydown",e=>{if(e.key==="Enter")pi.focus();});
   pi.addEventListener("keydown",e=>{if(e.key==="Enter")btn.click();});
@@ -946,7 +954,6 @@ document.getElementById("cities").addEventListener("click",e=>{
 });
 
 function showFloatBar(){
-  hideFloatBar();
   var fb=document.createElement('div');fb.id='floatBar';fb.className='float-bar';
   var m=document.createElement('button');m.type='button';m.className='fb-btn fb-mor'+(hasMoroshka?' on':'');
   m.innerHTML='<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm"> '+(hasMoroshka?'ON':'OFF');

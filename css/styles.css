@@ -934,3 +934,14 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .fb-mor .moroshka-ico-sm{width:16px;height:16px;}
 .dark .float-bar{background:rgba(26,26,46,.95);}
 .dark .fb-mor{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:#8899bb;}
+
+.stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.stat-c{background:linear-gradient(135deg,var(--teal-xlight),#fff);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 10px;text-align:center;}
+.stat-v{font-size:22px;font-weight:800;color:var(--teal);}
+.stat-l{font-size:11px;color:var(--text-tertiary);font-weight:600;margin-top:2px;}
+.stat-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;}
+.stat-tbl th{background:var(--teal-xlight);padding:6px 4px;font-weight:700;color:var(--teal);text-align:center;border:1px solid var(--border);}
+.stat-tbl td{padding:5px 4px;text-align:center;border:1px solid var(--border);color:var(--text-secondary);}
+.dark .stat-c{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.06);}
+.dark .stat-tbl th{background:rgba(29,181,181,.1);border-color:rgba(255,255,255,.06);}
+.dark .stat-tbl td{border-color:rgba(255,255,255,.04);}

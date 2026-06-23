@@ -222,7 +222,7 @@ const I18N={
     menu_moroshka:"Карта Морошка",menu_moroshka_sub:"Льготы и скидки",
     menu_cabinet:"Мой кабинет",menu_cabinet_sub:"История, талоны",
     sec_services:"Услуги и информация",sec_cabinet:"Кабинет",
-    ask_helper:"Спросить помощника",ask_helper_sub:"Задайте вопрос — подскажу нужный раздел",
+    ask_helper:"Помощник «Гармония»",ask_helper_sub:"ИИ-помощник центра Гармония",
     btn_close:"Закрыть",btn_back:"← Назад",btn_home:"🏠 Главная",
     cart_title:"🛒 Корзина заявки",cart_empty:"🛒 Корзина пуста",
     cart_send:"📧 Отправить заявку",cart_clear:"🗑 Очистить корзину",
@@ -251,7 +251,7 @@ const I18N={
     menu_moroshka:"Moroshka card",menu_moroshka_sub:"Discounts",
     menu_cabinet:"My account",menu_cabinet_sub:"History, tickets",
     sec_services:"Services & Info",sec_cabinet:"Account",
-    ask_helper:"Ask assistant",ask_helper_sub:"Ask a question — I'll find the right section",
+    ask_helper:"Assistant «Garmoniya»",ask_helper_sub:"AI assistant of Garmoniya — I'll find the right section",
     btn_close:"Close",btn_back:"← Back",btn_home:"🏠 Home",
     cart_title:"🛒 Service cart",cart_empty:"🛒 Cart is empty",
     cart_send:"📧 Send request",cart_clear:"🗑 Clear cart",
@@ -378,7 +378,7 @@ function getSeasonalGreeting(){
     return{emoji:"🤍",text:"С Днём пожилого человека! Спасибо за мудрость и доброту. Здоровья и долгих лет! 🌿"};
 
   if(m===12&&d>=2&&d<=4)
-    return{emoji:"💙",text:"С Международным днём людей с инвалидностью. Каждый человек достоин уважения и поддержки. 🤝"};
+    return{emoji:"💙",text:"С Международным днём людей с инвалидностью. Каждый человек достоин уважения и поддержки. "};
 
   if(m===6&&d>=7&&d<=9)
     return{emoji:"❤️",text:"С Днём социального работника! Спасибо за ваш труд и заботу о людях! 🌟"};
@@ -434,6 +434,7 @@ function showOnboarding(){
 }
 
 function showLiveChat(){
+  ymGoal("contact_operator");
   if(typeof clearActions==="function")clearActions();
   if(typeof setNav==="function")setNav(true);
   document.getElementById("searchBar")?.classList.add("gone");
