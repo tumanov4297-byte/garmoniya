@@ -9,6 +9,82 @@ const chatEl=document.getElementById("chat"),actionsEl=document.getElementById("
 const badgeEl=document.getElementById("cartBadge");
 let ticketCounter=parseInt(localStorage.getItem("ticketCounter")||"100");
 
+
+function switchToTab(tab){
+  document.querySelectorAll(".bnav-tab").forEach(function(t){t.classList.remove("active");});
+  var btn=document.getElementById("tab"+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if(btn)btn.classList.add("active");
+  if(tab==="home"){showMainMenu();}
+  else if(tab==="services"){showCatalogPage();}
+  else if(tab==="cart"){openCart();}
+  else if(tab==="orders"){showOrdersPage();}
+  else if(tab==="profile"){openProfile();}
+}
+function updateTabBadge(){
+  var b=document.getElementById("tabCartBadge");
+  var n=cart.reduce(function(s,i){return s+i.qty;},0);
+  if(b){b.textContent=n;b.classList.toggle("gone",n===0);}
+}
+
+function showCatalogPage(){
+  clearActions();navHistory=[];setNav(false);
+  chatEl.innerHTML="";
+  var w=document.createElement("div");w.className="catalog-page";
+  var html='<div class="cat-header"><h2>Прейскурант услуг</h2><div class="cat-search"><input type="text" id="catSearch" placeholder="Поиск услуг..." oninput="filterCatalog(this.value)"></div></div>';
+  html+='<div class="cat-tabs" id="catTabs">';
+  servicesData.forEach(function(cat,i){
+    html+='<button class="cat-tab'+(i===0?' active':'')+'" data-cid="'+cat.id+'" onclick="showCatSection('+cat.id+',this)">'+cat.icon+" "+cat.name.split(" ")[0]+'</button>';
+  });
+  html+='</div>';
+  html+='<div class="cat-list" id="catList">';
+  servicesData.forEach(function(cat,ci){
+    html+='<div class="cat-section'+(ci===0?'':' gone')+'" data-sid="'+cat.id+'">';
+    html+='<div class="cat-sec-title">'+cat.icon+' '+cat.name+'</div>';
+    cat.items.forEach(function(it,ii){
+      var mp=hasMoroshka&&it.m!=null?it.m:it.p;
+      var saving=hasMoroshka&&it.m!=null?'<span class="cat-save">−'+(it.p-it.m)+' ₽</span>':"";
+      html+='<div class="cat-item"><div class="cat-item-info"><div class="cat-item-name">'+it.n+'</div><div class="cat-item-price">'+mp+' ₽ '+saving+'</div></div><button class="cat-add" onclick="addToCart('+cat.id+'*1000+'+ii+',\''+it.n.replace(/'/g,"\\'")+'\',' +mp+',this,'+it.p+','+(it.m||"null")+')">+</button></div>';
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+}
+
+function showCatSection(id,btn){
+  document.querySelectorAll(".cat-tab").forEach(function(t){t.classList.remove("active");});
+  btn.classList.add("active");
+  document.querySelectorAll(".cat-section").forEach(function(s){s.classList.toggle("gone",+s.dataset.sid!==id);});
+}
+
+function filterCatalog(q){
+  q=q.toLowerCase().trim();
+  document.querySelectorAll(".cat-section").forEach(function(s){s.classList.remove("gone");});
+  document.querySelectorAll(".cat-tab").forEach(function(t){t.classList.remove("active");});
+  document.querySelectorAll(".cat-item").forEach(function(it){
+    var name=it.querySelector(".cat-item-name").textContent.toLowerCase();
+    it.style.display=(!q||name.includes(q))?"":"none";
+  });
+  if(!q){document.querySelector(".cat-tab").classList.add("active");document.querySelectorAll(".cat-section").forEach(function(s,i){s.classList.toggle("gone",i>0);});}
+}
+
+function showOrdersPage(){
+  clearActions();navHistory=[];setNav(false);
+  chatEl.innerHTML="";
+  var oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
+  var bh=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+  var w=document.createElement("div");w.className="orders-page";
+  var html='<h2 style="margin-bottom:12px">Мои заявки и записи</h2>';
+  if(!oh.length&&!bh.length){html+='<div style="text-align:center;padding:40px 20px;color:var(--text-tertiary)"><div style="font-size:40px;margin-bottom:10px">📭</div><b style="font-size:16px;color:var(--text-primary)">Пока пусто</b><p style="margin-top:6px">Оформите первую заявку через прейскурант</p></div>';}
+  else{
+    if(oh.length){html+='<div style="font-weight:700;margin-bottom:8px">Заявки ('+oh.length+')</div>';oh.slice().reverse().slice(0,10).forEach(function(o){html+='<div class="order-card"><div class="oc-date">'+new Date(o.date).toLocaleDateString("ru-RU")+'</div><div class="oc-items">'+o.items.length+' услуг · '+o.total+' ₽</div><div class="oc-status">'+o.status+'</div></div>';});}
+    if(bh.length){html+='<div style="font-weight:700;margin:14px 0 8px">Записи ('+bh.length+')</div>';bh.slice().reverse().slice(0,10).forEach(function(b){html+='<div class="order-card"><div class="oc-date">'+b.date+' '+b.time+'</div><div class="oc-items">'+b.staffName+'</div><div class="oc-status">Талон №'+b.ticket+'</div></div>';});}
+  }
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+}
+
 function addMsg(html,isBot=true){
   const r=document.createElement("div");r.className="msg-row "+(isBot?"bot":"usr")+" msg-enter";
   if(isBot){
@@ -36,14 +112,7 @@ function showToast(msg,dur=2800){
   const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),dur);
 }
-function setNav(showBack){
-  document.getElementById("backBtn").classList.toggle("gone",!showBack);
-  var cn=document.getElementById("cartNavBtn");
-  if(showBack){
-    if(!cn){cn=document.createElement("button");cn.id="cartNavBtn";cn.className="bnav-btn cart-nav";cn.innerHTML="🛒";cn.onclick=openCart;document.querySelector(".bottom-nav").appendChild(cn);}
-    cn.classList.remove("gone");
-  }else{if(cn)cn.classList.add("gone");}
-}
+function setNav(show){}
 function pushNav(fn){navHistory.push(fn);}
 function goBack(){if(navHistory.length>0){const fn=navHistory.pop();fn();}}
 
@@ -121,7 +190,7 @@ function addToCart(id,name,price,btn,base,mor){
   const ex=cart.find(i=>i.id===id);
   if(ex)ex.qty++;else cart.push({id,name,price,qty:1,base:(base!==undefined?base:price),mor:(mor!==undefined?mor:null)});
   if(typeof trackCartAdd==="function")trackCartAdd(name);
-  saveCart();updateBadge();renderCart();
+  saveCart();updateBadge();updateTabBadge();updateTabBadge();renderCart();
   if(btn){btn.classList.add("added");btn.textContent="✓";btn.setAttribute("aria-label","Добавлено");
     setTimeout(()=>{btn.classList.remove("added");btn.textContent="+";btn.setAttribute("aria-label","Добавить в корзину");},900);}
   showToast("✅ Добавлено в корзину");
@@ -132,11 +201,11 @@ function chgQty(id,d){
   const it=cart.find(i=>i.id===id);if(!it)return;
   it.qty=Math.max(0,it.qty+d);
   if(it.qty===0)cart=cart.filter(i=>i.id!==id);
-  saveCart();updateBadge();renderCart();
+  saveCart();updateBadge();updateTabBadge();renderCart();
 }
 function openCart(){document.getElementById("cartPanel").classList.add("open");renderCart();}
 function closeCart(){document.getElementById("cartPanel").classList.remove("open");}
-function clearCart(){cart=[];saveCart();updateBadge();renderCart();closeCart();}
+function clearCart(){cart=[];saveCart();updateBadge();updateTabBadge();renderCart();closeCart();}
 
 let favorites=JSON.parse(localStorage.getItem("favorites")||"[]");
 function saveFav(){localStorage.setItem("favorites",JSON.stringify(favorites));}
@@ -302,7 +371,7 @@ function doSendOrder(){
     clientName, clientPhone, cityName:currentCityName, moroshka:hasMoroshka, total,
     items:cart.map(i=>({name:i.name,qty:i.qty,price:i.price}))
   });
-  cart=[];saveCart();updateBadge();renderCart();closeCart();
+  cart=[];saveCart();updateBadge();updateTabBadge();renderCart();closeCart();
   addMsg("✅ Почтовый клиент открыт. Нажмите «Отправить» — заявка уйдёт специалисту!",true);
   showToast("✅ Заявка сформирована!");
   if(typeof showRating==="function")showRating("order");
@@ -380,6 +449,8 @@ function showMainMenu(){
   var gr=greeting();
 
   chatEl.innerHTML='';
+  document.querySelectorAll(".bnav-tab").forEach(function(t){t.classList.remove("active");});
+  var ht=document.getElementById("tabHome");if(ht)ht.classList.add("active");
   var w=document.createElement("div");w.className="home";
 
   w.innerHTML=
@@ -397,7 +468,7 @@ function showMainMenu(){
 
     '<div class="h-sec"><span>Услуги и информация</span><button class="h-all" data-act="services">Все услуги &rsaquo;</button></div>'+
     '<div class="h-grid">'+
-    '<button class="hg" data-act="calc"><div class="hg-i" style="background:linear-gradient(135deg,#10b981,#059669)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg></div><b>Льготы</b><span>Калькулятор льгот</span></button>'+
+    '<button class="hg" data-act="staff"><div class="hg-i" style="background:linear-gradient(135deg,#10b981,#059669)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg></div><b>Сотрудники</b><span>Справочник</span></button>'+
     '<button class="hg" data-act="homeWorker"><div class="hg-i" style="background:linear-gradient(135deg,#f97316,#ea580c)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><b>Соцработник на дом</b><span>Вызвать на дом</span></button>'+
     '<button class="hg" data-act="news"><div class="hg-i" style="background:linear-gradient(135deg,#3b82f6,#2563eb)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div><b>Новости</b><span>Последние изменения</span></button>'+
     '<button class="hg" data-act="faq"><div class="hg-i" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><b>Вопросы и ответы</b><span>Полезная информация</span></button>'+
@@ -417,7 +488,7 @@ function showMainMenu(){
     assistant:function(){pushNav(showMainMenu);showTyping(showAssistant);},
     services:function(){pushNav(showMainMenu);showTyping(showServices);},
     booking:function(){pushNav(showMainMenu);showTyping(showBooking);},
-    calc:function(){pushNav(showMainMenu);showTyping(showEligibility);},
+    staff:function(){pushNav(showMainMenu);showTyping(showStaff);},
     homeWorker:function(){pushNav(showMainMenu);showTyping(showHomeWorker);},
     callback:function(){pushNav(showMainMenu);showTyping(showCallback);},
     events:function(){pushNav(showMainMenu);showTyping(showEvents);},
