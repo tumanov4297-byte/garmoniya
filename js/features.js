@@ -168,11 +168,16 @@ function showAssistant(){
   clearActions();setNav(true);
   document.getElementById("searchBar").classList.add("gone");
   const nm=asstName();
-  addMsg(`🤖 Здравствуйте${nm?", "+nm:""}! Я помогу сориентироваться. Спросите своими словами — например «как записаться к психологу» или «сколько стоит уборка». Я постараюсь помочь!`,true);
+  addMsg(`🤖 Здравствуйте${nm?", "+nm:""}! Я помогу сориентироваться. Спросите своими словами — например «как записаться к психологу» или «сколько стоит уборка». Или выберите частый вопрос ниже.`,true);
   setTimeout(()=>{
     clearActions();
     const wrap=document.createElement("div");wrap.className="asst-wrap";
-    const chips=document.createElement("div");chips.className="asst-chips gone";
+    const chips=document.createElement("div");chips.className="asst-chips";
+    ASST_SUGGESTED.forEach(qt=>{
+      const b=document.createElement("button");b.type="button";b.className="asst-chip";b.textContent=qt;
+      b.onclick=()=>askFlow(qt);
+      chips.appendChild(b);
+    });
     const row=document.createElement("div");row.className="asst-input-row";
     const inp=document.createElement("input");inp.type="text";inp.className="asst-input";
     inp.placeholder="Напишите свой вопрос…";inp.setAttribute("aria-label","Вопрос помощнику");

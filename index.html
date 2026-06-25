@@ -32,11 +32,7 @@
         <span class="lbl">Морошка</span>
         <div class="pill" aria-hidden="true"></div>
       </div>
-      <button class="icb" onclick="openProfile()" aria-label="Личный кабинет">👤</button>
-      <div class="icb-wrap">
-        <button class="icb" onclick="openCart()" aria-label="Корзина заявки">🛒</button>
-        <div class="cart-badge gone" id="cartBadge" aria-live="polite" aria-label="Товаров в корзине">0</div>
-      </div>
+
     </div>
   </header>
 
@@ -75,9 +71,32 @@
   <div class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Диалог с помощником"></div>
   <div class="actions" id="actions" role="region" aria-label="Действия"></div>
 
-  <nav class="bottom-nav" id="bottomNav" role="navigation" aria-label="Навигация">
-    <button class="bnav-btn back gone" id="backBtn" onclick="goBack()" aria-label="Вернуться назад">← Назад</button>
-    <button class="bnav-btn home" id="homeBtn" onclick="showMainMenu()" aria-label="Главное меню">Главная</button>
+  <div id="backBtn" class="gone" style="display:none"></div>
+  <div id="cartBadge" class="gone" style="display:none">0</div>
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bt active" id="bt_home" onclick="tabGo('home')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Главная</span>
+    </button>
+    <button class="bt" id="bt_services" onclick="tabGo('services')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Меню</span>
+    </button>
+    <button class="bt" id="bt_cart" onclick="tabGo('cart')">
+      <div style="position:relative">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <span class="bt-badge gone" id="btBadge">0</span>
+      </div>
+      <span>Корзина</span>
+    </button>
+    <button class="bt" id="bt_orders" onclick="tabGo('orders')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Заявки</span>
+    </button>
+    <button class="bt" id="bt_profile" onclick="tabGo('profile')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Профиль</span>
+    </button>
   </nav>
 
   <div class="cart-panel" id="cartPanel" role="dialog" aria-modal="true" aria-label="Корзина заявки">
