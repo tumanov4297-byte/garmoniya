@@ -262,30 +262,6 @@ const I18N={
     profiles_add:"➕ Add recipient",profiles_active:"Active",
     switched_to:"📍 Switched to",how_help:"How can I help?",
     lang_name:"English"
-  },
-  yrk:{
-    greeting_morning:"☀️ Ям яля",greeting_day:"🌤 Ям яля",greeting_evening:"🌙 Пыд яля",
-    menu_services:"Ёнарˮма",menu_services_sub:"Нюдяˮ мярˮ",
-    menu_booking:"Тохолабцˮ",menu_booking_sub:"Тохолабцˮ хамадабцˮ",
-    menu_contacts:"Хаерˮ",menu_contacts_sub:"Тел., email",
-    menu_emergency:"Мэнарˮ яляˮ",menu_emergency_sub:"Ненэцяˮ яляˮ",
-    btn_close:"Тасˮ",btn_home:"🏠 Нюдяˮ",
-    ask_helper:"Тарем ваˮ хэваˮ",ask_helper_sub:"Маняˮ ваˮ тарем",
-    how_help:"Маняˮ ханяˮ тарем ваˮ?",
-    lang_name:"Ненэцяˮ",
-    _note:"Заготовка — дополняет носитель языка"
-  },
-  kca:{
-    greeting_morning:"☀️ Ёмас хӑтәл",greeting_day:"🌤 Ёмас хӑтәл",greeting_evening:"🌙 Ёмас ет",
-    menu_services:"Тӑхи",menu_services_sub:"Нэмәт па тыӆ",
-    menu_booking:"Хансупсы",menu_booking_sub:"Мир хуща",
-    menu_contacts:"Хотәт",menu_contacts_sub:"Тел., email",
-    menu_emergency:"Вой мухты",menu_emergency_sub:"Мухты верты",
-    btn_close:"Шӑши",btn_home:"🏠 Хот",
-    ask_helper:"Ёш пӑта вантэ",ask_helper_sub:"Вӑнтэ па путрэ",
-    how_help:"Мўӈ мухты верты?",
-    lang_name:"Хӑнты",
-    _note:"Заготовка — дополняет носитель языка"
   }
 };
 
@@ -301,10 +277,12 @@ function switchLang(lang){
   const sel=document.getElementById("langSel");
   if(sel)sel.value=lang;
   showToast("🌐 "+t("lang_name"));
-
-  if(typeof showMainMenu==="function"&&document.querySelector(".dash")){
-    showMainMenu();
-  }
+  // перерисовать активный экран
+  var active=document.querySelector(".tb.active");
+  var tab=active?active.dataset.tab:"home";
+  if(tab==="home"&&typeof showMainMenu==="function")showMainMenu();
+  else if(tab==="services"&&typeof showServices==="function"){resetScreen();showServices();}
+  else if(tab==="chat"&&typeof showAssistant==="function"){resetScreen();showAssistant();}
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -456,80 +434,4 @@ function showLiveChat(){
     });
     if(typeof actionsEl!=="undefined")actionsEl.appendChild(wrap);
   },200);
-}
-
-
-function showQuestionnaire(onDone){
-  if(localStorage.getItem("questionnaireDone")){if(onDone)onDone();return;}
-  var ovl=document.createElement("div");ovl.className="mo";
-  ovl.innerHTML='<div class="mc" style="max-width:400px">'+
-    '<h3 style="text-align:center">Анкета получателя</h3>'+
-    '<p style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:14px">Заполните для персональных рекомендаций</p>'+
-    '<label class="admin-lbl">Дата рождения</label>'+
-    '<input type="date" class="admin-inp" id="qBirth" style="border-radius:12px;padding:12px">'+
-    '<label class="admin-lbl">Категория</label>'+
-    '<select class="admin-inp" id="qCat" style="border-radius:12px;padding:12px">'+
-      '<option value="">Выберите...</option>'+
-      '<option value="pensioner">Пенсионер</option>'+
-      '<option value="disabled">Инвалид</option>'+
-      '<option value="family">Семья с детьми</option>'+
-      '<option value="large_family">Многодетная семья</option>'+
-      '<option value="veteran">Ветеран</option>'+
-      '<option value="other">Другое</option>'+
-    '</select>'+
-    '<label class="admin-lbl">Адрес проживания</label>'+
-    '<input class="admin-inp" id="qAddr" placeholder="Город, улица, дом" style="border-radius:12px;padding:12px">'+
-    '<label class="admin-lbl">Особые потребности</label>'+
-    '<textarea class="admin-inp" id="qNote" rows="2" placeholder="Пожелания..." style="border-radius:12px;padding:12px;resize:none"></textarea>'+
-    '<button class="act-btn teal" id="qSave" style="width:100%;margin-top:12px;min-height:48px">Сохранить</button>'+
-    '<button style="width:100%;background:none;border:none;color:var(--text-tertiary);font-size:13px;padding:10px;cursor:pointer;font-family:inherit" id="qSkip">Пропустить</button>'+
-  '</div>';
-  document.body.appendChild(ovl);
-  ovl.querySelector("#qSave").onclick=function(){
-    var data={birthDate:document.getElementById("qBirth").value,category:document.getElementById("qCat").value,address:document.getElementById("qAddr").value,note:document.getElementById("qNote").value,filledAt:new Date().toISOString()};
-    localStorage.setItem("userProfile",JSON.stringify(data));
-    localStorage.setItem("questionnaireDone","1");
-    ovl.remove();showToast("Анкета сохранена");if(onDone)onDone();
-  };
-  ovl.querySelector("#qSkip").onclick=function(){
-    localStorage.setItem("questionnaireDone","1");
-    ovl.remove();if(onDone)onDone();
-  };
-}
-
-function editQuestionnaire(){
-  document.querySelector(".mo")?.remove();
-  var p={};try{p=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
-  var cats={pensioner:"Пенсионер",disabled:"Инвалид",family:"Семья с детьми",large_family:"Многодетная семья",veteran:"Ветеран",other:"Другое"};
-  var ovl=document.createElement("div");ovl.className="mo";
-  ovl.onclick=function(e){if(e.target===ovl)ovl.remove();};
-  ovl.innerHTML='<div class="mc" style="max-width:400px">'+
-    '<h3 style="text-align:center">Редактировать анкету</h3>'+
-    '<label class="admin-lbl">Дата рождения</label>'+
-    '<input type="date" class="admin-inp" id="eqBirth" value="'+(p.birthDate||"")+'" style="border-radius:12px;padding:12px">'+
-    '<label class="admin-lbl">Категория</label>'+
-    '<select class="admin-inp" id="eqCat" style="border-radius:12px;padding:12px">'+
-      '<option value="">Выберите...</option>'+
-      '<option value="pensioner" '+(p.category==="pensioner"?"selected":"")+'>Пенсионер</option>'+
-      '<option value="disabled" '+(p.category==="disabled"?"selected":"")+'>Инвалид</option>'+
-      '<option value="family" '+(p.category==="family"?"selected":"")+'>Семья с детьми</option>'+
-      '<option value="large_family" '+(p.category==="large_family"?"selected":"")+'>Многодетная семья</option>'+
-      '<option value="veteran" '+(p.category==="veteran"?"selected":"")+'>Ветеран</option>'+
-      '<option value="other" '+(p.category==="other"?"selected":"")+'>Другое</option>'+
-    '</select>'+
-    '<label class="admin-lbl">Адрес</label>'+
-    '<input class="admin-inp" id="eqAddr" value="'+(p.address||"").replace('"','&quot;')+'" placeholder="Город, улица, дом" style="border-radius:12px;padding:12px">'+
-    '<label class="admin-lbl">Особые потребности</label>'+
-    '<textarea class="admin-inp" id="eqNote" rows="2" style="border-radius:12px;padding:12px;resize:none">'+(p.note||"")+'</textarea>'+
-    '<button class="act-btn teal" style="width:100%;margin-top:12px;min-height:48px" id="eqSave">Сохранить</button>'+
-    '<button class="close-mo" style="width:100%;margin-top:6px" onclick="this.closest(&quot;.mo&quot;).remove();openProfile()">Отмена</button>'+
-  '</div>';
-  document.body.appendChild(ovl);
-  ovl.querySelector("#eqSave").onclick=function(){
-    var data={birthDate:document.getElementById("eqBirth").value,category:document.getElementById("eqCat").value,address:document.getElementById("eqAddr").value,note:document.getElementById("eqNote").value,filledAt:new Date().toISOString()};
-    localStorage.setItem("userProfile",JSON.stringify(data));
-    localStorage.setItem("questionnaireDone","1");
-    showToast("Анкета обновлена");
-    ovl.remove();openProfile();
-  };
 }

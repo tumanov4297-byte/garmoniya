@@ -15,10 +15,10 @@ const ASST_INTENTS=[
    actions:[{label:"🧹 Чистка и уборка",fn:"showCategory",arg:2,cl:"teal"}]},
   {kw:["такси","довез","доехать","отвез","перевоз","транспорт","до больниц","до поликлин"],
    answer:"Поездки выполняет «Социальное такси» — с сопровождением или без, по заявке за 1 рабочий день.",
-   actions:[{label:"🚗 Социальное такси",fn:"showCategory",arg:7,cl:"teal"}]},
+   actions:[{label:"🚗 Социальное такси",fn:"showCategory",arg:9,cl:"teal"}]},
   {kw:["сиделк","няня","няню","присмотр","ухаживать","уход за","посидеть с реб"],
-   answer:"Услуги по присмотру и уходу — в разделе «Услуги сиделки и няни».",
-   actions:[{label:"🤱 Сиделка и няня",fn:"showCategory",arg:19,cl:"teal"}]},
+   answer:"Услуги по присмотру и уходу — в разделе «Услуги сиделки (няни)».",
+   actions:[{label:"👶 Сиделка и няня",fn:"showCategory",arg:22,cl:"teal"}]},
   {kw:["коляск","ходунк","кровать","костыл","трость","прокат","оборудован","матрац","инвалид"],
    answer:"Технические средства можно взять напрокат: коляски, ходунки, кровати и др.",
    actions:[{label:"🏥 Прокат оборудования",fn:"showCategory",arg:10,cl:"teal"}]},
@@ -49,9 +49,9 @@ const ASST_INTENTS=[
   {kw:["новост","анонс","объявлен","что нового","свеж"],
    answer:"Свежие новости и объявления центра 👇",
    actions:[{label:"📰 Новости",fn:"showNews",cl:"teal"}]},
-  {kw:["массаж","сауна","коктейл","оздоров","физкультур","лфк","тренаж","ингаляц"],
-   answer:"Оздоровительные процедуры и занятия есть в нескольких разделах прейскуранта.",
-   actions:[{label:"💊 Медицинские и оздоровительные",fn:"showCategory",arg:15,cl:"teal"},{label:"🏋️ ЛФК и тренажёрный зал",fn:"showCategory",arg:11,cl:"teal"}]},
+  {kw:["лфк","тренаж","зарядк","физкультур","адаптивн","оздоров","гимнаст"],
+   answer:"Занятия ЛФК, в тренажёрном зале и адаптивной физкультурой — в разделе прейскуранта.",
+   actions:[{label:"🏋️ ЛФК и тренажёрный зал",fn:"showCategory",arg:11,cl:"teal"}]},
   {kw:["перезвон","обратный звонок","перезвоните","свяжитесь","позвоните мне"],
    answer:"Оформлю обратный звонок — специалист перезвонит в удобное время.",
    actions:[{label:"📞 Заказать обратный звонок",fn:"showCallback",cl:"gold"}]},
@@ -148,11 +148,16 @@ function smartAsk(query){
     ]};
 }
 
+var ASST_FN_TO_NAV={
+  showServices:"services",showCategory:"category",showBooking:"booking",showEmergency:"emergency",
+  showContacts:"contacts",showStaff:"staff",showNews:"news",showMoroshkaInfo:"moroshka",
+  showEligibility:"calc",showCallback:"callback",showHomeWorker:"homeWorker",showLiveChat:"liveChat",
+  showFAQ:"faq",showEvents:"events",showFeedback:"feedback",openProfile:"profile"
+};
 function asstGo(fnName,arg){
-  if(typeof window[fnName]==="function"){
-    pushNav(showAssistant);
-    showTyping(()=>{arg!==undefined?window[fnName](arg):window[fnName]();});
-  }
+  var key=ASST_FN_TO_NAV[fnName];
+  if(key&&typeof navTo==="function"){navTo(key,arg);return;}
+  if(typeof window[fnName]==="function"){arg!==undefined?window[fnName](arg):window[fnName]();}
 }
 
 const ASST_SUGGESTED=[
@@ -165,14 +170,20 @@ const ASST_SUGGESTED=[
 ];
 
 function showAssistant(){
-  clearActions();setNav(true);
+  setActiveTab("chat");
+  clearActions();setNav(false);
   document.getElementById("searchBar").classList.add("gone");
   const nm=asstName();
-  addMsg(`🤖 Здравствуйте${nm?", "+nm:""}! Я помогу сориентироваться. Спросите своими словами — например «как записаться к психологу» или «сколько стоит уборка». Я постараюсь помочь!`,true);
+  addMsg(`🤖 Здравствуйте${nm?", "+nm:""}! Я виртуальный помощник центра «Гармония». Спросите своими словами — например «как записаться к психологу» или «сколько стоит уборка». Или выберите частый вопрос ниже.`,true);
   setTimeout(()=>{
     clearActions();
     const wrap=document.createElement("div");wrap.className="asst-wrap";
-    const chips=document.createElement("div");chips.className="asst-chips gone";
+    const chips=document.createElement("div");chips.className="asst-chips";
+    ASST_SUGGESTED.forEach(qt=>{
+      const b=document.createElement("button");b.type="button";b.className="asst-chip";b.textContent=qt;
+      b.onclick=()=>askFlow(qt);
+      chips.appendChild(b);
+    });
     const row=document.createElement("div");row.className="asst-input-row";
     const inp=document.createElement("input");inp.type="text";inp.className="asst-input";
     inp.placeholder="Напишите свой вопрос…";inp.setAttribute("aria-label","Вопрос помощнику");
