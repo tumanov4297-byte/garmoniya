@@ -36,34 +36,9 @@ function showToast(msg,dur=2800){
   const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),dur);
 }
-function setNav(showBack){document.getElementById("bottomNav").classList.toggle("gone",!showBack);}
+function setNav(showBack){document.getElementById("backBtn").classList.toggle("gone",!showBack);}
 function pushNav(fn){navHistory.push(fn);}
-function goBack(){if(navHistory.length>0){const fn=navHistory.pop();fn();}else{tabGo("home");}}
-
-function setActiveTab(name){
-  document.querySelectorAll(".tb").forEach(function(b){
-    b.classList.toggle("active",b.dataset.tab===name);
-  });
-}
-function resetScreen(){clearActions();chatEl.innerHTML="";navHistory=[];setNav(false);currentCatId=null;currentSvcList=null;document.getElementById("searchBar").classList.add("gone");}
-
-// Единая навигация: открывает раздел на правильном экране/вкладке
-function navTo(key,arg){
-  if(key==="services"){setActiveTab("services");resetScreen();showServices();return;}
-  if(key==="category"){setActiveTab("services");resetScreen();showCategory(arg);return;}
-  if(key==="chat"){setActiveTab("chat");resetScreen();showAssistant();return;}
-  if(key==="cart"){openCart();return;}
-  if(key==="profile"||key==="cabinet"){openProfile();return;}
-  // прочие разделы живут на «Главной»
-  var feats={booking:showBooking,calc:showEligibility,homeWorker:showHomeWorker,callback:showCallback,
-    events:showEvents,news:showNews,staff:showStaff,contacts:showContacts,faq:showFAQ,
-    emergency:showEmergency,moroshka:showMoroshkaInfo,feedback:showFeedback,liveChat:showLiveChat};
-  if(feats[key]){
-    setActiveTab("home");resetScreen();
-    pushNav(showMainMenu);
-    showTyping(function(){feats[key]();});
-  }
-}
+function goBack(){if(navHistory.length>0){const fn=navHistory.pop();fn();}}
 
 function updateHoursBanner(){
   const b=document.getElementById("hoursBanner");
@@ -118,8 +93,19 @@ function toggleMoroshka(){
   if(hasMoroshka===null)return;
   hasMoroshka=!hasMoroshka;localStorage.setItem("hasMoroshka",String(hasMoroshka));
   updateMToggle();updateSvcPrices();
-  addMsg(hasMoroshka?'<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Морошка включена — льготные цены активированы!':'<img src="img/no-moroshka.jpg" class="moroshka-ico-sm" alt=""> Морошка отключена. Базовые цены.',true);
-  showToast(hasMoroshka?"🍊 Морошка ON":"❌ Морошка OFF");
+  document.querySelectorAll(".pl-add").forEach(function(btn){
+    var base=parseInt(btn.dataset.base);
+    var mor=btn.dataset.mor!==""?parseInt(btn.dataset.mor):null;
+    var p=hasMoroshka&&mor!=null?mor:base;
+    var row=btn.closest(".pl-row");if(!row)return;
+    var pe=row.querySelector(".pl-price");if(pe)pe.textContent=p+" ₽";
+    var sv=row.querySelector(".pl-save");
+    if(hasMoroshka&&mor!=null){
+      if(!sv){sv=document.createElement("span");sv.className="pl-save";pe.parentNode.appendChild(sv);}
+      sv.textContent="−"+(base-mor)+" ₽";
+    }else if(sv)sv.remove();
+  });
+  showToast(hasMoroshka?"🍊 Морошка включена":"Морошка отключена");
 }
 function updateSvcPrices(){
   if(!currentSvcList||!currentCatId)return;
@@ -134,8 +120,7 @@ function updateSvcPrices(){
 }
 
 function saveCart(){localStorage.setItem("cart",JSON.stringify(cart));}
-function updateBadge(){const n=cart.reduce((s,i)=>s+i.qty,0);badgeEl.textContent=n;badgeEl.classList.toggle("gone",n===0);
-  const tb=document.getElementById("tabCartBadge");if(tb){tb.textContent=n;tb.classList.toggle("gone",n===0);}}
+function updateBadge(){const n=cart.reduce((s,i)=>s+i.qty,0);badgeEl.textContent=n;badgeEl.classList.toggle("gone",n===0);var tb=document.getElementById("tbCartBadge");if(tb){tb.textContent=n;tb.classList.toggle("gone",n===0);}}
 function addToCart(id,name,price,btn,base,mor){
   const ex=cart.find(i=>i.id===id);
   if(ex)ex.qty++;else cart.push({id,name,price,qty:1,base:(base!==undefined?base:price),mor:(mor!==undefined?mor:null)});
@@ -393,73 +378,101 @@ function menuSection(title,items,collapsed){
   return sec;
 }
 function showMainMenu(){
-  setActiveTab("home");
   document.getElementById("searchBar").classList.add("gone");
-  clearActions();chatEl.innerHTML="";navHistory=[];setNav(false);currentSvcList=null;currentCatId=null;
+  clearActions();navHistory=[];setNav(false);currentSvcList=null;currentCatId=null;
+  if(typeof showSeasonalGreeting==="function")showSeasonalGreeting();
+  chatEl.innerHTML="";
   var gr=greeting();
-  var cartCount=cart.reduce(function(s,i){return s+i.qty;},0);
-  var page=document.createElement("div");page.className="home-page";
-  page.innerHTML=
-    '<div class="home-hero">'+
-      '<div class="hero-greet">'+gr+',<br><b>'+(clientName||"гость")+'</b></div>'+
-      '<div class="hero-sub">'+t("how_help")+'</div>'+
-    '</div>'+
-    '<div class="quick-row">'+
-      '<button class="quick-card q-teal" data-nav="services"><span class="q-ico">📋</span><b>Прейскурант</b><span class="q-sub">Услуги и цены</span></button>'+
-      '<button class="quick-card q-gold" data-nav="booking"><span class="q-ico">📅</span><b>Записаться</b><span class="q-sub">К специалисту</span></button>'+
-    '</div>'+
-    '<button class="assist-card" data-nav="chat">'+
-      '<img src="img/bot-avatar.jpg" class="assist-ava" alt="">'+
-      '<div class="assist-txt"><b>Спросить помощника</b><span>Задайте вопрос — отвечу и подскажу раздел</span></div>'+
-      '<span class="assist-arr">→</span>'+
-    '</button>'+
-    '<div class="home-sec-title">Услуги и заявки</div>'+
-    '<div class="home-grid">'+
-      tile("homeWorker","🏠","ci-red","Соцработник","на дом")+
-      tile("callback","📞","ci-teal","Обратный","звонок")+
-      tile("calc","🧮","ci-green","Льготы","калькулятор")+
-      tile("events","🎟️","ci-gold","Мероприятия","афиша")+
-    '</div>'+
-    '<div class="home-sec-title">Информация</div>'+
-    '<div class="home-grid">'+
-      tile("contacts","📍","ci-teal","Контакты","адрес, телефон")+
-      tile("staff","👥","ci-green","Сотрудники","справочник")+
-      tile("news","📰","ci-blue","Новости","анонсы")+
-      tile("faq","❓","ci-blue","Вопросы","ответы")+
-      tile("moroshka","moroshka","ci-gold","Морошка","скидки")+
-      tile("emergency","🆘","ci-red","Помощь","экстренная")+
-      tile("liveChat","💬","ci-blue","Оператор","связаться")+
-      tile("feedback","⭐","ci-green","Отзыв","оценить")+
-    '</div>';
-  chatEl.appendChild(page);
-  setTimeout(function(){
-    page.querySelectorAll("[data-nav]").forEach(function(el){
-      el.onclick=function(){navTo(el.dataset.nav);};
+  var w=document.createElement("div");w.className="home-view";
+  var html='<div class="greet-anim"><div class="ga-orb ga-1"></div><div class="ga-orb ga-2"></div><div class="ga-orb ga-3"></div><div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-sub">Чем могу помочь?</span></div></div>';
+  html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-avatar.jpg" class="bb-ava"><div class="bb-txt"><b>Помощник «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
+  html+='<div class="news-sec-title">Новости и обновления центра</div>';
+  html+='<div class="news-feed">';
+  if(newsData.length){
+    newsData.forEach(function(n){
+      var d=new Date(n.date);
+      var dateStr=d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
+      html+='<div class="news-card"><div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
     });
-    if(typeof showOnboarding==="function")showOnboarding();
-  },40);
-}
-function tile(nav,ico,cl,ttl,sub){
-  var icoHtml=ico==="moroshka"?'<img src="img/moroshka-logo.jpg" class="moroshka-ico-card" alt="">':ico;
-  return '<button class="home-tile" data-nav="'+nav+'"><span class="tile-ico '+cl+'">'+icoHtml+'</span><b>'+ttl+'</b><span class="tile-sub">'+sub+'</span></button>';
+  }else{
+    html+='<div class="news-empty"><div class="ne-ico">📰</div><b>Новостей пока нет</b><span>Здесь появятся новости и обновления центра</span></div>';
+  }
+  html+='</div>';
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+  w.querySelectorAll("[data-act]").forEach(function(btn){
+    if(btn.dataset.act==="assistant")btn.onclick=function(){pushNav(showMainMenu);showTyping(showAssistant);};
+  });
+  document.querySelectorAll(".bt").forEach(function(t){t.classList.remove("active");});
+  var ht=document.getElementById("bt_home");if(ht)ht.classList.add("active");
+  if(typeof showOnboarding==="function")showOnboarding();
 }
 
 function showServices(){
-  setActiveTab("services");
-  clearActions();setNav(false);
-  if(!servicesData.length){showCityPlaceholder("прейскуранта");return;}
-  document.getElementById("searchBar").classList.remove("gone");
-  var html='<b>📋 Прейскурант услуг</b><br><span class="note">Выберите категорию или найдите услугу через поиск выше.</span><div class="chat-menu">';
-  servicesData.forEach(function(cat){
-    html+='<button class="cm-btn" data-catid="'+cat.id+'">'+cat.icon+' '+cat.name+' <span style="opacity:.5;font-size:11px">('+cat.items.length+')</span></button>';
+  clearActions();setNav(true);
+  if(!servicesData.length){addMsg("Нет данных.",true);return;}
+  chatEl.innerHTML="";
+  var pg=document.createElement("div");pg.className="pricelist";
+  var html='<h2>Прейскурант услуг</h2><div class="pl-search"><input type="text" id="plSearchInp" placeholder="Поиск услуг..." oninput="plFilter(this.value)"></div>';
+  html+='<div class="pl-cats" id="plCats">';
+  servicesData.forEach(function(cat,i){
+    html+='<button class="pl-cat'+(i===0?" on":"")+'" data-cid="'+cat.id+'" onclick="plShowCat('+cat.id+',this)">'+cat.icon+' '+cat.name.split(" ")[0].substring(0,12)+'</button>';
+  });
+  html+='</div><div id="plBody">';
+  servicesData.forEach(function(cat,ci){
+    html+='<div class="pl-sec'+(ci===0?" show":"")+'" data-cid="'+cat.id+'"><div class="pl-sec-t">'+cat.icon+' '+cat.name+'</div>';
+    cat.items.forEach(function(it,ii){
+      var uid=cat.id*1000+ii;
+      var p=hasMoroshka&&it.m!=null?it.m:it.p;
+      var sv=hasMoroshka&&it.m!=null?'<span class="pl-save">−'+(it.p-it.m)+' ₽</span>':"";
+      var nameEsc=it.n.replace(/'/g,"\\'").replace(/"/g,"&quot;");
+      html+='<div class="pl-row"><div class="pl-name">'+it.n+'</div><div class="pl-right"><div class="pl-price">'+p+' ₽</div>'+sv+'</div><button class="pl-add" data-uid="'+uid+'" data-name="'+nameEsc+'" data-base="'+it.p+'" data-mor="'+(it.m!=null?it.m:"")+'" onclick="plAddToCart(this)">+</button></div>';
+    });
+    html+='</div>';
   });
   html+='</div>';
-  addMsg(html,true);
-  setTimeout(function(){
-    document.querySelectorAll("[data-catid]").forEach(function(btn){
-      btn.onclick=function(){var id=parseInt(btn.dataset.catid);pushNav(showServices);showTyping(function(){showCategory(id);});};
-    });
-  },50);
+  pg.innerHTML=html;
+  chatEl.appendChild(pg);
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
+function plAddToCart(btn){
+  var uid=parseInt(btn.dataset.uid);
+  var name=btn.dataset.name;
+  var base=parseInt(btn.dataset.base);
+  var mor=btn.dataset.mor!==""?parseInt(btn.dataset.mor):null;
+  var price=hasMoroshka&&mor!=null?mor:base;
+  addToCart(uid,name,price,btn,base,mor);
+  var it=cart.find(function(i){return i.id===uid;});
+  if(it&&it.qty>1){
+    setTimeout(function(){btn.textContent=it.qty;btn.classList.add("has-qty");},950);
+  }
+}
+function plShowCat(id,btn){
+  document.getElementById("plSearchInp").value="";
+  document.querySelectorAll(".pl-cat").forEach(function(t){t.classList.remove("on");});
+  btn.classList.add("on");
+  document.querySelectorAll(".pl-sec").forEach(function(s){s.classList.toggle("show",+s.dataset.cid===id);});
+  document.querySelectorAll(".pl-row").forEach(function(r){r.style.display="";});
+  var body=document.getElementById("plBody");if(body)body.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function plFilter(q){
+  q=q.toLowerCase().trim();
+  if(!q){
+    document.querySelectorAll(".pl-sec").forEach(function(s,i){s.classList.toggle("show",i===0);});
+    document.querySelectorAll(".pl-cat").forEach(function(t,i){t.classList.toggle("on",i===0);});
+    document.querySelectorAll(".pl-row").forEach(function(r){r.style.display="";});
+    return;
+  }
+  document.querySelectorAll(".pl-sec").forEach(function(s){s.classList.add("show");});
+  document.querySelectorAll(".pl-cat").forEach(function(t){t.classList.remove("on");});
+  document.querySelectorAll(".pl-row").forEach(function(r){
+    var nm=r.querySelector(".pl-name");
+    r.style.display=(nm&&nm.textContent.toLowerCase().includes(q))?"":"none";
+  });
+  document.querySelectorAll(".pl-sec").forEach(function(s){
+    var visible=Array.from(s.querySelectorAll(".pl-row")).some(function(r){return r.style.display!=="none";});
+    s.classList.toggle("show",visible);
+  });
 }
 function showCategory(catId){
   currentCatId=catId;clearActions();setNav(true);
@@ -996,9 +1009,38 @@ showAuth();
 })();
 
 function tabGo(t){
-  if(t==="home"){setActiveTab("home");showMainMenu();}
-  else if(t==="services"){navTo("services");}
-  else if(t==="chat"){navTo("chat");}
-  else if(t==="cart"){openCart();}
-  else if(t==="profile"){openProfile();}
+  document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");});
+  event.currentTarget.classList.add("active");
+  if(t==="home")showMainMenu();
+  else if(t==="menu")showMenuPage();
+  else if(t==="cart")openCart();
+  else if(t==="orders")openProfile();
+  else if(t==="profile")openProfile();
+}
+function showMenuPage(){
+  clearActions();chatEl.innerHTML="";setNav(false);
+  var w=document.createElement("div");w.className="svc-page";
+  w.innerHTML=
+    '<h2>Все разделы</h2>'+
+    '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#1B8585,#0d6b6b)">📋</span><div class="sp-txt"><b>Прейскурант</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="booking"><span class="sp-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📅</span><div class="sp-txt"><b>Записаться</b><span>К специалисту</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="staff"><span class="sp-ico" style="background:linear-gradient(135deg,#10b981,#059669)">👥</span><div class="sp-txt"><b>Сотрудники</b><span>Справочник</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="assistant"><span class="sp-ico" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🤖</span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-more">Услуги и информация</div>'+
+    '<div class="sp-grid">'+
+    '<div class="sp-g" data-a="homeWorker"><span class="sp-g-i" style="background:linear-gradient(135deg,#ef4444,#dc2626)">🏠</span><b>На дом</b></div>'+
+    '<div class="sp-g" data-a="callback"><span class="sp-g-i" style="background:linear-gradient(135deg,#1B8585,#14b8a6)">📞</span><b>Звонок</b></div>'+
+    '<div class="sp-g" data-a="events"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🎟️</span><b>События</b></div>'+
+    '<div class="sp-g" data-a="news"><span class="sp-g-i" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">📰</span><b>Новости</b></div>'+
+    '<div class="sp-g" data-a="contacts"><span class="sp-g-i" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">📍</span><b>Контакты</b></div>'+
+    '<div class="sp-g" data-a="faq"><span class="sp-g-i" style="background:linear-gradient(135deg,#ec4899,#db2777)">❓</span><b>FAQ</b></div>'+
+    '<div class="sp-g" data-a="moroshka"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><img src="img/moroshka-logo.jpg" style="width:22px;height:22px;object-fit:contain"></span><b>Морошка</b></div>'+
+    '<div class="sp-g" data-a="feedback"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">⭐</span><b>Отзыв</b></div>'+
+    '</div>';
+  chatEl.appendChild(w);
+  var acts={services:showServices,booking:showBooking,staff:showStaff,assistant:showAssistant,homeWorker:showHomeWorker,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,faq:showFAQ,moroshka:showMoroshkaInfo,feedback:showFeedback};
+  w.querySelectorAll("[data-a]").forEach(function(el){
+    var a=el.dataset.a;
+    if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};
+  });
 }

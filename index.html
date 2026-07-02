@@ -32,11 +32,7 @@
         <span class="lbl">Морошка</span>
         <div class="pill" aria-hidden="true"></div>
       </div>
-      <button class="icb" onclick="openProfile()" aria-label="Личный кабинет">👤</button>
-      <div class="icb-wrap">
-        <button class="icb" onclick="openCart()" aria-label="Корзина заявки">🛒</button>
-        <div class="cart-badge gone" id="cartBadge" aria-live="polite" aria-label="Товаров в корзине">0</div>
-      </div>
+      <div id="cartBadge" class="gone" style="display:none">0</div>
     </div>
   </header>
 
@@ -49,6 +45,8 @@
     <select class="a11y-lang" id="langSel" onchange="switchLang(this.value)" aria-label="Язык интерфейса">
       <option value="ru">Русский</option>
       <option value="en">English</option>
+      <option value="yrk">Ненэцяˮ</option>
+      <option value="kca">Хӑнты</option>
     </select>
   </div>
 
@@ -73,16 +71,17 @@
   <div class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Диалог с помощником"></div>
   <div class="actions" id="actions" role="region" aria-label="Действия"></div>
 
-  <nav class="bottom-nav gone" id="bottomNav" role="navigation" aria-label="Навигация">
-    <button class="bnav-btn back" id="backBtn" onclick="goBack()" aria-label="Вернуться назад">← Назад</button>
+  <nav class="bottom-nav" id="bottomNav" role="navigation" aria-label="Навигация">
+    <button class="bnav-btn back gone" id="backBtn" onclick="goBack()" aria-label="Вернуться назад">← Назад</button>
+    <button class="bnav-btn home" id="homeBtn" onclick="showMainMenu()" aria-label="Главное меню">🏠 Главная</button>
   </nav>
 
   <nav class="tab-bar" id="tabBar">
-    <button class="tb active" data-tab="home" onclick="tabGo('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Главная</span></button>
-    <button class="tb" data-tab="services" onclick="tabGo('services')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4H4z"/><path d="M4 12h16"/><path d="M4 18h16"/></svg><span>Услуги</span></button>
-    <button class="tb" data-tab="chat" onclick="tabGo('chat')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg><span>Чат</span></button>
-    <button class="tb" data-tab="cart" onclick="tabGo('cart')"><span class="tb-badge gone" id="tabCartBadge">0</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><span>Корзина</span></button>
-    <button class="tb" data-tab="profile" onclick="tabGo('profile')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Профиль</span></button>
+    <button class="tb active" onclick="tabGo('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Главная</span></button>
+    <button class="tb" onclick="tabGo('menu')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Услуги</span></button>
+    <button class="tb" id="tb_cart" onclick="tabGo('cart')"><div class="tb-cart-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><span class="tb-badge gone" id="tbCartBadge">0</span></div><span>Корзина</span></button>
+    <button class="tb" onclick="tabGo('orders')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Заявки</span></button>
+    <button class="tb" onclick="tabGo('profile')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Профиль</span></button>
   </nav>
 
   <div class="cart-panel" id="cartPanel" role="dialog" aria-modal="true" aria-label="Корзина заявки">

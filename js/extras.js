@@ -262,6 +262,30 @@ const I18N={
     profiles_add:"➕ Add recipient",profiles_active:"Active",
     switched_to:"📍 Switched to",how_help:"How can I help?",
     lang_name:"English"
+  },
+  yrk:{
+    greeting_morning:"☀️ Ям яля",greeting_day:"🌤 Ям яля",greeting_evening:"🌙 Пыд яля",
+    menu_services:"Ёнарˮма",menu_services_sub:"Нюдяˮ мярˮ",
+    menu_booking:"Тохолабцˮ",menu_booking_sub:"Тохолабцˮ хамадабцˮ",
+    menu_contacts:"Хаерˮ",menu_contacts_sub:"Тел., email",
+    menu_emergency:"Мэнарˮ яляˮ",menu_emergency_sub:"Ненэцяˮ яляˮ",
+    btn_close:"Тасˮ",btn_home:"🏠 Нюдяˮ",
+    ask_helper:"Тарем ваˮ хэваˮ",ask_helper_sub:"Маняˮ ваˮ тарем",
+    how_help:"Маняˮ ханяˮ тарем ваˮ?",
+    lang_name:"Ненэцяˮ",
+    _note:"Заготовка — дополняет носитель языка"
+  },
+  kca:{
+    greeting_morning:"☀️ Ёмас хӑтәл",greeting_day:"🌤 Ёмас хӑтәл",greeting_evening:"🌙 Ёмас ет",
+    menu_services:"Тӑхи",menu_services_sub:"Нэмәт па тыӆ",
+    menu_booking:"Хансупсы",menu_booking_sub:"Мир хуща",
+    menu_contacts:"Хотәт",menu_contacts_sub:"Тел., email",
+    menu_emergency:"Вой мухты",menu_emergency_sub:"Мухты верты",
+    btn_close:"Шӑши",btn_home:"🏠 Хот",
+    ask_helper:"Ёш пӑта вантэ",ask_helper_sub:"Вӑнтэ па путрэ",
+    how_help:"Мўӈ мухты верты?",
+    lang_name:"Хӑнты",
+    _note:"Заготовка — дополняет носитель языка"
   }
 };
 
@@ -277,12 +301,10 @@ function switchLang(lang){
   const sel=document.getElementById("langSel");
   if(sel)sel.value=lang;
   showToast("🌐 "+t("lang_name"));
-  // перерисовать активный экран
-  var active=document.querySelector(".tb.active");
-  var tab=active?active.dataset.tab:"home";
-  if(tab==="home"&&typeof showMainMenu==="function")showMainMenu();
-  else if(tab==="services"&&typeof showServices==="function"){resetScreen();showServices();}
-  else if(tab==="chat"&&typeof showAssistant==="function"){resetScreen();showAssistant();}
+
+  if(typeof showMainMenu==="function"&&document.querySelector(".dash")){
+    showMainMenu();
+  }
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
