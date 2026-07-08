@@ -16,6 +16,7 @@ let darkMode=localStorage.getItem("darkMode")==="1";
 function applyTheme(){
   document.getElementById("shell")?.classList.toggle("dark",darkMode);
   document.body.classList.toggle("dark-body",darkMode);
+  document.body.classList.toggle("dark",darkMode);
   const btn=document.getElementById("themeBtn");
   if(btn)btn.textContent=darkMode?"☀️":"🌙";
 }

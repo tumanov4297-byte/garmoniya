@@ -403,7 +403,7 @@ function showMainMenu(){
   chatEl.innerHTML="";
   var gr=greeting();
   var w=document.createElement("div");w.className="home-view";
-  var html='<div class="greet-anim"><div class="ga-orb ga-1"></div><div class="ga-orb ga-2"></div><div class="ga-orb ga-3"></div><svg class="ga-heart-deco" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.2"/><circle cx="50" cy="14" r="4" fill="#ffffff"/></svg><svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg><div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-sub">Чем могу помочь?</span></div><div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.jpg" class="ga-bot-img" alt=""></div></div>';
+  var html='<div class="greet-anim"><div class="ga-shimmer"></div><div class="ga-orb ga-1"></div><div class="ga-orb ga-2"></div><div class="ga-orb ga-3"></div><svg class="ga-heart-deco" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.2"/><circle cx="50" cy="14" r="4" fill="#ffffff"/></svg><svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg><div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-sub">Чем могу помочь?</span></div><div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.jpg" class="ga-bot-img" alt=""></div></div>';
   html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-present.jpg" class="bb-ava"><div class="bb-txt"><b>Помощник «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
   html+='<div class="news-sec-title">Новости и обновления центра</div>';
   html+='<div class="news-feed">';
@@ -1330,6 +1330,7 @@ showAuth();
 
 (function(){
   let tapCount=0,tapTimer=null,ignoreClickUntil=0;
+  let pressTimer=null,longPressFired=false;
   const logo=document.querySelector(".hdr-logo");
   if(!logo)return;
   function registerTap(){
@@ -1338,11 +1339,22 @@ showAuth();
     tapTimer=setTimeout(()=>{tapCount=0;},1800);
     if(tapCount>=5){tapCount=0;openAdmin();}
   }
+  logo.addEventListener("touchstart",function(){
+    longPressFired=false;
+    pressTimer=setTimeout(function(){
+      longPressFired=true;
+      tapCount=0;
+      openAdmin();
+    },2000);
+  },{passive:true});
   logo.addEventListener("touchend",function(e){
+    clearTimeout(pressTimer);
+    if(longPressFired){ignoreClickUntil=Date.now()+500;return;}
     e.preventDefault();
     ignoreClickUntil=Date.now()+400; // подавляем «призрачный» click, который браузер шлёт после touchend
     registerTap();
   },{passive:false});
+  logo.addEventListener("touchcancel",function(){clearTimeout(pressTimer);},{passive:true});
   logo.addEventListener("click",function(){
     if(Date.now()<ignoreClickUntil)return;
     registerTap();
