@@ -3,11 +3,31 @@ const ORDER_EMAIL="aidavydenko@yanao.ru",ORG_EMAIL="cson-gub@yanao.ru",MAIN_PHON
 
 const cityData={
   gubkin:{address:"629830, ЯНАО, г. Губкинский, 3-й мкрн, д. 42",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
-  muravlenko:{address:"629605, ЯНАО, г. Муравленко, ул. Нефтяников, д. 12",phone:"8(34938)5-18-00",phoneRaw:"73493851800",email:"cson-mur@yanao.ru",orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
-  noyabrsk:{address:"629806, ЯНАО, г. Ноябрьск, ул. Советская, д. 24",phone:"8(34963)3-40-80",phoneRaw:"73496334080",email:"cson-noy@yanao.ru",orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:true,hasServices:false},
-  tarko:{address:"629850, ЯНАО, г. Тарко-Сале, ул. Геологов, д. 8",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
-  urengoy:{address:"629650, ЯНАО, пгт. Уренгой, ул. Ленина, д. 5",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false}
+  muravlenko:{address:"629605, ЯНАО, г. Муравленко, ул. Нефтяников, д. 12",phone:"8(34938)5-18-00",phoneRaw:"73493851800",email:"cson-mur@yanao.ru",orderEmail:"cson-mur@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
+  noyabrsk:{address:"629806, ЯНАО, г. Ноябрьск, ул. Советская, д. 24",phone:"8(34963)3-40-80",phoneRaw:"73496334080",email:"cson-noy@yanao.ru",orderEmail:"cson-noy@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:true,hasServices:false},
+  tarko:{address:"629850, ЯНАО, г. Тарко-Сале, ул. Геологов, д. 8",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:"cson-tarko@yanao.ru",orderEmail:"cson-tarko@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
+  urengoy:{address:"629650, ЯНАО, пгт. Уренгой, ул. Ленина, д. 5",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:"cson-urengoy@yanao.ru",orderEmail:"cson-urengoy@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false}
 };
+
+function getOrderEmail(){
+  const cd=cityData[currentCity]||cityData.gubkin;
+  return cd.orderEmail||cd.email||ORG_EMAIL;
+}
+
+let emailTemplates={
+  order:{subject:"Заявка: {name} ({city})",intro:"ЗАЯВКА НА СОЦИАЛЬНЫЕ УСЛУГИ"},
+  booking:{subject:"Запись: {name} на {date} {time} — {ticket}",intro:"ЗАПИСЬ К СПЕЦИАЛИСТУ"},
+  cancelBooking:{subject:"Отмена записи {ticket}",intro:"ОТМЕНА ЗАПИСИ"},
+  feedback:{subject:"Отзыв от {name}",intro:"ОТЗЫВ О РАБОТЕ ЦЕНТРА"},
+  callback:{subject:"Обратный звонок: {name}",intro:"ЗАЯВКА НА ОБРАТНЫЙ ЗВОНОК"},
+  homeWorker:{subject:"Соцработник на дом: {name}",intro:"ВЫЗОВ СОЦИАЛЬНОГО РАБОТНИКА НА ДОМ"},
+  event:{subject:"Запись на мероприятие: {title}",intro:"ЗАПИСЬ НА МЕРОПРИЯТИЕ"}
+};
+
+function fillTemplate(str,vars){
+  return str.replace(/\{(\w+)\}/g,(m,k)=>(vars[k]!=null?vars[k]:m));
+}
+
 
 const GUBKIN_STAFF=[
   {dept:"Административно-управленческий персонал",name:"Донсков Григорий Владимирович",pos:"Директор филиала",ext:"701",email:"gvdonskov@yanao.ru"},
@@ -279,3 +299,5 @@ const faqData=[
 const newsData=[];
 
 const eventsData=[];
+
+let galleryData=[];

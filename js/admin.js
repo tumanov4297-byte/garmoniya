@@ -4,7 +4,7 @@
 
   const ADMIN={email:"iatumanov@yanao.ru",pass:"300897"};
   const CITY_NAMES={gubkin:"Губкинский",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"Уренгой"};
-  const CONTACT_FIELDS=[["address","Адрес"],["phone","Телефон (для показа)"],["phoneRaw","Телефон (цифры, для звонка)"],["email","Email"],["hours","Часы работы"]];
+  const CONTACT_FIELDS=[["address","Адрес"],["phone","Телефон (для показа)"],["phoneRaw","Телефон (цифры, для звонка)"],["email","Email"],["orderEmail","Email для приёма заявок (куда улетают заявки)"],["hours","Часы работы"]];
 
   let editCity="gubkin", editTab="overview";
   let svcFilter="", staffFilter="";
@@ -24,6 +24,8 @@
     }
     if(ov.newsData&&typeof newsData!=="undefined"){newsData.length=0;ov.newsData.forEach(x=>newsData.push(x));}
     if(ov.eventsData&&typeof eventsData!=="undefined"){eventsData.length=0;ov.eventsData.forEach(x=>eventsData.push(x));}
+    if(ov.emailTemplates&&typeof emailTemplates!=="undefined")Object.assign(emailTemplates,ov.emailTemplates);
+    if(ov.galleryData&&typeof galleryData!=="undefined"){galleryData.length=0;ov.galleryData.forEach(x=>galleryData.push(x));}
   }
 
   function saveOverrides(){
@@ -37,6 +39,8 @@
     }
     if(typeof newsData!=="undefined")ov.newsData=newsData;
     if(typeof eventsData!=="undefined")ov.eventsData=eventsData;
+    if(typeof emailTemplates!=="undefined")ov.emailTemplates=emailTemplates;
+    if(typeof galleryData!=="undefined")ov.galleryData=galleryData;
     localStorage.setItem("adminOverrides",JSON.stringify(ov));
   }
 
@@ -50,6 +54,34 @@
   }
 
   function esc(s){return (s||"").toString().replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+
+  function pickAndResizeImage(cb,maxSize){
+    maxSize=maxSize||640;
+    const inp=document.createElement("input");
+    inp.type="file";inp.accept="image/*";inp.style.display="none";
+    document.body.appendChild(inp);
+    inp.onchange=()=>{
+      const file=inp.files&&inp.files[0];
+      inp.remove();
+      if(!file)return;
+      if(!file.type.startsWith("image/")){showToast("Выберите файл изображения");return;}
+      if(file.size>8*1024*1024){showToast("Файл слишком большой (макс. 8 МБ)");return;}
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const img=new Image();
+        img.onload=()=>{
+          const scale=Math.min(1,maxSize/Math.max(img.width,img.height));
+          const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+          const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+          canvas.getContext("2d").drawImage(img,0,0,w,h);
+          cb(canvas.toDataURL("image/jpeg",0.85));
+        };
+        img.src=ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+    inp.click();
+  }
 
   window.openAdmin=function(){
     document.querySelectorAll(".admin-ovl,.admin-fs").forEach(e=>e.remove());
@@ -106,6 +138,8 @@
     ["services","📋","Услуги"],
     ["staff","👥","Сотрудники"],
     ["news","📰","Новости"],
+    ["gallery","🖼️","Галерея"],
+    ["templates","✉️","Шаблоны"],
     ["stats","📊","Статистика"]
   ];
 
@@ -158,6 +192,8 @@
     else if(editTab==="contacts")renderContacts(body);
     else if(editTab==="services")renderServices(body);
     else if(editTab==="news")renderNews(body);
+    else if(editTab==="gallery")renderGallery(body);
+    else if(editTab==="templates")renderTemplates(body);
     else if(editTab==="stats")renderStats(body);
     else renderStaff(body);
   }
@@ -376,6 +412,11 @@
         </div>
         <input class="admin-inp" data-ni="${i}" data-f="title" value="${esc(n.title)}" placeholder="Заголовок новости">
         <textarea class="admin-inp" data-ni="${i}" data-f="text" rows="2" placeholder="Текст новости">${esc(n.text)}</textarea>
+        <div class="adm-news-img-row">
+          ${n.image?`<img src="${n.image}" class="adm-news-thumb">`:""}
+          <button class="admin-btn small ghost" data-imgnews="${i}">${n.image?"🖼️ Заменить фото":"🖼️ Прикрепить фото"}</button>
+          ${n.image?`<button class="adm-del" data-delimgnews="${i}" aria-label="Удалить фото">✕</button>`:""}
+        </div>
       </div>`;
     });
     if(!newsData.length)html+='<div class="adm-empty-state">Новостей пока нет. Добавьте первую.</div>';
@@ -402,6 +443,7 @@
 
     const collectNews=()=>{
       const map={};
+      newsData.forEach((n,i)=>{map[i]=Object.assign({},n);});
       body.querySelectorAll("[data-ni]").forEach(inp=>{
         const i=+inp.dataset.ni;(map[i]=map[i]||{});
         map[i][inp.dataset.f]=inp.value;
@@ -427,6 +469,109 @@
     body.querySelector("#addEvt").onclick=()=>{collectNews();collectEvents();eventsData.push({id:"ev"+(eventsData.length+1),date:new Date().toISOString().split("T")[0],title:"",place:"",desc:"",seats:0});saveOverrides();renderNews(body);};
     body.querySelectorAll("[data-delnews]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();newsData.splice(+b.dataset.delnews,1);saveOverrides();renderNews(body);});
     body.querySelectorAll("[data-delevt]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();eventsData.splice(+b.dataset.delevt,1);saveOverrides();renderNews(body);});
+    body.querySelectorAll("[data-imgnews]").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.imgnews;
+      pickAndResizeImage(dataUrl=>{
+        collectNews();collectEvents();
+        newsData[i].image=dataUrl;
+        saveOverrides();renderNews(body);
+      });
+    });
+    body.querySelectorAll("[data-delimgnews]").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.delimgnews;
+      collectNews();collectEvents();
+      delete newsData[i].image;
+      saveOverrides();renderNews(body);
+    });
+  }
+
+  function renderGallery(body){
+    let html='<div class="adm-section-title">Фотогалерея центра</div>';
+    html+='<div class="adm-hint">Фото видят все пользователи бота в разделе «Фотогалерея», независимо от филиала.</div>';
+    html+='<button class="admin-btn" id="addPhoto">📷 Добавить фото</button>';
+
+    if(!galleryData.length){
+      html+='<div class="adm-empty-state" style="margin-top:12px">Пока нет фотографий. Добавьте первую.</div>';
+    }else{
+      html+='<div class="adm-gallery-grid">';
+      galleryData.forEach((g,i)=>{
+        html+=`<div class="adm-gallery-item">
+          <img src="${g.url}" class="adm-gallery-thumb">
+          <input class="admin-inp" data-gi="${i}" placeholder="Подпись к фото" value="${esc(g.caption)}" style="margin-top:6px">
+          <button class="adm-del" data-delphoto="${i}" aria-label="Удалить фото" style="width:100%;margin-top:6px;border-radius:10px">🗑 Удалить</button>
+        </div>`;
+      });
+      html+='</div>';
+      html+='<button class="admin-btn" id="saveGallery" style="margin-top:14px">💾 Сохранить подписи</button>';
+    }
+    body.innerHTML=html;
+
+    body.querySelector("#addPhoto").onclick=()=>{
+      pickAndResizeImage(dataUrl=>{
+        galleryData.push({id:"ph"+Date.now(),url:dataUrl,caption:""});
+        saveOverrides();
+        showToast("📷 Фото добавлено");
+        renderGallery(body);
+      },900);
+    };
+    const saveBtn=body.querySelector("#saveGallery");
+    if(saveBtn)saveBtn.onclick=()=>{
+      body.querySelectorAll("[data-gi]").forEach(inp=>{galleryData[+inp.dataset.gi].caption=inp.value;});
+      saveOverrides();showToast("💾 Подписи сохранены");
+    };
+    body.querySelectorAll("[data-delphoto]").forEach(b=>b.onclick=()=>{
+      body.querySelectorAll("[data-gi]").forEach(inp=>{galleryData[+inp.dataset.gi].caption=inp.value;});
+      galleryData.splice(+b.dataset.delphoto,1);
+      saveOverrides();renderGallery(body);
+    });
+  }
+
+  function renderTemplates(body){
+    const T=[
+      ["order","Заявка на услуги (из корзины)",["name","city"]],
+      ["booking","Запись к специалисту",["name","date","time","ticket"]],
+      ["cancelBooking","Отмена записи",["ticket"]],
+      ["feedback","Отзыв о работе центра",["name"]],
+      ["callback","Обратный звонок",["name"]],
+      ["homeWorker","Вызов соцработника на дом",["name"]],
+      ["event","Запись на мероприятие",["title"]]
+    ];
+    let html='<div class="adm-section-title">Шаблоны текстов заявок</div>';
+    html+='<div class="adm-hint">Эти тексты используются при формировании письма на email филиала. В теме письма можно использовать плейсхолдеры в фигурных скобках — они подставятся автоматически.</div>';
+    T.forEach(([key,label,placeholders])=>{
+      const t=emailTemplates[key]||{subject:"",intro:""};
+      html+=`<div class="adm-cat-card"><div class="adm-cat-items" style="display:flex;flex-direction:column;gap:6px">
+        <div class="adm-dept-name" style="margin-bottom:2px">${label}</div>
+        <label class="admin-lbl" style="margin-top:0">Тема письма</label>
+        <input class="admin-inp" data-tpl="${key}" data-f="subject" value="${esc(t.subject)}">
+        <label class="admin-lbl">Заголовок текста (в теле письма)</label>
+        <input class="admin-inp" data-tpl="${key}" data-f="intro" value="${esc(t.intro)}">
+        <div class="adm-tpl-hint">Доступные плейсхолдеры: ${placeholders.map(p=>"{"+p+"}").join(", ")}</div>
+      </div></div>`;
+    });
+    html+='<button class="admin-btn" id="saveTemplates">💾 Сохранить шаблоны</button>';
+    html+='<button class="admin-btn small ghost" id="resetTemplates">↺ Вернуть тексты по умолчанию</button>';
+    body.innerHTML=html;
+
+    body.querySelector("#saveTemplates").onclick=()=>{
+      body.querySelectorAll("[data-tpl]").forEach(inp=>{
+        const key=inp.dataset.tpl,f=inp.dataset.f;
+        if(!emailTemplates[key])emailTemplates[key]={subject:"",intro:""};
+        emailTemplates[key][f]=inp.value;
+      });
+      saveOverrides();showToast("💾 Шаблоны сохранены");
+    };
+    body.querySelector("#resetTemplates").onclick=()=>{
+      if(!confirm("Вернуть тексты писем к значениям по умолчанию?"))return;
+      emailTemplates.order={subject:"Заявка: {name} ({city})",intro:"ЗАЯВКА НА СОЦИАЛЬНЫЕ УСЛУГИ"};
+      emailTemplates.booking={subject:"Запись: {name} на {date} {time} — {ticket}",intro:"ЗАПИСЬ К СПЕЦИАЛИСТУ"};
+      emailTemplates.cancelBooking={subject:"Отмена записи {ticket}",intro:"ОТМЕНА ЗАПИСИ"};
+      emailTemplates.feedback={subject:"Отзыв от {name}",intro:"ОТЗЫВ О РАБОТЕ ЦЕНТРА"};
+      emailTemplates.callback={subject:"Обратный звонок: {name}",intro:"ЗАЯВКА НА ОБРАТНЫЙ ЗВОНОК"};
+      emailTemplates.homeWorker={subject:"Соцработник на дом: {name}",intro:"ВЫЗОВ СОЦИАЛЬНОГО РАБОТНИКА НА ДОМ"};
+      emailTemplates.event={subject:"Запись на мероприятие: {title}",intro:"ЗАПИСЬ НА МЕРОПРИЯТИЕ"};
+      saveOverrides();showToast("↺ Тексты восстановлены");renderTemplates(body);
+    };
   }
 
   function renderStats(body){

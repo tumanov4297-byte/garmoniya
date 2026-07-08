@@ -9,11 +9,14 @@ const chatEl=document.getElementById("chat"),actionsEl=document.getElementById("
 const badgeEl=document.getElementById("cartBadge");
 let ticketCounter=parseInt(localStorage.getItem("ticketCounter")||"100");
 
+const BOT_POSES=["img/bot-avatar.jpg","img/bot-tablet.jpg","img/bot-present.jpg","img/bot-meditate.jpg","img/bot-pray.jpg","img/bot-heart.jpg"];
+function randomBotPose(){return BOT_POSES[Math.floor(Math.random()*BOT_POSES.length)];}
+
 function addMsg(html,isBot=true){
   const r=document.createElement("div");r.className="msg-row "+(isBot?"bot":"usr")+" msg-enter";
   if(isBot){
     const av=document.createElement("div");av.className="msg-avatar";
-    av.innerHTML='<img src="img/bot-avatar.jpg" alt="" class="av-img">';
+    av.innerHTML='<img src="'+randomBotPose()+'" alt="" class="av-img">';
     r.appendChild(av);
   }
   const b=document.createElement("div");b.className="bubble "+(isBot?"bot":"usr");
@@ -190,8 +193,8 @@ function cancelBooking(idx){
   bh.splice(idx,1);
   localStorage.setItem("bookingsHistory",JSON.stringify(bh));
   bookingsHistory=bh;
-  const body=`ОТМЕНА ЗАПИСИ\nТалон: ${b.num}\nПолучатель: ${clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${b.visitDate} в ${b.visitTime}\nСпециалист: ${b.spec}`;
-  window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Отмена записи "+b.num)}&body=${encodeURIComponent(body)}`;
+  const body=`${emailTemplates.cancelBooking.intro}\nТалон: ${b.num}\nПолучатель: ${clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${b.visitDate} в ${b.visitTime}\nСпециалист: ${b.spec}`;
+  window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.cancelBooking.subject,{ticket:b.num}))}&body=${encodeURIComponent(body)}`;
   showToast("Запись отменена");
   if(document.getElementById("ordersPanel").classList.contains("open")){
     const activeF=document.querySelector(".of-btn.active");
@@ -270,7 +273,7 @@ function renderCart(){
   footer.innerHTML=`
     <div class="cart-total"><span>Итого:</span><span aria-live="polite">${total.toLocaleString()} ₽</span></div>
     ${savingsHtml}
-    <div class="cart-rcpt">Заявка будет отправлена на <strong>${ORG_EMAIL}</strong><br>Получатель: <strong>${clientName||"—"}</strong></div>
+    <div class="cart-rcpt">Заявка будет отправлена на <strong>${getOrderEmail()}</strong><br>Получатель: <strong>${clientName||"—"}</strong></div>
     <button class="cart-send" onclick="sendOrder()" aria-label="Отправить заявку на email">📧 Отправить заявку</button>
     <button class="cart-clr" onclick="clearCart()">🗑 Очистить корзину</button>`;
 }
@@ -304,8 +307,8 @@ function doSendOrder(){
   const cd=cityData[currentCity]||cityData.gubkin;
   const items=cart.map(i=>`• ${i.name} (x${i.qty}) — ${(i.price*i.qty).toLocaleString()} руб.`).join("\n");
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const body=`ЗАЯВКА НА СОЦИАЛЬНЫЕ УСЛУГИ\nДата: ${new Date().toLocaleString("ru-RU")}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\nСНИЛС: ${clientSnils}\nКарта «Морошка»: ${hasMoroshka?"Да":"Нет"}\nФилиал: г. ${currentCityName}\n\nУСЛУГИ\n${items}\n\nИТОГО: ${total.toLocaleString()} руб.`;
-  window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent(`Заявка: ${clientName} (${currentCityName})`)}&body=${encodeURIComponent(body)}`;
+  const body=`${emailTemplates.order.intro}\nДата: ${new Date().toLocaleString("ru-RU")}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\nСНИЛС: ${clientSnils}\nКарта «Морошка»: ${hasMoroshka?"Да":"Нет"}\nФилиал: г. ${currentCityName}\n\nУСЛУГИ\n${items}\n\nИТОГО: ${total.toLocaleString()} руб.`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.order.subject,{name:clientName,city:currentCityName}))}&body=${encodeURIComponent(body)}`;
   ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
   const orderNum="ЗАЯ-"+String(ticketCounter).padStart(4,"0");
   ordersHistory.unshift({
@@ -400,8 +403,8 @@ function showMainMenu(){
   chatEl.innerHTML="";
   var gr=greeting();
   var w=document.createElement("div");w.className="home-view";
-  var html='<div class="greet-anim"><div class="ga-orb ga-1"></div><div class="ga-orb ga-2"></div><div class="ga-orb ga-3"></div><div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-sub">Чем могу помочь?</span></div></div>';
-  html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-avatar.jpg" class="bb-ava"><div class="bb-txt"><b>Помощник «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
+  var html='<div class="greet-anim"><div class="ga-orb ga-1"></div><div class="ga-orb ga-2"></div><div class="ga-orb ga-3"></div><svg class="ga-heart-deco" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.2"/><circle cx="50" cy="14" r="4" fill="#ffffff"/></svg><svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg><div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-sub">Чем могу помочь?</span></div><div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.jpg" class="ga-bot-img" alt=""></div></div>';
+  html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-present.jpg" class="bb-ava"><div class="bb-txt"><b>Помощник «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
   html+='<div class="news-sec-title">Новости и обновления центра</div>';
   html+='<div class="news-feed">';
   if(newsData.length){
@@ -665,8 +668,8 @@ function showBooking(){
     const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
     const commentVal=(document.getElementById("bkComment")||{}).value||"";
     const cd2=cityData[currentCity]||cityData.gubkin;
-    const body=`ЗАПИСЬ К СПЕЦИАЛИСТУ\nТалон: ${ticketNum}\nДата: ${selDate}, Время: ${selTime}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nОТДЕЛЕНИЕ: ${selDept}\nСПЕЦИАЛИСТ: ${selSpec}\nКОММЕНТАРИЙ: ${commentVal||"—"}`;
-    window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent(`Запись: ${clientName} на ${selDate} ${selTime} — ${ticketNum}`)}&body=${encodeURIComponent(body)}`;
+    const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nДата: ${selDate}, Время: ${selTime}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nОТДЕЛЕНИЕ: ${selDept}\nСПЕЦИАЛИСТ: ${selSpec}\nКОММЕНТАРИЙ: ${commentVal||"—"}`;
+    window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:clientName,date:selDate,time:selTime,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
     bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
     bookingsHistory.unshift({
       num:ticketNum,
@@ -785,6 +788,42 @@ function showMoroshkaInfo(){
   },200);
 }
 
+function showGallery(){
+  clearActions();setNav(true);
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="gallery-page";
+  let html='<h2>🖼️ Фотогалерея центра</h2>';
+  if(!galleryData.length){
+    html+='<div class="gal-empty"><div class="gal-empty-ico">📷</div><div class="gal-empty-title">Пока нет фотографий</div><div class="gal-empty-sub">Скоро здесь появятся фото центра «Гармония»</div></div>';
+  }else{
+    html+='<div class="gal-grid">';
+    galleryData.forEach((g,i)=>{
+      html+=`<button class="gal-thumb-btn" data-gidx="${i}"><img src="${g.url}" alt="" class="gal-thumb-img">${g.caption?`<span class="gal-thumb-cap">${g.caption}</span>`:""}</button>`;
+    });
+    html+='</div>';
+  }
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+  w.querySelectorAll("[data-gidx]").forEach(btn=>{
+    btn.onclick=()=>openGalleryLightbox(+btn.dataset.gidx);
+  });
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
+function openGalleryLightbox(idx){
+  const g=galleryData[idx];if(!g)return;
+  const ovl=document.createElement("div");ovl.className="gal-lightbox";
+  ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
+  ovl.innerHTML=`<button class="gal-lb-close" aria-label="Закрыть">✕</button>
+    <img src="${g.url}" class="gal-lb-img" alt="">
+    ${g.caption?`<div class="gal-lb-cap">${g.caption}</div>`:""}
+    ${galleryData.length>1?`<button class="gal-lb-nav gal-lb-prev" aria-label="Предыдущее">‹</button><button class="gal-lb-nav gal-lb-next" aria-label="Следующее">›</button>`:""}`;
+  document.body.appendChild(ovl);
+  ovl.querySelector(".gal-lb-close").onclick=()=>ovl.remove();
+  const prev=ovl.querySelector(".gal-lb-prev"),next=ovl.querySelector(".gal-lb-next");
+  if(prev)prev.onclick=()=>{ovl.remove();openGalleryLightbox((idx-1+galleryData.length)%galleryData.length);};
+  if(next)next.onclick=()=>{ovl.remove();openGalleryLightbox((idx+1)%galleryData.length);};
+}
+
 function showFeedback(){
   clearActions();setNav(true);
   chatEl.innerHTML="";
@@ -832,8 +871,8 @@ function showFeedback(){
   w.querySelector("#fbSendBtn").onclick=()=>{
     if(!fbRating){showToast("⚠️ Поставьте оценку от 1 до 5");return;}
     const cInp=w.querySelector("#fbComment");
-    const body=`ОТЗЫВ\nОценка: ${fbRating}/5 ${"★".repeat(fbRating)}\nТеги: ${fbTags.join(", ")||"—"}\nКомментарий: ${cInp.value||"—"}\n\nОтправитель: ${clientName}\nТелефон: ${clientPhone}`;
-    window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Отзыв от "+clientName)}&body=${encodeURIComponent(body)}`;
+    const body=`${emailTemplates.feedback.intro}\nОценка: ${fbRating}/5 ${"★".repeat(fbRating)}\nТеги: ${fbTags.join(", ")||"—"}\nКомментарий: ${cInp.value||"—"}\n\nОтправитель: ${clientName}\nТелефон: ${clientPhone}\nФилиал: г. ${currentCityName}`;
+    window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.feedback.subject,{name:clientName}))}&body=${encodeURIComponent(body)}`;
     chatEl.innerHTML="";
     addMsg(`✅ Спасибо за отзыв! ${"⭐".repeat(fbRating)}`,true);
     showToast("💬 Отзыв отправлен!");
@@ -1327,7 +1366,7 @@ function showMenuPage(){
     '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#1B8585,#0d6b6b)">📋</span><div class="sp-txt"><b>Прейскурант</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="booking"><span class="sp-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📅</span><div class="sp-txt"><b>Записаться</b><span>К специалисту</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="staff"><span class="sp-ico" style="background:linear-gradient(135deg,#10b981,#059669)">👥</span><div class="sp-txt"><b>Сотрудники</b><span>Справочник</span></div><span class="sp-arr">›</span></div>'+
-    '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-avatar.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-tablet.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-more">Услуги и информация</div>'+
     '<div class="sp-grid">'+
     '<div class="sp-g" data-a="homeWorker"><span class="sp-g-i" style="background:linear-gradient(135deg,#ef4444,#dc2626)">🏠</span><b>На дом</b></div>'+
@@ -1337,10 +1376,11 @@ function showMenuPage(){
     '<div class="sp-g" data-a="contacts"><span class="sp-g-i" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">📍</span><b>Контакты</b></div>'+
     '<div class="sp-g" data-a="faq"><span class="sp-g-i" style="background:linear-gradient(135deg,#ec4899,#db2777)">❓</span><b>FAQ</b></div>'+
     '<div class="sp-g" data-a="moroshka"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><img src="img/moroshka-logo.jpg" style="width:22px;height:22px;object-fit:contain"></span><b>Морошка</b></div>'+
+    '<div class="sp-g" data-a="gallery"><span class="sp-g-i" style="background:linear-gradient(135deg,#0891b2,#0e7490)">🖼️</span><b>Фотогалерея</b></div>'+
     '<div class="sp-g" data-a="feedback"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">⭐</span><b>Отзыв</b></div>'+
     '</div>';
   chatEl.appendChild(w);
-  var acts={services:showServices,booking:showBooking,staff:showStaff,assistant:showAssistant,homeWorker:showHomeWorker,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,faq:showFAQ,moroshka:showMoroshkaInfo,feedback:showFeedback};
+  var acts={services:showServices,booking:showBooking,staff:showStaff,assistant:showAssistant,homeWorker:showHomeWorker,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,faq:showFAQ,moroshka:showMoroshkaInfo,feedback:showFeedback,gallery:showGallery};
   w.querySelectorAll("[data-a]").forEach(function(el){
     var a=el.dataset.a;
     if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};

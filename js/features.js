@@ -23,6 +23,8 @@ const ASST_INTENTS=[
    answer:"Вот новости и анонсы центра.",actions:[{label:"📰 Новости",fn:"showNews",cl:"teal"}]},
   {kw:["открой мероприят","афиша событий","что за мероприятия"],
    answer:"Открываю афишу мероприятий.",actions:[{label:"🎟️ Мероприятия",fn:"showEvents",cl:"teal"}]},
+  {kw:["фотогалере","фото центра","покажи фото","как выглядит центр","фотографии центра"],
+   answer:"Открываю фотогалерею центра.",actions:[{label:"🖼️ Фотогалерея",fn:"showGallery",cl:"teal"}]},
   {kw:["открой контакт","адрес центра","как до вас добраться","где вы находитесь","где находится центр"],
    answer:"Открываю контакты филиала.",actions:[{label:"📍 Контакты",fn:"showContacts",cl:"teal"}]},
   {kw:["открой вопросы","частые вопросы","открой faq"],
@@ -628,8 +630,8 @@ function showCallback(){
     const send=document.createElement("button");send.type="button";send.className="book-send";send.textContent="📞 Заказать звонок";
     send.onclick=()=>{
       const ph=phone.value.trim();if(ph.replace(/\D/g,"").length<7){showToast("⚠️ Укажите телефон");return;}
-      const body=`ОБРАТНЫЙ ЗВОНОК\nИмя: ${clientName}\nТелефон: ${ph}\nУдобное время: ${time.value}\nТема: ${topic.value||"—"}\nФилиал: г. ${currentCityName}`;
-      window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Обратный звонок: "+clientName)}&body=${encodeURIComponent(body)}`;
+      const body=`${emailTemplates.callback.intro}\nИмя: ${clientName}\nТелефон: ${ph}\nУдобное время: ${time.value}\nТема: ${topic.value||"—"}\nФилиал: г. ${currentCityName}`;
+      window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.callback.subject,{name:clientName}))}&body=${encodeURIComponent(body)}`;
       window.GarmoniyaDB?.saveOrder?.({clientName,clientPhone:ph,cityName:currentCityName,total:0,items:[{name:"Обратный звонок ("+time.value+")",qty:1,price:0}]});
       addMsg("✅ Заявка на звонок сформирована. Мы перезвоним в указанное время!",true);
       showToast("✅ Звонок заказан");
@@ -658,8 +660,8 @@ function showHomeWorker(){
     const send=document.createElement("button");send.type="button";send.className="book-send";send.textContent="🏠 Отправить заявку";
     send.onclick=()=>{
       if(!addr.value.trim()||!need.value.trim()){showToast("⚠️ Заполните адрес и описание");return;}
-      const body=`ВЫЗОВ СОЦРАБОТНИКА НА ДОМ\nИмя: ${clientName}\nТелефон: ${clientPhone}\nАдрес: ${addr.value}\nЖелаемая дата: ${date.value||"по согласованию"}\nЧто требуется: ${need.value}\nФилиал: г. ${currentCityName}`;
-      window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Соцработник на дом: "+clientName)}&body=${encodeURIComponent(body)}`;
+      const body=`${emailTemplates.homeWorker.intro}\nИмя: ${clientName}\nТелефон: ${clientPhone}\nАдрес: ${addr.value}\nЖелаемая дата: ${date.value||"по согласованию"}\nЧто требуется: ${need.value}\nФилиал: г. ${currentCityName}`;
+      window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.homeWorker.subject,{name:clientName}))}&body=${encodeURIComponent(body)}`;
       window.GarmoniyaDB?.saveOrder?.({clientName,clientPhone,cityName:currentCityName,total:0,items:[{name:"Соцработник на дом: "+need.value.slice(0,60),qty:1,price:0}]});
       addMsg("✅ Заявка на соцработника отправлена! С вами свяжутся для уточнения.",true);
       showToast("✅ Заявка отправлена");
@@ -694,8 +696,8 @@ function showEvents(){
 }
 function signupEvent(id){
   const e=(typeof eventsData!=="undefined"?eventsData:[]).find(x=>x.id===id);if(!e)return;
-  const body=`ЗАПИСЬ НА МЕРОПРИЯТИЕ\nМероприятие: ${e.title}\nКогда: ${e.date}\nМесто: ${e.place}\n\nУчастник: ${clientName}\nТелефон: ${clientPhone}\nФилиал: г. ${currentCityName}`;
-  window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Запись на мероприятие: "+e.title)}&body=${encodeURIComponent(body)}`;
+  const body=`${emailTemplates.event.intro}\nМероприятие: ${e.title}\nКогда: ${e.date}\nМесто: ${e.place}\n\nУчастник: ${clientName}\nТелефон: ${clientPhone}\nФилиал: г. ${currentCityName}`;
+  window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.event.subject,{title:e.title}))}&body=${encodeURIComponent(body)}`;
   window.GarmoniyaDB?.saveBooking?.({num:"МЕР-"+id,clientName,clientPhone,cityName:currentCityName,dept:"Мероприятие",spec:e.title,visitDate:e.date,visitTime:"",comment:e.place});
   addMsg(`✅ Заявка на участие в «${e.title}» отправлена!`,true);
   showToast("✅ Вы записаны");
