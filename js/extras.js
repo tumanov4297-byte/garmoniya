@@ -457,3 +457,43 @@ function showLiveChat(){
     if(typeof actionsEl!=="undefined")actionsEl.appendChild(wrap);
   },200);
 }
+
+function editQuestionnaire(){
+  document.querySelectorAll(".mo").forEach(m=>m.remove());
+  let p={};try{p=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
+  const catLabels={pensioner:"Пенсионер",disabled:"Инвалид",family:"Семья с детьми",large_family:"Многодетная семья",veteran:"Ветеран",other:"Другое"};
+  const ovl=document.createElement("div");ovl.className="mo";
+  ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
+  ovl.innerHTML=`<div class="mc" style="max-width:400px">
+    <h3 style="text-align:center">📋 Анкета получателя</h3>
+    <p style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:14px">Данные помогают точнее подбирать услуги. Заполнение необязательно.</p>
+    <label class="admin-lbl">Дата рождения</label>
+    <input type="date" class="admin-inp" id="eqBirth" value="${p.birthDate||""}">
+    <label class="admin-lbl">Категория</label>
+    <select class="admin-inp" id="eqCat">
+      <option value="">Выберите...</option>
+      ${Object.entries(catLabels).map(([k,l])=>`<option value="${k}" ${p.category===k?"selected":""}>${l}</option>`).join("")}
+    </select>
+    <label class="admin-lbl">Адрес проживания</label>
+    <input class="admin-inp" id="eqAddr" value="${(p.address||"").replace(/"/g,"&quot;")}" placeholder="Город, улица, дом, квартира">
+    <label class="admin-lbl">Особые потребности</label>
+    <textarea class="admin-inp" id="eqNote" rows="2" placeholder="Пожелания, особенности...">${p.note||""}</textarea>
+    <button class="act-btn teal" id="eqSave" style="width:100%;margin-top:12px;min-height:48px">💾 Сохранить</button>
+    <button class="close-mo" style="width:100%;margin-top:6px" onclick="this.closest('.mo').remove()">Отмена</button>
+  </div>`;
+  document.body.appendChild(ovl);
+  ovl.querySelector("#eqSave").onclick=()=>{
+    const data={
+      birthDate:document.getElementById("eqBirth").value,
+      category:document.getElementById("eqCat").value,
+      address:document.getElementById("eqAddr").value,
+      note:document.getElementById("eqNote").value,
+      filledAt:new Date().toISOString()
+    };
+    localStorage.setItem("userProfile",JSON.stringify(data));
+    localStorage.setItem("questionnaireDone","1");
+    showToast("💾 Анкета сохранена");
+    ovl.remove();
+    if(typeof renderProfilePanel==="function"&&document.getElementById("profBody"))renderProfilePanel();
+  };
+}

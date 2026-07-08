@@ -6,7 +6,9 @@
   const CITY_NAMES={gubkin:"Губкинский",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"Уренгой"};
   const CONTACT_FIELDS=[["address","Адрес"],["phone","Телефон (для показа)"],["phoneRaw","Телефон (цифры, для звонка)"],["email","Email"],["hours","Часы работы"]];
 
-  let editCity="gubkin", editTab="contacts";
+  let editCity="gubkin", editTab="overview";
+  let svcFilter="", staffFilter="";
+  let openCats={}, openDepts={};
 
   function applyOverrides(){
     let ov;try{ov=JSON.parse(localStorage.getItem("adminOverrides")||"null");}catch(e){ov=null;}
@@ -40,12 +42,25 @@
 
   function isAuthed(){return sessionStorage.getItem("adminAuthed")==="1";}
 
+  function refreshActive(){
+    if(typeof currentCity!=="undefined"){
+      servicesData=branchContent[currentCity].services;
+      staffData=branchContent[currentCity].staff;
+    }
+  }
+
+  function esc(s){return (s||"").toString().replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+
   window.openAdmin=function(){
-    document.querySelectorAll(".admin-ovl").forEach(e=>e.remove());
-    const ovl=document.createElement("div");ovl.className="admin-ovl";ovl.setAttribute("role","dialog");ovl.setAttribute("aria-modal","true");
-    ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
-    document.body.appendChild(ovl);
-    isAuthed()?renderPanel(ovl):renderLogin(ovl);
+    document.querySelectorAll(".admin-ovl,.admin-fs").forEach(e=>e.remove());
+    if(!isAuthed()){
+      const ovl=document.createElement("div");ovl.className="admin-ovl";ovl.setAttribute("role","dialog");ovl.setAttribute("aria-modal","true");
+      ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
+      document.body.appendChild(ovl);
+      renderLogin(ovl);
+    }else{
+      openFullPanel();
+    }
   };
 
   function renderLogin(ovl){
@@ -62,58 +77,141 @@
     const em=ovl.querySelector("#admEmail"),pw=ovl.querySelector("#admPass");
     const go=()=>{
       if(em.value.trim().toLowerCase()===ADMIN.email&&pw.value===ADMIN.pass){
-        sessionStorage.setItem("adminAuthed","1");renderPanel(ovl);
+        sessionStorage.setItem("adminAuthed","1");
+        ovl.remove();
+        openFullPanel();
       }else{showToast("❌ Неверный email или пароль");}
     };
     ovl.querySelector("#admGo").onclick=go;
     pw.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
     ovl.querySelector("#admCancel").onclick=()=>ovl.remove();
+    em.focus();
   }
 
-  function renderPanel(ovl){
-    const tabs=[["contacts","📍 Контакты"],["services","📋 Услуги"],["staff","👥 Сотрудники"],["news","📰 Новости"]];
-    ovl.innerHTML=`<div class="admin-card wide">
-      <div class="admin-head">
-        <h3>⚙️ Админпанель</h3>
-        <button class="admin-x" id="admClose" aria-label="Закрыть">✕</button>
+  function openFullPanel(){
+    document.querySelectorAll(".admin-fs").forEach(e=>e.remove());
+    const fs=document.createElement("div");fs.className="admin-fs";fs.id="adminFs";
+    fs.setAttribute("role","dialog");fs.setAttribute("aria-modal","true");fs.setAttribute("aria-label","Панель администратора");
+    document.body.appendChild(fs);
+    renderShell(fs);
+  }
+  function closeFullPanel(){
+    const fs=document.getElementById("adminFs");
+    if(fs)fs.remove();
+  }
+
+  const TABS=[
+    ["overview","🏠","Обзор"],
+    ["contacts","📍","Контакты"],
+    ["services","📋","Услуги"],
+    ["staff","👥","Сотрудники"],
+    ["news","📰","Новости"],
+    ["stats","📊","Статистика"]
+  ];
+
+  function renderShell(fs){
+    fs.innerHTML=`
+      <div class="adm-hdr">
+        <div class="adm-hdr-title"><span class="adm-hdr-ico">⚙️</span><div><b>Админпанель</b><span>ГБУ ЯНАО «ЦСОН «Гармония»</span></div></div>
+        <button class="adm-hdr-x" id="admFsClose" aria-label="Закрыть панель">✕</button>
       </div>
-      <div class="admin-warn">Правки сохраняются!</div>
-      <label class="admin-lbl">Филиал для редактирования</label>
-      <select class="admin-inp" id="admCity">${Object.keys(CITY_NAMES).map(c=>`<option value="${c}" ${c===editCity?"selected":""}>${CITY_NAMES[c]}</option>`).join("")}</select>
-      <div class="admin-tabs">${tabs.map(([k,l])=>`<button class="admin-tab ${k===editTab?"active":""}" data-tab="${k}">${l}</button>`).join("")}</div>
-      <div class="admin-body" id="admBody"></div>
-      <div class="admin-tools">
-        <button class="admin-btn small" id="admExport">⬇️ Экспорт JSON</button>
-        <button class="admin-btn small ghost" id="admImport">⬆️ Импорт JSON</button>
-        <button class="admin-btn small danger" id="admReset">↺ Сброс</button>
-        <button class="admin-btn small ghost" id="admLogout">🚪 Выйти</button>
+      <div class="adm-toolbar">
+        <label class="adm-toolbar-lbl">Филиал</label>
+        <select class="adm-city-sel" id="admCity">${Object.keys(CITY_NAMES).map(c=>`<option value="${c}" ${c===editCity?"selected":""}>${CITY_NAMES[c]}</option>`).join("")}</select>
+        <button class="adm-logout-sm" id="admLogout">🚪 Выйти</button>
+      </div>
+      <div class="adm-tabs" id="admTabs" role="tablist">
+        ${TABS.map(([k,ico,l])=>`<button class="adm-tab${k===editTab?" active":""}" data-tab="${k}" role="tab" aria-selected="${k===editTab}"><span class="adm-tab-ico">${ico}</span>${l}</button>`).join("")}
+      </div>
+      <div class="adm-body" id="admBody"></div>
+      <div class="adm-footer">
+        <button class="adm-foot-btn" id="admExport">⬇️ Экспорт JSON</button>
+        <button class="adm-foot-btn" id="admImport">⬆️ Импорт JSON</button>
+        <button class="adm-foot-btn danger" id="admReset">↺ Сброс всех правок</button>
       </div>
       <input type="file" id="admFile" accept="application/json" style="display:none">
-    </div>`;
-    ovl.querySelector("#admClose").onclick=()=>ovl.remove();
-    ovl.querySelector("#admCity").onchange=e=>{editCity=e.target.value;renderBody(ovl);};
-    ovl.querySelectorAll(".admin-tab").forEach(t=>t.onclick=()=>{editTab=t.dataset.tab;renderPanel(ovl);});
-    ovl.querySelector("#admExport").onclick=exportJSON;
-    ovl.querySelector("#admImport").onclick=()=>ovl.querySelector("#admFile").click();
-    ovl.querySelector("#admFile").onchange=e=>importJSON(e.target.files[0],ovl);
-    ovl.querySelector("#admReset").onclick=()=>{if(confirm("Сбросить ВСЕ правки и вернуть исходные данные?")){localStorage.removeItem("adminOverrides");location.reload();}};
-    ovl.querySelector("#admLogout").onclick=()=>{sessionStorage.removeItem("adminAuthed");ovl.remove();};
-    renderBody(ovl);
+    `;
+    fs.querySelector("#admFsClose").onclick=closeFullPanel;
+    fs.querySelector("#admCity").onchange=e=>{editCity=e.target.value;svcFilter="";staffFilter="";openCats={};openDepts={};renderBody();};
+    fs.querySelectorAll(".adm-tab").forEach(t=>t.onclick=()=>{
+      editTab=t.dataset.tab;
+      fs.querySelectorAll(".adm-tab").forEach(x=>{x.classList.remove("active");x.setAttribute("aria-selected","false");});
+      t.classList.add("active");t.setAttribute("aria-selected","true");
+      renderBody();
+    });
+    fs.querySelector("#admExport").onclick=exportJSON;
+    fs.querySelector("#admImport").onclick=()=>fs.querySelector("#admFile").click();
+    fs.querySelector("#admFile").onchange=e=>importJSON(e.target.files[0]);
+    fs.querySelector("#admReset").onclick=()=>{
+      if(confirm("Сбросить ВСЕ правки и вернуть исходные данные? Это действие необратимо."))
+        {localStorage.removeItem("adminOverrides");location.reload();}
+    };
+    fs.querySelector("#admLogout").onclick=()=>{sessionStorage.removeItem("adminAuthed");closeFullPanel();};
+    renderBody();
   }
 
-  function renderBody(ovl){
-    const body=ovl.querySelector("#admBody");
-    if(editTab==="contacts")renderContacts(body);
+  function renderBody(){
+    const body=document.getElementById("admBody");
+    if(!body)return;
+    body.scrollTop=0;
+    if(editTab==="overview")renderOverview(body);
+    else if(editTab==="contacts")renderContacts(body);
     else if(editTab==="services")renderServices(body);
     else if(editTab==="news")renderNews(body);
+    else if(editTab==="stats")renderStats(body);
     else renderStaff(body);
+  }
+
+  function jumpTo(city,tab){
+    editCity=city;editTab=tab;
+    document.querySelectorAll(".adm-tab").forEach(t=>{
+      const on=t.dataset.tab===tab;
+      t.classList.toggle("active",on);t.setAttribute("aria-selected",String(on));
+    });
+    const sel=document.getElementById("admCity");if(sel)sel.value=city;
+    renderBody();
+  }
+
+  function renderOverview(body){
+    let html='<div class="adm-hint">Сводка по всем филиалам. Нажмите на карточку, чтобы перейти к редактированию.</div>';
+    html+='<div class="ov-grid">';
+    Object.keys(CITY_NAMES).forEach(c=>{
+      const b=branchContent[c];
+      const catCount=b.services.length;
+      const svcCount=b.services.reduce((s,cat)=>s+cat.items.length,0);
+      const stCount=b.staff.length;
+      const filled=catCount>0||stCount>0;
+      html+=`<div class="ov-card${filled?"":" empty"}" data-jump-city="${c}">
+        <div class="ov-card-top"><b>${CITY_NAMES[c]}</b><span class="ov-badge ${filled?"on":"off"}">${filled?"Заполнен":"Пусто"}</span></div>
+        <div class="ov-stats-row">
+          <div class="ov-stat"><span class="ov-stat-v">${catCount}</span><span class="ov-stat-l">категорий</span></div>
+          <div class="ov-stat"><span class="ov-stat-v">${svcCount}</span><span class="ov-stat-l">услуг</span></div>
+          <div class="ov-stat"><span class="ov-stat-v">${stCount}</span><span class="ov-stat-l">сотрудников</span></div>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+
+    html+='<div class="adm-hint" style="margin-top:18px">Новости и мероприятия (общие для всех филиалов)</div>';
+    html+=`<div class="ov-stats-row" style="background:#fff;border-radius:14px;padding:12px;border:1px solid rgba(0,0,0,.05)">
+      <div class="ov-stat"><span class="ov-stat-v">${(typeof newsData!=="undefined"?newsData.length:0)}</span><span class="ov-stat-l">новостей</span></div>
+      <div class="ov-stat"><span class="ov-stat-v">${(typeof eventsData!=="undefined"?eventsData.length:0)}</span><span class="ov-stat-l">мероприятий</span></div>
+    </div>`;
+
+    body.innerHTML=html;
+    body.querySelectorAll("[data-jump-city]").forEach(card=>{
+      card.onclick=()=>jumpTo(card.dataset.jumpCity,"services");
+    });
   }
 
   function renderContacts(body){
     const cd=cityData[editCity];
-    body.innerHTML=CONTACT_FIELDS.map(([f,l])=>
-      `<label class="admin-lbl">${l}</label><input class="admin-inp" data-cf="${f}" value="${(cd[f]||"").replace(/"/g,"&quot;")}">`
-    ).join("")+`<button class="admin-btn" id="saveContacts">💾 Сохранить контакты</button>`;
+    let html=`<div class="adm-section-title">Контакты филиала «${CITY_NAMES[editCity]}»</div>`;
+    html+=CONTACT_FIELDS.map(([f,l])=>
+      `<label class="admin-lbl">${l}</label><input class="admin-inp" data-cf="${f}" value="${esc(cd[f])}">`
+    ).join("");
+    html+=`<button class="admin-btn" id="saveContacts">💾 Сохранить контакты</button>`;
+    body.innerHTML=html;
     body.querySelector("#saveContacts").onclick=()=>{
       body.querySelectorAll("[data-cf]").forEach(inp=>{
         let v=inp.value;
@@ -126,40 +224,64 @@
 
   function renderServices(body){
     const svc=branchContent[editCity].services;
-    let html='<div class="adm-hint">Цена p — обычная, m — по «Морошке» (пусто = без скидки).</div>';
+    let html=`<div class="adm-section-title">Услуги филиала «${CITY_NAMES[editCity]}»</div>`;
+    html+=`<div class="adm-search-wrap"><input class="adm-search-inp" id="svcSearch" placeholder="Поиск услуги по названию..." value="${esc(svcFilter)}"></div>`;
+    html+='<div class="adm-hint">Цена p — обычная, m — по «Морошке» (пусто = без скидки).</div>';
+
+    if(!svc.length){
+      html+='<div class="adm-empty-state">В этом филиале пока нет услуг. Добавьте первую категорию ниже.</div>';
+    }
+
+    const filterLower=svcFilter.trim().toLowerCase();
+
     svc.forEach((cat,ci)=>{
-      html+=`<div class="adm-cat">
-        <div class="adm-cat-head">
-          <input class="admin-inp tiny" data-cat="${ci}" data-f="icon" value="${(cat.icon||"").replace(/"/g,"&quot;")}" style="width:46px;text-align:center;">
-          <input class="admin-inp" data-cat="${ci}" data-f="name" value="${(cat.name||"").replace(/"/g,"&quot;")}" placeholder="Название категории">
-          <button class="adm-del" data-delcat="${ci}" aria-label="Удалить категорию">🗑</button>
-        </div>`;
-      cat.items.forEach((it,ii)=>{
-        html+=`<div class="adm-item">
-          <input class="admin-inp" data-cat="${ci}" data-item="${ii}" data-f="n" value="${(it.n||"").replace(/"/g,"&quot;")}" placeholder="Услуга">
-          <input class="admin-inp tiny" type="number" data-cat="${ci}" data-item="${ii}" data-f="p" value="${it.p??""}" placeholder="₽">
-          <input class="admin-inp tiny" type="number" data-cat="${ci}" data-item="${ii}" data-f="m" value="${it.m??""}" placeholder="🍊">
+      const matchingItems=filterLower?cat.items.map((it,ii)=>({it,ii})).filter(({it})=>it.n.toLowerCase().includes(filterLower)):cat.items.map((it,ii)=>({it,ii}));
+      if(filterLower&&!matchingItems.length&&!cat.name.toLowerCase().includes(filterLower))return;
+      const isOpen=filterLower?true:!!openCats[ci];
+      html+=`<div class="adm-cat-card">
+        <div class="adm-cat-head" data-toggle-cat="${ci}">
+          <span class="adm-cat-chevron">${isOpen?"▾":"▸"}</span>
+          <input class="admin-inp tiny-ico" data-cat="${ci}" data-f="icon" value="${esc(cat.icon)}" onclick="event.stopPropagation()">
+          <input class="admin-inp grow" data-cat="${ci}" data-f="name" value="${esc(cat.name)}" placeholder="Название категории" onclick="event.stopPropagation()">
+          <span class="adm-cat-count">${cat.items.length}</span>
+          <button class="adm-del" data-delcat="${ci}" aria-label="Удалить категорию" onclick="event.stopPropagation()">🗑</button>
+        </div>
+        <div class="adm-cat-items" style="${isOpen?"":"display:none"}" data-cat-items="${ci}">`;
+      matchingItems.forEach(({it,ii})=>{
+        html+=`<div class="adm-item-row">
+          <input class="admin-inp grow" data-cat="${ci}" data-item="${ii}" data-f="n" value="${esc(it.n)}" placeholder="Услуга">
+          <input class="admin-inp price" type="number" data-cat="${ci}" data-item="${ii}" data-f="p" value="${it.p??""}" placeholder="₽">
+          <input class="admin-inp price" type="number" data-cat="${ci}" data-item="${ii}" data-f="m" value="${it.m??""}" placeholder="🍊">
           <button class="adm-del" data-delitem="${ci}_${ii}" aria-label="Удалить услугу">✕</button>
         </div>`;
       });
-      html+=`<button class="admin-btn small ghost" data-additem="${ci}">+ услуга</button></div>`;
+      html+=`<button class="admin-btn small ghost" data-additem="${ci}">+ добавить услугу</button></div></div>`;
     });
-    html+=`<button class="admin-btn small" id="addCat">+ категория</button><button class="admin-btn" id="saveSvc">💾 Сохранить услуги</button>`;
+
+    html+=`<button class="admin-btn small" id="addCat">+ добавить категорию</button><button class="admin-btn" id="saveSvc">💾 Сохранить услуги</button>`;
     body.innerHTML=html;
 
     const collect=()=>{
       body.querySelectorAll("[data-f]").forEach(inp=>{
+        if(inp.dataset.cat===undefined)return;
         const ci=+inp.dataset.cat,f=inp.dataset.f;
         if(inp.dataset.item!==undefined){
-          const ii=+inp.dataset.item,it=svc[ci].items[ii];
+          const ii=+inp.dataset.item,it=svc[ci].items[ii];if(!it)return;
           if(f==="n")it.n=inp.value;
           else if(f==="p")it.p=parseInt(inp.value)||0;
           else if(f==="m")it.m=inp.value===""?null:(parseInt(inp.value)||0);
         }else{svc[ci][f]=inp.value;}
       });
     };
+
+    body.querySelector("#svcSearch").oninput=e=>{svcFilter=e.target.value;renderServices(body);};
+    body.querySelectorAll("[data-toggle-cat]").forEach(h=>h.onclick=()=>{
+      const ci=h.dataset.toggleCat;
+      openCats[ci]=!openCats[ci];
+      renderServices(body);
+    });
     body.querySelector("#saveSvc").onclick=()=>{collect();saveOverrides();showToast("💾 Услуги сохранены");refreshActive();};
-    body.querySelector("#addCat").onclick=()=>{collect();const id=Math.max(0,...svc.map(c=>c.id||0))+1;svc.push({id,name:"Новая категория",icon:"📦",rating:4.8,items:[]});saveOverrides();renderServices(body);};
+    body.querySelector("#addCat").onclick=()=>{collect();const id=Math.max(0,...svc.map(c=>c.id||0))+1;svc.push({id,name:"Новая категория",icon:"📦",rating:4.8,items:[]});openCats[svc.length-1]=true;saveOverrides();renderServices(body);};
     body.querySelectorAll("[data-additem]").forEach(b=>b.onclick=()=>{collect();svc[+b.dataset.additem].items.push({n:"Новая услуга",p:100,m:null});saveOverrides();renderServices(body);});
     body.querySelectorAll("[data-delcat]").forEach(b=>b.onclick=()=>{if(confirm("Удалить категорию целиком?")){collect();svc.splice(+b.dataset.delcat,1);saveOverrides();renderServices(body);}});
     body.querySelectorAll("[data-delitem]").forEach(b=>b.onclick=()=>{collect();const[ci,ii]=b.dataset.delitem.split("_").map(Number);svc[ci].items.splice(ii,1);saveOverrides();renderServices(body);});
@@ -167,64 +289,122 @@
 
   function renderStaff(body){
     const staff=branchContent[editCity].staff;
-    const F=[["dept","Отделение"],["name","ФИО"],["pos","Должность"],["ext","Доб."],["email","Email"]];
-    let html='';
+    let html=`<div class="adm-section-title">Сотрудники филиала «${CITY_NAMES[editCity]}»</div>`;
+    html+=`<div class="adm-search-wrap"><input class="adm-search-inp" id="staffSearch" placeholder="Поиск по ФИО или должности..." value="${esc(staffFilter)}"></div>`;
+
+    if(!staff.length){
+      html+='<div class="adm-empty-state">Сотрудников пока нет. Добавьте первого ниже.</div>';
+    }
+
+    const filterLower=staffFilter.trim().toLowerCase();
+    const depts={};
     staff.forEach((s,i)=>{
-      html+=`<div class="adm-staff">${F.map(([f,l])=>
-        `<input class="admin-inp" data-st="${i}" data-f="${f}" value="${(s[f]||"").replace(/"/g,"&quot;")}" placeholder="${l}">`
-      ).join("")}<button class="adm-del" data-delst="${i}" aria-label="Удалить">🗑</button></div>`;
+      if(filterLower&&!(s.name.toLowerCase().includes(filterLower)||s.pos.toLowerCase().includes(filterLower)||s.dept.toLowerCase().includes(filterLower)))return;
+      const d=s.dept||"Без отделения";
+      (depts[d]=depts[d]||[]).push({s,i});
     });
-    if(!staff.length)html+='<div class="adm-hint">Сотрудников пока нет. Добавьте первого.</div>';
-    html+=`<button class="admin-btn small" id="addSt">+ сотрудник</button><button class="admin-btn" id="saveSt">💾 Сохранить сотрудников</button>`;
+
+    Object.keys(depts).forEach(dept=>{
+      const isOpen=filterLower?true:!!openDepts[dept];
+      html+=`<div class="adm-cat-card">
+        <div class="adm-cat-head" data-toggle-dept="${esc(dept)}">
+          <span class="adm-cat-chevron">${isOpen?"▾":"▸"}</span>
+          <span class="adm-dept-name">${dept}</span>
+          <span class="adm-cat-count">${depts[dept].length}</span>
+        </div>
+        <div class="adm-cat-items" style="${isOpen?"":"display:none"}">`;
+      depts[dept].forEach(({s,i})=>{
+        html+=`<div class="adm-staff-card">
+          <div class="adm-staff-row2">
+            <input class="admin-inp grow" data-st="${i}" data-f="name" value="${esc(s.name)}" placeholder="ФИО">
+            <button class="adm-del" data-delst="${i}" aria-label="Удалить">🗑</button>
+          </div>
+          <div class="adm-staff-row2">
+            <input class="admin-inp grow" data-st="${i}" data-f="pos" value="${esc(s.pos)}" placeholder="Должность">
+          </div>
+          <div class="adm-staff-row2">
+            <input class="admin-inp" data-st="${i}" data-f="dept" value="${esc(s.dept)}" placeholder="Отделение">
+            <input class="admin-inp price" data-st="${i}" data-f="ext" value="${esc(s.ext)}" placeholder="Доб.">
+          </div>
+          <input class="admin-inp" data-st="${i}" data-f="email" value="${esc(s.email)}" placeholder="Email">
+        </div>`;
+      });
+      html+=`<button class="admin-btn small ghost" data-adddeptst="${esc(dept)}">+ добавить в «${dept}»</button></div></div>`;
+    });
+
+    html+=`<button class="admin-btn small" id="addSt">+ добавить сотрудника (новое отделение)</button><button class="admin-btn" id="saveSt">💾 Сохранить сотрудников</button>`;
     body.innerHTML=html;
+
     const collect=()=>{
-      const map={};
-      body.querySelectorAll("[data-st]").forEach(inp=>{const i=+inp.dataset.st;(map[i]=map[i]||{})[inp.dataset.f]=inp.value;});
-      const arr=Object.keys(map).sort((a,b)=>a-b).map(k=>map[k]);
-      staff.length=0;arr.forEach(x=>staff.push(x));
+      body.querySelectorAll("[data-st]").forEach(inp=>{
+        const i=+inp.dataset.st,f=inp.dataset.f;
+        if(staff[i])staff[i][f]=inp.value;
+      });
     };
+    body.querySelector("#staffSearch").oninput=e=>{staffFilter=e.target.value;renderStaff(body);};
+    body.querySelectorAll("[data-toggle-dept]").forEach(h=>h.onclick=()=>{
+      const d=h.dataset.toggleDept;
+      openDepts[d]=!openDepts[d];
+      renderStaff(body);
+    });
     body.querySelector("#saveSt").onclick=()=>{collect();saveOverrides();showToast("💾 Сотрудники сохранены");refreshActive();};
-    body.querySelector("#addSt").onclick=()=>{collect();staff.push({dept:"",name:"",pos:"",ext:"",email:""});saveOverrides();renderStaff(body);};
+    body.querySelector("#addSt").onclick=()=>{collect();staff.push({dept:"",name:"Новый сотрудник",pos:"",ext:"",email:""});saveOverrides();renderStaff(body);};
+    body.querySelectorAll("[data-adddeptst]").forEach(b=>b.onclick=()=>{
+      const dept=b.dataset.adddeptst;
+      collect();
+      staff.push({dept:dept,name:"Новый сотрудник",pos:"",ext:"",email:""});
+      openDepts[dept]=true;
+      saveOverrides();
+      showToast("👤 Сотрудник добавлен в «"+dept+"»");
+      renderStaff(body);
+    });
     body.querySelectorAll("[data-delst]").forEach(b=>b.onclick=()=>{collect();staff.splice(+b.dataset.delst,1);saveOverrides();renderStaff(body);});
   }
 
   function renderNews(body){
     const TAGS=["Новость","Анонс","Мероприятие","Важно"];
-    let html='<div class="adm-hint">Новости видят все пользователи бота. Тег определяет цвет метки.</div>';
+    let html='<div class="adm-section-title">Новости и мероприятия</div>';
+    html+='<div class="adm-hint">Новости видят все пользователи бота, независимо от филиала.</div>';
+
+    html+='<div class="adm-subsection-title">📰 Новости</div>';
     newsData.forEach((n,i)=>{
-      html+=`<div class="adm-staff">
-        <div style="display:flex;gap:6px">
-          <select class="admin-inp" data-ni="${i}" data-f="tag" style="width:120px">${TAGS.map(t=>`<option ${n.tag===t?"selected":""}>${t}</option>`).join("")}</select>
-          <input class="admin-inp tiny" data-ni="${i}" data-f="date" value="${(n.date||"").replace(/"/g,"&quot;")}" placeholder="Дата">
+      html+=`<div class="adm-news-card">
+        <div class="adm-news-row">
+          <select class="admin-inp" data-ni="${i}" data-f="tag" style="flex:1">${TAGS.map(t=>`<option ${n.tag===t?"selected":""}>${t}</option>`).join("")}</select>
+          <input type="date" class="admin-inp adm-date-inp" data-ni="${i}" data-f="date" value="${esc(n.date)}">
           <button class="adm-del" data-delnews="${i}" aria-label="Удалить">🗑</button>
         </div>
-        <input class="admin-inp" data-ni="${i}" data-f="title" value="${(n.title||"").replace(/"/g,"&quot;")}" placeholder="Заголовок">
-        <textarea class="admin-inp" data-ni="${i}" data-f="text" rows="2" placeholder="Текст новости">${(n.text||"").replace(/</g,"&lt;")}</textarea>
+        <input class="admin-inp" data-ni="${i}" data-f="title" value="${esc(n.title)}" placeholder="Заголовок новости">
+        <textarea class="admin-inp" data-ni="${i}" data-f="text" rows="2" placeholder="Текст новости">${esc(n.text)}</textarea>
       </div>`;
     });
-    if(!newsData.length)html+='<div class="adm-hint">Новостей пока нет. Добавьте первую.</div>';
-    html+=`<button class="admin-btn small" id="addNews">+ новость</button>`;
-    html+=`<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px"><div class="adm-hint"><b>Мероприятия</b> (афиша с записью)</div>`;
+    if(!newsData.length)html+='<div class="adm-empty-state">Новостей пока нет. Добавьте первую.</div>';
+    html+=`<button class="admin-btn small ghost" id="addNews">+ добавить новость</button>`;
+
+    html+='<div class="adm-subsection-title" style="margin-top:20px">🎟️ Мероприятия (афиша с записью)</div>';
     eventsData.forEach((e,i)=>{
-      html+=`<div class="adm-staff">
-        <input class="admin-inp" data-ei="${i}" data-f="date" value="${(e.date||"").replace(/"/g,"&quot;")}" placeholder="Дата и время">
-        <input class="admin-inp" data-ei="${i}" data-f="title" value="${(e.title||"").replace(/"/g,"&quot;")}" placeholder="Название">
-        <input class="admin-inp" data-ei="${i}" data-f="place" value="${(e.place||"").replace(/"/g,"&quot;")}" placeholder="Место">
-        <textarea class="admin-inp" data-ei="${i}" data-f="desc" rows="2" placeholder="Описание">${(e.desc||"").replace(/</g,"&lt;")}</textarea>
-        <input class="admin-inp tiny" type="number" data-ei="${i}" data-f="seats" value="${e.seats||""}" placeholder="Мест">
-        <button class="adm-del" data-delevt="${i}" aria-label="Удалить">🗑</button>
+      html+=`<div class="adm-news-card">
+        <div class="adm-news-row">
+          <input type="date" class="admin-inp adm-date-inp" data-ei="${i}" data-f="date" value="${esc((e.date||"").split(" ")[0])}">
+          <input class="admin-inp" data-ei="${i}" data-f="time" value="${esc(e.time||"")}" placeholder="Время (напр. 15:00)" style="max-width:120px">
+          <input class="admin-inp price" type="number" data-ei="${i}" data-f="seats" value="${e.seats||""}" placeholder="Мест">
+          <button class="adm-del" data-delevt="${i}" aria-label="Удалить">🗑</button>
+        </div>
+        <input class="admin-inp" data-ei="${i}" data-f="title" value="${esc(e.title)}" placeholder="Название мероприятия">
+        <input class="admin-inp" data-ei="${i}" data-f="place" value="${esc(e.place)}" placeholder="Место проведения">
+        <textarea class="admin-inp" data-ei="${i}" data-f="desc" rows="2" placeholder="Описание">${esc(e.desc)}</textarea>
       </div>`;
     });
-    if(!eventsData.length)html+='<div class="adm-hint">Мероприятий пока нет.</div>';
-    html+=`<button class="admin-btn small" id="addEvt">+ мероприятие</button></div>`;
-    html+=`<button class="admin-btn" id="saveNews">💾 Сохранить новости и мероприятия</button>`;
+    if(!eventsData.length)html+='<div class="adm-empty-state">Мероприятий пока нет.</div>';
+    html+=`<button class="admin-btn small ghost" id="addEvt">+ добавить мероприятие</button>`;
+    html+=`<button class="admin-btn" id="saveNews" style="margin-top:16px">💾 Сохранить новости и мероприятия</button>`;
     body.innerHTML=html;
 
     const collectNews=()=>{
       const map={};
       body.querySelectorAll("[data-ni]").forEach(inp=>{
         const i=+inp.dataset.ni;(map[i]=map[i]||{});
-        const f=inp.dataset.f;map[i][f]=inp.tagName==="TEXTAREA"?inp.value:inp.value;
+        map[i][inp.dataset.f]=inp.value;
       });
       newsData.length=0;Object.keys(map).sort((a,b)=>a-b).forEach(k=>newsData.push(map[k]));
     };
@@ -233,23 +413,63 @@
       body.querySelectorAll("[data-ei]").forEach(inp=>{
         const i=+inp.dataset.ei;(map[i]=map[i]||{});
         const f=inp.dataset.f;
-        map[i][f]=f==="seats"?(parseInt(inp.value)||0):(inp.tagName==="TEXTAREA"?inp.value:inp.value);
+        map[i][f]=f==="seats"?(parseInt(inp.value)||0):inp.value;
       });
       eventsData.length=0;let id=1;
-      Object.keys(map).sort((a,b)=>a-b).forEach(k=>{map[k].id="ev"+id++;eventsData.push(map[k]);});
+      Object.keys(map).sort((a,b)=>a-b).forEach(k=>{
+        const ev=map[k];
+        const dateStr=ev.date&&ev.time?ev.date+" "+ev.time:(ev.date||"");
+        eventsData.push({id:"ev"+id++,date:dateStr,title:ev.title,place:ev.place,desc:ev.desc,seats:ev.seats||0});
+      });
     };
     body.querySelector("#saveNews").onclick=()=>{collectNews();collectEvents();saveOverrides();showToast("💾 Новости и мероприятия сохранены");};
-    body.querySelector("#addNews").onclick=()=>{collectNews();collectEvents();newsData.push({date:"",tag:"Новость",title:"",text:""});saveOverrides();renderNews(body);};
-    body.querySelector("#addEvt").onclick=()=>{collectNews();collectEvents();eventsData.push({id:"ev"+(eventsData.length+1),date:"",title:"",place:"",desc:"",seats:0});saveOverrides();renderNews(body);};
+    body.querySelector("#addNews").onclick=()=>{collectNews();collectEvents();newsData.push({date:new Date().toISOString().split("T")[0],tag:"Новость",title:"",text:""});saveOverrides();renderNews(body);};
+    body.querySelector("#addEvt").onclick=()=>{collectNews();collectEvents();eventsData.push({id:"ev"+(eventsData.length+1),date:new Date().toISOString().split("T")[0],title:"",place:"",desc:"",seats:0});saveOverrides();renderNews(body);};
     body.querySelectorAll("[data-delnews]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();newsData.splice(+b.dataset.delnews,1);saveOverrides();renderNews(body);});
     body.querySelectorAll("[data-delevt]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();eventsData.splice(+b.dataset.delevt,1);saveOverrides();renderNews(body);});
   }
 
-  function refreshActive(){
-    if(typeof currentCity!=="undefined"){
-      servicesData=branchContent[currentCity].services;
-      staffData=branchContent[currentCity].staff;
+  function renderStats(body){
+    var stats={};try{stats=JSON.parse(localStorage.getItem("ym_local")||"{}");}catch(e){}
+    var cartS={};try{cartS=JSON.parse(localStorage.getItem("cartStats")||"{}");}catch(e){}
+    var ratings=[];try{ratings=JSON.parse(localStorage.getItem("ratings")||"[]");}catch(e){}
+    var orders=[];try{orders=JSON.parse(localStorage.getItem("ordersHistory")||"[]");}catch(e){}
+    var bookings=[];try{bookings=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");}catch(e){}
+
+    var html='<div class="adm-section-title">Статистика</div>';
+    html+='<div class="adm-hint">Локальная статистика этого устройства.</div>';
+    html+='<div class="stat-cards"><div class="stat-c"><div class="stat-v">'+orders.length+'</div><div class="stat-l">Заявок</div></div>';
+    html+='<div class="stat-c"><div class="stat-v">'+bookings.length+'</div><div class="stat-l">Записей</div></div>';
+    var avgR="—";if(ratings.length){var sum=0;ratings.forEach(function(r){sum+=r.stars;});avgR=(sum/ratings.length).toFixed(1)+"⭐";}
+    html+='<div class="stat-c"><div class="stat-v">'+avgR+'</div><div class="stat-l">Оценка ('+ratings.length+')</div></div></div>';
+
+    var topS=Object.entries(cartS).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+    if(topS.length){
+      html+='<div class="adm-subsection-title">Популярные услуги</div>';
+      var maxV=topS[0][1];
+      topS.forEach(function(s,i){
+        var pct=Math.round(s[1]/maxV*100);
+        html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:18px;font-size:11px;color:var(--text-tertiary);font-weight:800">'+(i+1)+'</span><div style="flex:1;height:26px;background:var(--teal-xlight);border-radius:6px;overflow:hidden;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:'+pct+'%;background:linear-gradient(90deg,var(--teal-light),var(--teal));border-radius:6px"></div><span style="position:relative;padding-left:8px;font-size:11px;font-weight:600;line-height:26px">'+s[0]+'</span></div><span style="width:28px;text-align:right;font-size:11px;font-weight:800;color:var(--teal)">'+s[1]+'</span></div>';
+      });
     }
+
+    var days=Object.keys(stats).sort().reverse().slice(0,7);
+    if(days.length){
+      html+='<div class="adm-subsection-title">Активность по дням</div>';
+      html+='<table class="stat-tbl"><tr><th>Дата</th><th>Входы</th><th>Каталог</th><th>Запись</th><th>Заявки</th><th>Помощник</th></tr>';
+      days.forEach(function(d){var ds=stats[d]||{};html+='<tr><td>'+d.slice(5)+'</td><td>'+(ds.login||0)+'</td><td>'+(ds.view_services||0)+'</td><td>'+(ds.view_booking||0)+'</td><td>'+(ds.order_sent||0)+'</td><td>'+(ds.open_assistant||0)+'</td></tr>';});
+      html+='</table>';
+    }
+
+    if(ratings.length){
+      html+='<div class="adm-subsection-title">Последние отзывы</div>';
+      ratings.slice(-5).reverse().forEach(function(r){
+        html+='<div style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,.04);font-size:12px"><span style="color:var(--gold)">'+"★".repeat(r.stars)+"☆".repeat(5-r.stars)+'</span> '+(r.comment||'<span style="color:var(--text-tertiary)">без комментария</span>')+'<span style="float:right;color:var(--text-tertiary);font-size:10px">'+new Date(r.date).toLocaleDateString("ru-RU")+'</span></div>';
+      });
+    }
+
+    html+='<a href="https://metrika.yandex.ru/dashboard?id=110025020" target="_blank" class="adm-metrika-link">📊 Открыть Яндекс Метрику — полная аналитика</a>';
+    body.innerHTML=html;
   }
 
   function exportJSON(){
@@ -261,7 +481,7 @@
     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
     showToast("⬇️ Файл выгружен");
   }
-  function importJSON(file,ovl){
+  function importJSON(file){
     if(!file)return;
     const r=new FileReader();
     r.onload=()=>{
@@ -269,7 +489,8 @@
         const ov=JSON.parse(r.result);
         localStorage.setItem("adminOverrides",JSON.stringify(ov));
         applyOverrides();refreshActive();
-        showToast("✅ Данные загружены");renderPanel(ovl);
+        showToast("✅ Данные загружены");
+        renderShell(document.getElementById("adminFs"));
       }catch(e){showToast("❌ Ошибка чтения файла");}
     };
     r.readAsText(file);

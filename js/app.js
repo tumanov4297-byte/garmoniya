@@ -1008,6 +1008,8 @@ function renderProfilePanel(){
   const fav=JSON.parse(localStorage.getItem("favorites")||"[]");
   const photo=getProfilePhoto();
   const initials=(clientName||"?").split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+  let userProfile={};try{userProfile=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
+  const catLabels={pensioner:"Пенсионер",disabled:"Инвалид",family:"Семья с детьми",large_family:"Многодетная семья",veteran:"Ветеран",other:"Другое"};
 
   const favHtml=fav.length===0
     ?'<div class="hist-empty"><div class="empty-ico">⭐</div><div class="empty-title">Нет избранных</div><div class="empty-sub">Нажмите ★ у любой услуги в прейскуранте</div></div>'
@@ -1023,6 +1025,15 @@ function renderProfilePanel(){
 
   const oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
   const bh=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+
+  const anketaHtml=(userProfile.category||userProfile.address||userProfile.birthDate)?`
+    <div class="prof-anketa">
+      <div class="prof-anketa-hdr"><span>📋 Анкета получателя</span><button class="prof-anketa-edit" onclick="editQuestionnaire()">Изменить</button></div>
+      ${userProfile.category?`<div class="prof-info-row"><span class="lbl">Категория:</span><span class="val">${catLabels[userProfile.category]||userProfile.category}</span></div>`:""}
+      ${userProfile.birthDate?`<div class="prof-info-row"><span class="lbl">Дата рождения:</span><span class="val">${userProfile.birthDate}</span></div>`:""}
+      ${userProfile.address?`<div class="prof-info-row"><span class="lbl">Адрес:</span><span class="val">${userProfile.address}</span></div>`:""}
+    </div>`:`
+    <button class="prof-anketa-fill" onclick="editQuestionnaire()">📋 Заполнить анкету получателя →</button>`;
 
   const body=document.getElementById("profBody");
   body.innerHTML=`
@@ -1044,8 +1055,17 @@ function renderProfilePanel(){
       <div class="prof-stat"><div class="prof-stat-v">${fav.length}</div><div class="prof-stat-l">Избранных</div></div>
     </div>
 
+    <div class="prof-quick-grid">
+      <button class="prof-quick-btn" onclick="closeProfilePanel();openOrdersPanel();"><span class="pq-ico">📋</span>Мои заявки</button>
+      <button class="prof-quick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showServices);"><span class="pq-ico">🛍️</span>Прейскурант</button>
+      <button class="prof-quick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showBooking);"><span class="pq-ico">📝</span>Записаться</button>
+      <button class="prof-quick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showFeedback);"><span class="pq-ico">💬</span>Отзыв</button>
+    </div>
+
     ${clientSnils&&clientSnils!=="—"&&clientSnils!==""?`<div class="prof-info-row"><span class="lbl">СНИЛС:</span><span class="val">${clientSnils}</span></div>`:""}
     <div class="prof-info-row"><span class="lbl">Морошка:</span><span class="val">${hasMoroshka?"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Активна":"<img src=\"img/no-moroshka.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Нет карты"}</span></div>
+
+    ${anketaHtml}
 
     <div class="cab-actions">
       <button class="cab-btn" onclick="editMyData()">✏️ Изменить данные</button>
@@ -1062,14 +1082,49 @@ function renderProfilePanel(){
     <div class="history-list" id="profhist-docs" role="tabpanel" style="display:none">${docsHtml}</div>
     <div class="history-list" id="profhist-settings" role="tabpanel" style="display:none">
       <div class="settings-section">
+        <div class="set-group-lbl">Внешний вид</div>
         <div class="set-row"><span>Размер шрифта</span><div class="set-btns"><button class="set-btn" onclick="changeFontSize(-1)">А−</button><button class="set-btn" onclick="changeFontSize(1)">А+</button></div></div>
         <div class="set-row"><span>Тёмная тема</span><button class="set-btn" onclick="toggleDarkTheme()">${darkMode?"☀️ Выключить":"🌙 Включить"}</button></div>
+        <div class="set-group-lbl">Мои данные</div>
+        <div class="set-row"><span>Экспорт моих данных</span><button class="set-btn" onclick="exportMyData()">⬇️ Скачать</button></div>
         <div class="set-row"><span>Очистить все данные</span><button class="set-btn danger" onclick="if(confirm('Удалить все данные?')){localStorage.clear();location.reload();}">🗑 Сброс</button></div>
       </div>
     </div>
 
     <div style="display:flex;justify-content:center;margin-top:14px;"><button class="logout-btn-small" onclick="doLogout(this)">🚪 Выйти / Сменить пользователя</button></div>
   `;
+}
+
+function exportMyData(){
+  const oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
+  const bh=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+  const fav=JSON.parse(localStorage.getItem("favorites")||"[]");
+  let userProfile={};try{userProfile=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
+  const lines=[];
+  lines.push("МОИ ДАННЫЕ — ГБУ ЯНАО «ЦСОН «Гармония»");
+  lines.push("Дата экспорта: "+new Date().toLocaleString("ru-RU"));
+  lines.push("");
+  lines.push("ФИО: "+clientName);
+  lines.push("Телефон: "+clientPhone);
+  if(clientSnils&&clientSnils!=="—")lines.push("СНИЛС: "+clientSnils);
+  lines.push("Филиал: г. "+currentCityName);
+  if(userProfile.category)lines.push("Категория: "+userProfile.category);
+  if(userProfile.birthDate)lines.push("Дата рождения: "+userProfile.birthDate);
+  if(userProfile.address)lines.push("Адрес: "+userProfile.address);
+  lines.push("");
+  lines.push("=== ЗАЯВКИ ("+oh.length+") ===");
+  oh.forEach(o=>{lines.push((o.num||"Заявка")+" от "+o.date+" — "+o.sum+" ₽ — "+o.status);});
+  lines.push("");
+  lines.push("=== ЗАПИСИ ("+bh.length+") ===");
+  bh.forEach(b=>{lines.push("Талон "+b.num+" — "+b.visitDate+" "+b.visitTime+" — "+b.spec);});
+  lines.push("");
+  lines.push("=== ИЗБРАННОЕ ("+fav.length+") ===");
+  fav.forEach(f=>{lines.push(f.n+" — "+f.p+" ₽");});
+  const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="my_data_garmoniya.txt";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  showToast("⬇️ Данные экспортированы");
 }
 
 function switchProfTab(which,btn){
@@ -1235,13 +1290,23 @@ initSearch();
 showAuth();
 
 (function(){
-  let tapCount=0,tapTimer=null;
+  let tapCount=0,tapTimer=null,ignoreClickUntil=0;
   const logo=document.querySelector(".hdr-logo");
-  if(logo)logo.addEventListener("click",()=>{
+  if(!logo)return;
+  function registerTap(){
     tapCount++;
     clearTimeout(tapTimer);
-    tapTimer=setTimeout(()=>{tapCount=0;},1200);
+    tapTimer=setTimeout(()=>{tapCount=0;},1800);
     if(tapCount>=5){tapCount=0;openAdmin();}
+  }
+  logo.addEventListener("touchend",function(e){
+    e.preventDefault();
+    ignoreClickUntil=Date.now()+400; // подавляем «призрачный» click, который браузер шлёт после touchend
+    registerTap();
+  },{passive:false});
+  logo.addEventListener("click",function(){
+    if(Date.now()<ignoreClickUntil)return;
+    registerTap();
   });
 })();
 
@@ -1262,7 +1327,7 @@ function showMenuPage(){
     '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#1B8585,#0d6b6b)">📋</span><div class="sp-txt"><b>Прейскурант</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="booking"><span class="sp-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📅</span><div class="sp-txt"><b>Записаться</b><span>К специалисту</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="staff"><span class="sp-ico" style="background:linear-gradient(135deg,#10b981,#059669)">👥</span><div class="sp-txt"><b>Сотрудники</b><span>Справочник</span></div><span class="sp-arr">›</span></div>'+
-    '<div class="sp-item" data-a="assistant"><span class="sp-ico" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🤖</span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-avatar.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-more">Услуги и информация</div>'+
     '<div class="sp-grid">'+
     '<div class="sp-g" data-a="homeWorker"><span class="sp-g-i" style="background:linear-gradient(135deg,#ef4444,#dc2626)">🏠</span><b>На дом</b></div>'+

@@ -1220,3 +1220,150 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .dark .fb-stars-big{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);}
 .dark .fb-star-big.sel{background:rgba(27,133,133,.12);}
 .dark .fb-tag-chip{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#d0d8e8;}
+
+/* Статистика в админпанели */
+.stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0;}
+.stat-c{background:rgba(27,133,133,.04);border:1px solid rgba(27,133,133,.08);border-radius:14px;padding:14px 8px;text-align:center;}
+.stat-v{font-size:22px;font-weight:800;color:var(--teal);}
+.stat-l{font-size:11px;color:var(--text-tertiary);font-weight:600;margin-top:2px;}
+.stat-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px;}
+.stat-tbl th{background:rgba(27,133,133,.06);padding:6px 4px;font-weight:700;color:var(--teal);text-align:center;border:1px solid rgba(0,0,0,.04);}
+.stat-tbl td{padding:5px 4px;text-align:center;border:1px solid rgba(0,0,0,.04);color:var(--text-secondary);}
+.dark .stat-c{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.06);}
+.dark .stat-tbl th{background:rgba(27,133,133,.1);color:#4db8b8;border-color:rgba(255,255,255,.06);}
+.dark .stat-tbl td{border-color:rgba(255,255,255,.05);color:#8899bb;}
+
+/* ═══════════════════════════════════════
+   АДМИНПАНЕЛЬ — полноэкранная, премиальная
+═══════════════════════════════════════ */
+.admin-fs{position:fixed;inset:0;z-index:2000;background:var(--teal-bg);display:flex;flex-direction:column;animation:adminFsIn .3s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes adminFsIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+.adm-hdr{flex-shrink:0;padding:16px 18px;background:linear-gradient(135deg,var(--teal-dark),var(--teal));display:flex;align-items:center;justify-content:space-between;}
+.adm-hdr-title{display:flex;align-items:center;gap:12px;}
+.adm-hdr-ico{font-size:24px;width:44px;height:44px;background:rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.adm-hdr-title b{display:block;font-size:16px;color:#fff;}
+.adm-hdr-title span{display:block;font-size:11px;color:rgba(255,255,255,.7);margin-top:1px;}
+.adm-hdr-x{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;}
+.adm-hdr-x:hover{background:rgba(255,255,255,.25);}
+
+.adm-toolbar{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid rgba(0,0,0,.05);}
+.adm-toolbar-lbl{font-size:12px;font-weight:700;color:var(--text-tertiary);flex-shrink:0;}
+.adm-city-sel{flex:1;height:38px;border:1.5px solid var(--border);border-radius:12px;padding:0 12px;font-size:16px;font-weight:700;color:var(--text-primary);background:#fff;font-family:inherit;}
+.adm-logout-sm{flex-shrink:0;padding:8px 14px;border:1.5px solid rgba(239,68,68,.2);border-radius:12px;background:rgba(239,68,68,.05);color:#ef4444;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+.adm-logout-sm:hover{background:#ef4444;color:#fff;}
+
+.adm-tabs{flex-shrink:0;display:flex;overflow-x:auto;gap:4px;padding:8px 12px;background:#fff;border-bottom:1px solid rgba(0,0,0,.05);scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.adm-tabs::-webkit-scrollbar{display:none;}
+.adm-tab{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:9px 14px;border:none;border-radius:20px;background:rgba(27,133,133,.04);color:var(--text-secondary);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
+.adm-tab-ico{font-size:14px;}
+.adm-tab.active{background:linear-gradient(135deg,var(--teal),var(--teal-mid));color:#fff;box-shadow:0 3px 10px var(--teal-glow);}
+.adm-tab:hover:not(.active){background:rgba(27,133,133,.09);}
+
+.adm-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px;overscroll-behavior:contain;}
+
+.adm-footer{flex-shrink:0;display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid rgba(0,0,0,.05);}
+.adm-foot-btn{flex:1;padding:10px 6px;border:1.5px solid var(--border);border-radius:12px;background:#fff;font-size:11.5px;font-weight:700;color:var(--text-secondary);cursor:pointer;font-family:inherit;}
+.adm-foot-btn:hover{border-color:var(--teal);color:var(--teal);}
+.adm-foot-btn.danger{border-color:rgba(239,68,68,.2);color:#ef4444;}
+.adm-foot-btn.danger:hover{background:#ef4444;color:#fff;border-color:#ef4444;}
+
+/* ═══ Обзор филиалов ═══ */
+.ov-grid{display:flex;flex-direction:column;gap:8px;}
+.ov-card{background:#fff;border:1.5px solid rgba(0,0,0,.05);border-radius:16px;padding:14px 16px;cursor:pointer;transition:.2s;}
+.ov-card:hover{border-color:var(--teal);box-shadow:0 4px 14px var(--teal-glow);}
+.ov-card.empty{opacity:.7;}
+.ov-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.ov-card-top b{font-size:15px;color:var(--text-primary);}
+.ov-badge{font-size:10px;font-weight:800;padding:4px 10px;border-radius:8px;text-transform:uppercase;letter-spacing:.3px;}
+.ov-badge.on{background:rgba(16,185,129,.1);color:#059669;}
+.ov-badge.off{background:rgba(239,68,68,.08);color:#dc2626;}
+.ov-stats-row{display:flex;gap:14px;}
+.ov-stat{flex:1;text-align:center;}
+.ov-stat-v{display:block;font-size:18px;font-weight:800;color:var(--teal);}
+.ov-stat-l{display:block;font-size:10px;color:var(--text-tertiary);font-weight:600;margin-top:1px;}
+
+/* ═══ Секции и поиск ═══ */
+.adm-section-title{font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:10px;}
+.adm-subsection-title{font-size:13px;font-weight:800;color:var(--text-secondary);margin:14px 0 8px;}
+.adm-hint{font-size:12px;color:var(--text-tertiary);background:rgba(27,133,133,.04);border-radius:10px;padding:8px 12px;margin-bottom:12px;line-height:1.5;}
+.adm-empty-state{text-align:center;padding:28px 16px;color:var(--text-tertiary);font-size:13px;background:#fff;border-radius:14px;border:1.5px dashed rgba(0,0,0,.08);margin-bottom:12px;}
+.adm-search-wrap{margin-bottom:12px;}
+.adm-search-inp{width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:16px;font-family:inherit;background:#fff;color:var(--text-primary);}
+.adm-search-inp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-glow);}
+
+/* ═══ Сворачиваемые карточки категорий/отделений ═══ */
+.adm-cat-card{background:#fff;border:1.5px solid rgba(0,0,0,.05);border-radius:14px;margin-bottom:8px;overflow:hidden;}
+.adm-cat-head{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:rgba(27,133,133,.02);}
+.adm-cat-chevron{font-size:12px;color:var(--text-tertiary);width:14px;flex-shrink:0;}
+.adm-dept-name{flex:1;font-size:13.5px;font-weight:700;color:var(--text-primary);}
+.adm-cat-count{flex-shrink:0;font-size:11px;font-weight:800;color:var(--teal);background:rgba(27,133,133,.08);padding:3px 9px;border-radius:8px;}
+.adm-cat-items{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+
+.admin-inp.tiny-ico{width:52px;flex-shrink:0;text-align:center;padding:9px 4px;}
+.admin-inp.grow{flex:1;min-width:0;}
+.admin-inp.price{width:64px;flex-shrink:0;padding:9px 8px;}
+.adm-item-row{display:flex;gap:6px;align-items:center;}
+
+.adm-staff-card{background:rgba(27,133,133,.02);border-radius:12px;padding:10px;margin-bottom:6px;display:flex;flex-direction:column;gap:6px;}
+.adm-staff-row2{display:flex;gap:6px;align-items:center;}
+
+.adm-del{width:34px;height:34px;flex-shrink:0;border-radius:10px;border:1.5px solid rgba(239,68,68,.15);background:rgba(239,68,68,.04);color:#ef4444;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.adm-del:hover{background:#ef4444;color:#fff;}
+
+.adm-news-card{background:#fff;border:1.5px solid rgba(0,0,0,.05);border-radius:14px;padding:12px;margin-bottom:8px;display:flex;flex-direction:column;gap:8px;}
+.adm-news-row{display:flex;gap:6px;align-items:center;}
+.adm-date-inp{max-width:150px;flex-shrink:0;}
+
+.adm-metrika-link{display:block;margin-top:16px;padding:12px;background:var(--teal-xlight);border:1px solid var(--teal-light);border-radius:12px;text-align:center;color:var(--teal);font-weight:700;font-size:13px;text-decoration:none;}
+
+/* ═══ Общие поля форм в админке — доп. правки ═══ */
+.admin-lbl:first-child{margin-top:0;}
+.admin-btn.small{width:100%;padding:10px;font-size:12.5px;margin-top:8px;min-height:0;}
+.admin-btn.ghost{background:#fff;border:1.5px solid var(--border);color:var(--text-secondary);}
+.admin-btn.ghost:hover{border-color:var(--teal);color:var(--teal);box-shadow:none;}
+.admin-btn.danger{background:linear-gradient(135deg,#ef4444,#dc2626);}
+
+/* ═══ Тёмная тема ═══ */
+.dark .admin-fs{background:#0f1119;}
+.dark .adm-toolbar,.dark .adm-tabs,.dark .adm-footer{background:#151824;border-color:rgba(255,255,255,.06);}
+.dark .adm-city-sel{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:#e0e8f4;}
+.dark .adm-tab{background:rgba(255,255,255,.04);color:#8899bb;}
+.dark .adm-foot-btn{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#8899bb;}
+.dark .adm-section-title,.dark .adm-dept-name{color:#e0e8f4;}
+.dark .adm-subsection-title{color:#a0b0c8;}
+.dark .adm-hint{background:rgba(27,133,133,.08);color:#8899bb;}
+.dark .adm-empty-state{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.1);color:#6a7a90;}
+.dark .adm-search-inp{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:#e0e8f4;}
+.dark .adm-cat-card,.dark .adm-news-card{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.06);}
+.dark .adm-cat-head{background:rgba(255,255,255,.02);}
+.dark .ov-card{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.06);}
+.dark .ov-card-top b{color:#e0e8f4;}
+.dark .adm-staff-card{background:rgba(255,255,255,.02);}
+
+/* ═══ Улучшенный личный кабинет ═══ */
+.prof-quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 16px 0;}
+.prof-quick-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 4px;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:14px;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--text-secondary);font-family:inherit;transition:.2s;text-align:center;}
+.prof-quick-btn:hover{border-color:var(--teal);color:var(--teal);box-shadow:0 4px 12px var(--teal-glow);transform:translateY(-2px);}
+.pq-ico{font-size:20px;}
+
+.prof-anketa{margin:14px 16px 0;background:#fff;border:1.5px solid rgba(27,133,133,.1);border-radius:14px;padding:12px 14px;}
+.prof-anketa-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.prof-anketa-hdr span{font-size:12.5px;font-weight:800;color:var(--text-primary);}
+.prof-anketa-edit{background:none;border:none;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.prof-anketa-fill{display:block;width:calc(100% - 32px);margin:14px 16px 0;padding:12px;background:rgba(27,133,133,.05);border:1.5px dashed rgba(27,133,133,.25);border-radius:14px;color:var(--teal);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;}
+.prof-anketa-fill:hover{background:rgba(27,133,133,.09);}
+
+.set-group-lbl{font-size:10.5px;font-weight:800;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 4px;}
+.set-group-lbl:first-child{margin-top:0;}
+
+.dark .prof-quick-btn{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.06);color:#8899bb;}
+.dark .prof-quick-btn:hover{border-color:var(--teal);color:#4db8b8;}
+.dark .prof-anketa{background:rgba(255,255,255,.03);border-color:rgba(27,133,133,.15);}
+.dark .prof-anketa-hdr span{color:#e0e8f4;}
+.dark .prof-anketa-fill{background:rgba(27,133,133,.08);color:#4db8b8;}
+.dark .set-group-lbl{color:#6a7a90;}
+
+/* Фото бота вместо смайлика в меню "Услуги" */
+.sp-ico-photo{background:linear-gradient(135deg,#1B8585,var(--teal-mid));overflow:hidden;padding:0;}
+.sp-bot-img{width:100%;height:100%;object-fit:cover;border-radius:13px;}
