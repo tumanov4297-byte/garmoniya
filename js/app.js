@@ -102,7 +102,7 @@ function toggleMoroshka(){
     var sv=row.querySelector(".pl-save");
     if(hasMoroshka&&mor!=null){
       if(!sv){sv=document.createElement("span");sv.className="pl-save";pe.parentNode.appendChild(sv);}
-      sv.textContent="−"+(base-mor)+" ₽";
+      sv.textContent="Экономия "+(base-mor)+" ₽";
     }else if(sv)sv.remove();
   });
   showToast(hasMoroshka?"🍊 Морошка включена":"Морошка отключена");
@@ -169,6 +169,7 @@ function repeatOrder(idx){
   });
   saveCart();updateBadge();
   document.querySelector(".mo")?.remove();
+  document.getElementById("ordersPanel").classList.remove("open");
   openCart();
   showToast("🛒 Услуги добавлены в корзину");
 }
@@ -192,8 +193,13 @@ function cancelBooking(idx){
   const body=`ОТМЕНА ЗАПИСИ\nТалон: ${b.num}\nПолучатель: ${clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${b.visitDate} в ${b.visitTime}\nСпециалист: ${b.spec}`;
   window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Отмена записи "+b.num)}&body=${encodeURIComponent(body)}`;
   showToast("Запись отменена");
-  document.querySelector(".mo")?.remove();
-  setTimeout(openProfile,200);
+  if(document.getElementById("ordersPanel").classList.contains("open")){
+    const activeF=document.querySelector(".of-btn.active");
+    renderOrdersPanel(activeF?activeF.dataset.f:"all");
+  }else{
+    document.querySelector(".mo")?.remove();
+    setTimeout(openOrdersPanel,200);
+  }
 }
 
 function clearAllBookings(){
@@ -209,8 +215,13 @@ function clearAllBookings(){
   localStorage.setItem("bookingsHistory","[]");
   bookingsHistory=[];
   showToast("Список записей очищен");
-  document.querySelector(".mo")?.remove();
-  setTimeout(openProfile,200);
+  if(document.getElementById("ordersPanel").classList.contains("open")){
+    const activeF=document.querySelector(".of-btn.active");
+    renderOrdersPanel(activeF?activeF.dataset.f:"all");
+  }else{
+    document.querySelector(".mo")?.remove();
+    setTimeout(openOrdersPanel,200);
+  }
 }
 
 function clearAllOrders(){
@@ -226,8 +237,13 @@ function clearAllOrders(){
   localStorage.setItem("ordersHistory","[]");
   ordersHistory=[];
   showToast("Список заявок очищен");
-  document.querySelector(".mo")?.remove();
-  setTimeout(openProfile,200);
+  if(document.getElementById("ordersPanel").classList.contains("open")){
+    const activeF=document.querySelector(".of-btn.active");
+    renderOrdersPanel(activeF?activeF.dataset.f:"all");
+  }else{
+    document.querySelector(".mo")?.remove();
+    setTimeout(openOrdersPanel,200);
+  }
 }
 function renderCart(){
   const body=document.getElementById("cartBody"),footer=document.getElementById("cartFooter");
@@ -296,7 +312,7 @@ function doSendOrder(){
     num:orderNum,
     date:new Date().toLocaleString("ru-RU"),
     sum:total.toLocaleString(),
-    items:cart.map(i=>`${i.name} x${i.qty}`).join(", "),
+    items:cart.map(i=>`<div class="ord-item-line">${i.name} <span class="ord-item-qty">×${i.qty}</span></div>`).join(""),
     itemsRaw:cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,base:i.base,mor:i.mor})),
     status:"new"
   });
@@ -410,30 +426,54 @@ function showMainMenu(){
 
 function showServices(){
   clearActions();setNav(true);
-  if(!servicesData.length){addMsg("Нет данных.",true);return;}
+  if(!servicesData.length){addMsg("Нет данных для этого филиала.",true);return;}
   chatEl.innerHTML="";
   var pg=document.createElement("div");pg.className="pricelist";
-  var html='<h2>Прейскурант услуг</h2><div class="pl-search"><input type="text" id="plSearchInp" placeholder="Поиск услуг..." oninput="plFilter(this.value)"></div>';
-  html+='<div class="pl-cats" id="plCats">';
-  servicesData.forEach(function(cat,i){
-    html+='<button class="pl-cat'+(i===0?" on":"")+'" data-cid="'+cat.id+'" onclick="plShowCat('+cat.id+',this)">'+cat.icon+' '+cat.name.split(" ")[0].substring(0,12)+'</button>';
-  });
-  html+='</div><div id="plBody">';
-  servicesData.forEach(function(cat,ci){
-    html+='<div class="pl-sec'+(ci===0?" show":"")+'" data-cid="'+cat.id+'"><div class="pl-sec-t">'+cat.icon+' '+cat.name+'</div>';
-    cat.items.forEach(function(it,ii){
-      var uid=cat.id*1000+ii;
-      var p=hasMoroshka&&it.m!=null?it.m:it.p;
-      var sv=hasMoroshka&&it.m!=null?'<span class="pl-save">−'+(it.p-it.m)+' ₽</span>':"";
-      var nameEsc=it.n.replace(/'/g,"\\'").replace(/"/g,"&quot;");
-      html+='<div class="pl-row"><div class="pl-name">'+it.n+'</div><div class="pl-right"><div class="pl-price">'+p+' ₽</div>'+sv+'</div><button class="pl-add" data-uid="'+uid+'" data-name="'+nameEsc+'" data-base="'+it.p+'" data-mor="'+(it.m!=null?it.m:"")+'" onclick="plAddToCart(this)">+</button></div>';
-    });
-    html+='</div>';
+  var html='<h2>Прейскурант услуг</h2><div class="pl-search"><input type="text" id="plSearchInp" placeholder="Поиск услуги по названию..." oninput="plFilterGlobal(this.value)" aria-label="Поиск услуги"></div>';
+  html+='<div id="plCatList" class="pl-catlist">';
+  servicesData.forEach(function(cat){
+    html+='<button class="pl-catcard" data-cid="'+cat.id+'" onclick="plOpenCat('+cat.id+')" aria-label="'+cat.name.replace(/"/g,"&quot;")+', '+cat.items.length+' услуг">'
+        +'<span class="pl-catcard-ico">'+cat.icon+'</span>'
+        +'<span class="pl-catcard-txt"><b>'+cat.name+'</b><span>'+cat.items.length+' '+plWordForm(cat.items.length,["услуга","услуги","услуг"])+'</span></span>'
+        +'<span class="pl-catcard-arr">›</span></button>';
   });
   html+='</div>';
+  html+='<div id="plSearchResults" class="pl-searchres gone"></div>';
+  html+='<div id="plCatDetail" class="pl-catdetail gone"></div>';
   pg.innerHTML=html;
   chatEl.appendChild(pg);
   actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
+function plWordForm(n,forms){
+  n=Math.abs(n)%100;var n1=n%10;
+  if(n>10&&n<20)return forms[2];
+  if(n1>1&&n1<5)return forms[1];
+  if(n1===1)return forms[0];
+  return forms[2];
+}
+function plRenderRow(cat,it,ii){
+  var uid=cat.id*1000+ii;
+  var p=hasMoroshka&&it.m!=null?it.m:it.p;
+  var sv=hasMoroshka&&it.m!=null?'<span class="pl-save">Экономия '+(it.p-it.m)+' ₽</span>':"";
+  var nameEsc=it.n.replace(/'/g,"\\'").replace(/"/g,"&quot;");
+  return '<div class="pl-row"><div class="pl-name">'+it.n+'</div><div class="pl-right"><div class="pl-price">'+p+' ₽</div>'+sv+'</div><button class="pl-add" data-uid="'+uid+'" data-name="'+nameEsc+'" data-base="'+it.p+'" data-mor="'+(it.m!=null?it.m:"")+'" onclick="plAddToCart(this)" aria-label="Добавить '+nameEsc+' в корзину">+</button></div>';
+}
+function plOpenCat(id){
+  var cat=servicesData.find(function(c){return c.id===id;});if(!cat)return;
+  document.getElementById("plCatList").classList.add("gone");
+  document.getElementById("plSearchResults").classList.add("gone");
+  document.getElementById("plSearchInp").value="";
+  var det=document.getElementById("plCatDetail");
+  var html='<button class="pl-back" onclick="plCloseCat()">← Все категории</button>';
+  html+='<div class="pl-sec-t">'+cat.icon+' '+cat.name+'</div>';
+  cat.items.forEach(function(it,ii){html+=plRenderRow(cat,it,ii);});
+  det.innerHTML=html;
+  det.classList.remove("gone");
+  det.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function plCloseCat(){
+  document.getElementById("plCatDetail").classList.add("gone");
+  document.getElementById("plCatList").classList.remove("gone");
 }
 function plAddToCart(btn){
   var uid=parseInt(btn.dataset.uid);
@@ -447,206 +487,254 @@ function plAddToCart(btn){
     setTimeout(function(){btn.textContent=it.qty;btn.classList.add("has-qty");},950);
   }
 }
-function plShowCat(id,btn){
-  document.getElementById("plSearchInp").value="";
-  document.querySelectorAll(".pl-cat").forEach(function(t){t.classList.remove("on");});
-  btn.classList.add("on");
-  document.querySelectorAll(".pl-sec").forEach(function(s){s.classList.toggle("show",+s.dataset.cid===id);});
-  document.querySelectorAll(".pl-row").forEach(function(r){r.style.display="";});
-  var body=document.getElementById("plBody");if(body)body.scrollIntoView({behavior:"smooth",block:"start"});
-}
-function plFilter(q){
+function plFilterGlobal(q){
   q=q.toLowerCase().trim();
+  var catList=document.getElementById("plCatList");
+  var det=document.getElementById("plCatDetail");
+  var res=document.getElementById("plSearchResults");
   if(!q){
-    document.querySelectorAll(".pl-sec").forEach(function(s,i){s.classList.toggle("show",i===0);});
-    document.querySelectorAll(".pl-cat").forEach(function(t,i){t.classList.toggle("on",i===0);});
-    document.querySelectorAll(".pl-row").forEach(function(r){r.style.display="";});
+    res.classList.add("gone");res.innerHTML="";
+    det.classList.add("gone");
+    catList.classList.remove("gone");
     return;
   }
-  document.querySelectorAll(".pl-sec").forEach(function(s){s.classList.add("show");});
-  document.querySelectorAll(".pl-cat").forEach(function(t){t.classList.remove("on");});
-  document.querySelectorAll(".pl-row").forEach(function(r){
-    var nm=r.querySelector(".pl-name");
-    r.style.display=(nm&&nm.textContent.toLowerCase().includes(q))?"":"none";
+  det.classList.add("gone");
+  catList.classList.add("gone");
+  var matches=[];
+  servicesData.forEach(function(cat){
+    cat.items.forEach(function(it,ii){
+      if(it.n.toLowerCase().includes(q))matches.push({cat:cat,it:it,ii:ii});
+    });
   });
-  document.querySelectorAll(".pl-sec").forEach(function(s){
-    var visible=Array.from(s.querySelectorAll(".pl-row")).some(function(r){return r.style.display!=="none";});
-    s.classList.toggle("show",visible);
-  });
+  var html='<div class="pl-sec-t">Найдено: '+matches.length+' '+plWordForm(matches.length,["услуга","услуги","услуг"])+'</div>';
+  if(!matches.length){
+    html+='<div class="pl-empty">Ничего не найдено. Попробуйте другой запрос.</div>';
+  }else{
+    matches.forEach(function(m){html+=plRenderRow(m.cat,m.it,m.ii);});
+  }
+  res.innerHTML=html;
+  res.classList.remove("gone");
 }
 function showCategory(catId){
-  currentCatId=catId;clearActions();setNav(true);
-  document.getElementById("searchBar").classList.remove("gone");
-  const cat=servicesData.find(c=>c.id===catId);if(!cat)return;
-  const rt=serviceRatings[`c_${catId}`]||cat.rating;
-  addMsg(`<b>${cat.icon} ${cat.name}</b>${rStars(`c_${catId}`,rt)}`,true);bindRatings();
-  setTimeout(()=>{
-    const wrap=document.createElement("div");wrap.className="svc-wrap";
-    const ul=document.createElement("div");ul.className="svc-list";ul.setAttribute("role","list");
-    cat.items.forEach((svc,i)=>{
-      const rp=(hasMoroshka&&svc.m!==null)?svc.m:svc.p;
-      const id=`${catId}_${i}`;
-      const escn=svc.n.replace(/'/g,"\\'");
-      const mv=svc.m===null?"null":svc.m;
-      const row=document.createElement("div");row.className="svc-row";row.setAttribute("role","listitem");
-      row.innerHTML=`<button class="fav-btn ${isFav(id)?"on":""}" aria-label="В избранное" onclick="toggleFav(event,'${id}','${escn}',${svc.p},${mv},${catId})">★</button><div class="svc-name">${svc.n}</div>${pHtml(svc.p,svc.m)}<button class="add-btn" aria-label="Добавить «${svc.n}» в корзину" onclick="addToCart('${id}','${escn}',${rp},this,${svc.p},${mv})">+</button>`;
-      ul.appendChild(row);
-    });
-    currentSvcList=ul;
-    if(cat.items.length>5){
-      const f=document.createElement("div");f.className="svc-scroll-hint";f.setAttribute("aria-hidden","true");
-      f.innerHTML="<span>↓ листайте вниз ↓</span>";wrap.appendChild(ul);wrap.appendChild(f);
-      ul.addEventListener("scroll",()=>{if(ul.scrollTop>20)f.style.opacity="0";},{passive:true});
-    }else{wrap.appendChild(ul);}
-    const gb=document.createElement("button");gb.className="go-cart-btn";
-    gb.innerHTML="🛒 Посмотреть корзину →";gb.onclick=openCart;
-    actionsEl.appendChild(wrap);actionsEl.appendChild(gb);
-  },200);
+  showServices();
+  setTimeout(function(){plOpenCat(catId);},50);
 }
 
 function showBooking(){
   clearActions();setNav(true);
-  const cd=cityData[currentCity];
   if(!staffData.length){showCityPlaceholder("записи");return;}
-  addMsg("📝 Запись к специалисту. Заполните форму:",true);
-  setTimeout(()=>{
-    const depts=[...new Set(staffData.map(s=>s.dept))];
-    let selDept="",selSpec="",selDate="",selTime="";
-    const form=document.createElement("div");form.className="book-form";
-    const dSel=document.createElement("select");dSel.className="book-sel";dSel.setAttribute("aria-label","Отделение");
-    dSel.innerHTML='<option value="">— Выберите отделение —</option>'+depts.map(d=>`<option value="${d}">${d}</option>`).join("");
-    const sSel=document.createElement("select");sSel.className="book-sel";sSel.setAttribute("aria-label","Специалист");
-    sSel.innerHTML='<option value="">— Сначала выберите отделение —</option>';
-    dSel.onchange=()=>{
-      selDept=dSel.value;
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="booking-page";
+  const depts=[...new Set(staffData.map(s=>s.dept))];
+  let selDept="",selSpec="",selDate="",selTime="";
+
+  w.innerHTML=`
+    <h2>📝 Запись к специалисту</h2>
+    <div class="bk-step-lbl">1. Выберите отделение</div>
+    <div class="bk-dept-list" id="bkDeptList">
+      ${depts.map(d=>`<button class="bk-dept-card" data-dept="${d.replace(/"/g,"&quot;")}">${d}</button>`).join("")}
+    </div>
+
+    <div class="bk-step-lbl bk-step-2 gone" id="bkStep2">2. Выберите специалиста</div>
+    <div class="bk-spec-list gone" id="bkSpecList"></div>
+
+    <div class="bk-step-lbl bk-step-3 gone" id="bkStep3">3. Выберите дату</div>
+    <div class="bk-days-scroll gone" id="bkDays"></div>
+
+    <div class="bk-step-lbl bk-step-4 gone" id="bkStep4">4. Выберите время</div>
+    <div class="bk-time-wrap gone" id="bkTimeWrap"></div>
+
+    <div class="bk-comment-wrap gone" id="bkCommentWrap">
+      <div class="bk-step-lbl">Комментарий (необязательно)</div>
+      <textarea class="fb-inp" id="bkComment" placeholder="Цель визита, особые потребности…" style="min-height:70px"></textarea>
+    </div>
+
+    <div class="bk-summary gone" id="bkSummary"></div>
+  `;
+  chatEl.appendChild(w);
+
+  const deptListEl=w.querySelector("#bkDeptList");
+  const step2El=w.querySelector("#bkStep2"),specListEl=w.querySelector("#bkSpecList");
+  const step3El=w.querySelector("#bkStep3"),daysEl=w.querySelector("#bkDays");
+  const step4El=w.querySelector("#bkStep4"),timeWrapEl=w.querySelector("#bkTimeWrap");
+  const commentWrapEl=w.querySelector("#bkCommentWrap");
+  const summaryEl=w.querySelector("#bkSummary");
+
+  function updateSummary(){
+    if(selDept&&selSpec&&selDate&&selTime){
+      const dObj=new Date(selDate);
+      const dateStr=dObj.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
+      summaryEl.innerHTML=`
+        <div class="bk-sum-title">✅ Проверьте данные записи</div>
+        <div class="bk-sum-row"><span>Отделение</span><b>${selDept}</b></div>
+        <div class="bk-sum-row"><span>Специалист</span><b>${selSpec}</b></div>
+        <div class="bk-sum-row"><span>Дата и время</span><b>${dateStr}, ${selTime}</b></div>
+        <button class="book-send" id="bkSendBtn">📧 Подтвердить запись</button>
+      `;
+      summaryEl.classList.remove("gone");
+      summaryEl.scrollIntoView({behavior:"smooth",block:"end"});
+      summaryEl.querySelector("#bkSendBtn").onclick=doSendBooking;
+    }else{
+      summaryEl.classList.add("gone");summaryEl.innerHTML="";
+    }
+  }
+
+  deptListEl.querySelectorAll(".bk-dept-card").forEach(btn=>{
+    btn.onclick=()=>{
+      selDept=btn.dataset.dept;selSpec="";selDate="";selTime="";
+      deptListEl.querySelectorAll(".bk-dept-card").forEach(b=>b.classList.remove("sel"));
+      btn.classList.add("sel");
       const list=staffData.filter(s=>s.dept===selDept);
-      sSel.innerHTML='<option value="">— Выберите специалиста —</option>'+list.map(s=>`<option value="${s.name}">${s.name} — ${s.pos}</option>`).join("");
-    };
-    sSel.onchange=()=>{selSpec=sSel.value;};
-
-    const dateInp=document.createElement("input");dateInp.type="date";dateInp.className="book-inp";
-    dateInp.setAttribute("aria-label","Дата записи");
-    const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
-    dateInp.min=tomorrow.toISOString().split("T")[0];
-    const maxD=new Date(tomorrow);maxD.setDate(maxD.getDate()+30);
-    dateInp.max=maxD.toISOString().split("T")[0];
-
-    const timeWrap=document.createElement("div");
-    const timeField=document.createElement("div");timeField.className="book-field";
-    const timeLbl=document.createElement("label");timeLbl.className="book-lbl";timeLbl.textContent="Время приёма";
-    timeField.appendChild(timeLbl);timeField.appendChild(timeWrap);
-
-    dateInp.onchange=()=>{
-      selDate=dateInp.value;selTime="";
-      timeWrap.innerHTML="";
-      if(!selDate)return;
-      const d=new Date(selDate);const dow=d.getDay(); // 0=Вс, 6=Сб
-      if(dow===0||dow===6){
-        const notice=document.createElement("div");notice.className="weekend-notice";
-        notice.setAttribute("role","alert");
-        notice.innerHTML="🚫 Центр не работает в субботу и воскресенье.<br>Пожалуйста, выберите рабочий день (пн–пт).";
-        timeWrap.appendChild(notice);return;
-      }
-      const slots=["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
-      const lunchIdxs=new Set([6,7,8]);
-      const g=document.createElement("div");g.className="time-grid";g.setAttribute("role","group");g.setAttribute("aria-label","Выберите время приёма");
-      slots.forEach((sl,idx)=>{
-        const btn=document.createElement("button");btn.type="button";btn.className="time-slot";btn.textContent=sl;
-        btn.setAttribute("aria-label","Время "+sl);
-        if(lunchIdxs.has(idx)){
-          btn.classList.add("busy");btn.setAttribute("disabled","");
-          btn.setAttribute("aria-disabled","true");btn.setAttribute("aria-label","Время "+sl+" — обед");
-        }else{
-          btn.onclick=()=>{
-            g.querySelectorAll(".time-slot:not(.busy)").forEach(b=>{b.classList.remove("sel");b.setAttribute("aria-pressed","false");});
-            btn.classList.add("sel");btn.setAttribute("aria-pressed","true");selTime=sl;
-          };
-        }
-        g.appendChild(btn);
+      specListEl.innerHTML=list.map(s=>{
+        const ini=s.name.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase();
+        return `<button class="bk-spec-card" data-spec="${s.name.replace(/"/g,"&quot;")}"><span class="bk-spec-ava">${ini}</span><span class="bk-spec-txt"><b>${s.name}</b><span>${s.pos}</span></span></button>`;
+      }).join("");
+      specListEl.querySelectorAll(".bk-spec-card").forEach(sbtn=>{
+        sbtn.onclick=()=>{
+          selSpec=sbtn.dataset.spec;selDate="";selTime="";
+          specListEl.querySelectorAll(".bk-spec-card").forEach(b=>b.classList.remove("sel"));
+          sbtn.classList.add("sel");
+          renderDays();
+          step3El.classList.remove("gone");daysEl.classList.remove("gone");
+          step4El.classList.add("gone");timeWrapEl.classList.add("gone");timeWrapEl.innerHTML="";
+          commentWrapEl.classList.add("gone");
+          updateSummary();
+          step3El.scrollIntoView({behavior:"smooth",block:"start"});
+        };
       });
-      timeWrap.appendChild(g);
+      step2El.classList.remove("gone");specListEl.classList.remove("gone");
+      step3El.classList.add("gone");daysEl.classList.add("gone");
+      step4El.classList.add("gone");timeWrapEl.classList.add("gone");
+      commentWrapEl.classList.add("gone");
+      updateSummary();
+      step2El.scrollIntoView({behavior:"smooth",block:"start"});
     };
+  });
 
-    const cInp=document.createElement("textarea");cInp.className="fb-inp";cInp.style.minHeight="72px";
-    cInp.placeholder="Комментарий (цель визита, особые потребности…)";cInp.setAttribute("aria-label","Комментарий к записи");
-
-    const sendBtn=document.createElement("button");sendBtn.type="button";sendBtn.className="book-send";
-    sendBtn.textContent="📧 Подтвердить запись";
-    sendBtn.onclick=()=>{
-      if(!selDept||!selSpec||!selDate||!selTime){showToast("⚠️ Заполните все поля");return;}
-      ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-      const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
-      const spec=staffData.find(s=>s.name===selSpec);
-      const cd2=cityData[currentCity]||cityData.gubkin;
-      const body=`ЗАПИСЬ К СПЕЦИАЛИСТУ\nТалон: ${ticketNum}\nДата: ${selDate}, Время: ${selTime}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nОТДЕЛЕНИЕ: ${selDept}\nСПЕЦИАЛИСТ: ${selSpec}\nКОММЕНТАРИЙ: ${cInp.value||"—"}`;
-      window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent(`Запись: ${clientName} на ${selDate} ${selTime} — ${ticketNum}`)}&body=${encodeURIComponent(body)}`;
-      bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
-      bookingsHistory.unshift({
-        num:ticketNum,
-        date:new Date().toLocaleString("ru-RU"),
-        visitDate:selDate,visitTime:selTime,
-        dept:selDept,spec:selSpec,
-        comment:cInp.value||""
-      });
-      localStorage.setItem("bookingsHistory",JSON.stringify(bookingsHistory));
-      window.GarmoniyaDB?.saveBooking({
-        num:ticketNum, clientName, clientPhone, cityName:currentCityName,
-        dept:selDept, spec:selSpec, visitDate:selDate, visitTime:selTime,
-        comment:cInp.value||""
-      });
-      addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${selDate}</b> в <b>${selTime}</b><br>👤 ${selSpec}`,true);
-      showToast("✅ Талон "+ticketNum+" сохранён!");
-      setTimeout(()=>{
-        clearActions();
-        const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
-        calBtn.textContent="📅 Добавить в календарь";
-        calBtn.onclick=()=>exportToCalendar({num:ticketNum,spec:selSpec,dept:selDept,visitDate:selDate,visitTime:selTime});
-        actionsEl.appendChild(calBtn);
-      },300);
-    };
-
-    [{lbl:"Отделение",el:dSel},{lbl:"Специалист",el:sSel},{lbl:"Дата приёма",el:dateInp},
-     {lbl:"",el:timeField},{lbl:"Комментарий (необязательно)",el:cInp}].forEach(({lbl,el})=>{
-      if(lbl&&!(el===timeField)){
-        const f=document.createElement("div");f.className="book-field";
-        const l=document.createElement("label");l.className="book-lbl";l.textContent=lbl;
-        f.appendChild(l);f.appendChild(el);form.appendChild(f);
-      }else{form.appendChild(el);}
+  function renderDays(){
+    const days=[];
+    let d=new Date();d.setDate(d.getDate()+1);
+    while(days.length<14){
+      const dow=d.getDay();
+      if(dow!==0&&dow!==6)days.push(new Date(d));
+      d.setDate(d.getDate()+1);
+    }
+    daysEl.innerHTML=days.map(dt=>{
+      const iso=dt.toISOString().split("T")[0];
+      const dayName=dt.toLocaleDateString("ru-RU",{weekday:"short"});
+      const dayNum=dt.getDate();
+      const monShort=dt.toLocaleDateString("ru-RU",{month:"short"});
+      return `<button class="bk-day-chip" data-date="${iso}"><span class="bk-day-name">${dayName}</span><span class="bk-day-num">${dayNum}</span><span class="bk-day-mon">${monShort}</span></button>`;
+    }).join("");
+    daysEl.querySelectorAll(".bk-day-chip").forEach(chip=>{
+      chip.onclick=()=>{
+        selDate=chip.dataset.date;selTime="";
+        daysEl.querySelectorAll(".bk-day-chip").forEach(c=>c.classList.remove("sel"));
+        chip.classList.add("sel");
+        renderTimeSlots();
+        step4El.classList.remove("gone");timeWrapEl.classList.remove("gone");
+        commentWrapEl.classList.add("gone");
+        updateSummary();
+        step4El.scrollIntoView({behavior:"smooth",block:"start"});
+      };
     });
-    form.appendChild(sendBtn);
-    actionsEl.appendChild(form);
-  },200);
+  }
+
+  function renderTimeSlots(){
+    const slots=["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
+    const lunchIdxs=new Set([6,7,8]);
+    timeWrapEl.innerHTML=`<div class="time-grid" role="group" aria-label="Выберите время приёма">`+
+      slots.map((sl,idx)=>{
+        const busy=lunchIdxs.has(idx);
+        return `<button type="button" class="time-slot${busy?" busy":""}" ${busy?"disabled":""} data-time="${sl}" aria-label="Время ${sl}${busy?" — обед":""}">${sl}</button>`;
+      }).join("")+`</div>`;
+    timeWrapEl.querySelectorAll(".time-slot:not(.busy)").forEach(btn=>{
+      btn.onclick=()=>{
+        timeWrapEl.querySelectorAll(".time-slot").forEach(b=>{b.classList.remove("sel");b.setAttribute("aria-pressed","false");});
+        btn.classList.add("sel");btn.setAttribute("aria-pressed","true");
+        selTime=btn.dataset.time;
+        commentWrapEl.classList.remove("gone");
+        updateSummary();
+      };
+    });
+  }
+
+  function doSendBooking(){
+    if(!selDept||!selSpec||!selDate||!selTime){showToast("⚠️ Заполните все поля");return;}
+    ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
+    const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
+    const commentVal=(document.getElementById("bkComment")||{}).value||"";
+    const cd2=cityData[currentCity]||cityData.gubkin;
+    const body=`ЗАПИСЬ К СПЕЦИАЛИСТУ\nТалон: ${ticketNum}\nДата: ${selDate}, Время: ${selTime}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nОТДЕЛЕНИЕ: ${selDept}\nСПЕЦИАЛИСТ: ${selSpec}\nКОММЕНТАРИЙ: ${commentVal||"—"}`;
+    window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent(`Запись: ${clientName} на ${selDate} ${selTime} — ${ticketNum}`)}&body=${encodeURIComponent(body)}`;
+    bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+    bookingsHistory.unshift({
+      num:ticketNum,
+      date:new Date().toLocaleString("ru-RU"),
+      visitDate:selDate,visitTime:selTime,
+      dept:selDept,spec:selSpec,
+      comment:commentVal
+    });
+    localStorage.setItem("bookingsHistory",JSON.stringify(bookingsHistory));
+    window.GarmoniyaDB?.saveBooking({
+      num:ticketNum, clientName, clientPhone, cityName:currentCityName,
+      dept:selDept, spec:selSpec, visitDate:selDate, visitTime:selTime,
+      comment:commentVal
+    });
+    chatEl.innerHTML="";
+    addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${selDate}</b> в <b>${selTime}</b><br>👤 ${selSpec}`,true);
+    showToast("✅ Талон "+ticketNum+" сохранён!");
+    clearActions();
+    const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
+    calBtn.style.width="100%";
+    calBtn.textContent="📅 Добавить в календарь";
+    calBtn.onclick=()=>exportToCalendar({num:ticketNum,spec:selSpec,dept:selDept,visitDate:selDate,visitTime:selTime});
+    actionsEl.appendChild(calBtn);
+  }
+
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 
 function showStaff(){
   clearActions();setNav(true);
   if(!staffData.length){showCityPlaceholder("списка сотрудников");return;}
+  chatEl.innerHTML="";
   var depts=[];var seen={};
-  staffData.forEach(function(s){if(!seen[s.dept]){seen[s.dept]=0;}seen[s.dept]++;});
-  var html='👥 Сотрудники. Выберите отделение:<div class="chat-menu">';
-  Object.keys(seen).forEach(function(dept){
-    var sh=dept.length>25?dept.substring(0,25)+"…":dept;
-    html+='<button class="cm-btn" data-dept="'+dept.replace(/"/g,"&quot;")+'">📁 '+sh+' ('+seen[dept]+')</button>';
+  staffData.forEach(function(s){if(!seen[s.dept])seen[s.dept]=0;seen[s.dept]++;});
+  var pg=document.createElement("div");pg.className="pricelist";
+  var html='<h2>Сотрудники</h2>';
+  html+='<div id="stDeptList" class="pl-catlist">';
+  Object.keys(seen).forEach(function(dept,i){
+    html+='<button class="pl-catcard" data-dept-idx="'+i+'" onclick="stOpenDept('+i+')" aria-label="'+dept.replace(/"/g,"&quot;")+', '+seen[dept]+' '+plWordForm(seen[dept],["сотрудник","сотрудника","сотрудников"])+'">'
+        +'<span class="pl-catcard-ico">🏢</span>'
+        +'<span class="pl-catcard-txt"><b>'+dept+'</b><span>'+seen[dept]+' '+plWordForm(seen[dept],["сотрудник","сотрудника","сотрудников"])+'</span></span>'
+        +'<span class="pl-catcard-arr">›</span></button>';
   });
-  html+='</div>';
-  addMsg(html,true);
-  setTimeout(function(){
-    document.querySelectorAll("[data-dept]").forEach(function(btn){
-      btn.onclick=function(){var d=btn.dataset.dept;pushNav(showStaff);showTyping(function(){showDept(d);});};
-    });
-  },50);
+  html+='</div><div id="stDeptDetail" class="pl-catdetail gone"></div>';
+  pg.innerHTML=html;
+  chatEl.appendChild(pg);
+  window._stDepts=Object.keys(seen);
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
-function showDept(dept){
-  clearActions();setNav(true);
+function stOpenDept(idx){
+  var dept=window._stDepts[idx];
+  document.getElementById("stDeptList").classList.add("gone");
   var list=staffData.filter(function(s){return s.dept===dept;});
-  var html='<b>'+dept+'</b>';
+  var html='<button class="pl-back" onclick="stCloseDept()">← Все отделения</button>';
+  html+='<div class="pl-sec-t">'+dept+'</div>';
   list.forEach(function(p){
     var ini=p.name.split(" ").slice(0,2).map(function(w){return w[0];}).join("").toUpperCase();
     var ph=p.ext?MAIN_PHONE+' доб. '+p.ext:MAIN_PHONE;
-    var em=p.email?'✉️ '+p.email:'';
-    html+='<div class="staff-card-inline"><div class="si-av">'+ini+'</div><div class="si-info"><b>'+p.name+'</b><br>'+p.pos+'<br>📞 '+ph+(em?'<br>'+em:'')+'</div></div>';
+    html+='<div class="staff-card-inline"><div class="si-av">'+ini+'</div><div class="si-info"><b>'+p.name+'</b><span>'+p.pos+'</span><span>📞 '+ph+'</span>'+(p.email?'<span>✉️ '+p.email+'</span>':'')+'</div></div>';
   });
-  addMsg(html,true);
+  var det=document.getElementById("stDeptDetail");
+  det.innerHTML=html;
+  det.classList.remove("gone");
+  det.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function stCloseDept(){
+  document.getElementById("stDeptDetail").classList.add("gone");
+  document.getElementById("stDeptList").classList.remove("gone");
 }
 
 function showContacts(){
@@ -699,41 +787,60 @@ function showMoroshkaInfo(){
 
 function showFeedback(){
   clearActions();setNav(true);
-  addMsg("💬 Обратная связь — нам важно ваше мнение!",true);
-  setTimeout(()=>{
-    const wrap=document.createElement("div");
-    const starsRow=document.createElement("div");starsRow.className="fb-stars";starsRow.setAttribute("role","group");starsRow.setAttribute("aria-label","Оцените работу центра");
-    const starEmoji=["😞","😕","😐","😊","😍"];
-    for(let i=1;i<=5;i++){
-      const s=document.createElement("span");s.className="fb-star";s.textContent=starEmoji[i-1];
-      s.setAttribute("role","button");s.setAttribute("tabindex","0");s.setAttribute("aria-label",`Оценка ${i} из 5`);
-      s.onclick=s.onkeydown=function(e){
-        if(e.type==="keydown"&&e.key!=="Enter"&&e.key!==" ")return;
-        fbRating=i;starsRow.querySelectorAll(".fb-star").forEach((x,j)=>x.classList.toggle("sel",j<i));
-      };
-      starsRow.appendChild(s);
-    }
-    const tagHd=document.createElement("div");tagHd.style.cssText="font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;";tagHd.textContent="Что понравилось?";
-    const tagRow=document.createElement("div");tagRow.className="fb-rate-row";tagRow.setAttribute("role","group");tagRow.setAttribute("aria-label","Выберите теги");
-    ["Вежливый персонал","Быстрое обслуживание","Удобный бот","Большой выбор услуг","Доступные цены","Хорошее расположение","Удобно для инвалидов"].forEach(t=>{
-      const btn=document.createElement("button");btn.type="button";btn.className="fb-tag";btn.textContent=t;btn.setAttribute("aria-pressed","false");
-      btn.onclick=()=>{const on=btn.classList.toggle("sel");btn.setAttribute("aria-pressed",String(on));if(on)fbTags.push(t);else fbTags=fbTags.filter(x=>x!==t);};
-      tagRow.appendChild(btn);
-    });
-    const cLbl=document.createElement("label");cLbl.htmlFor="fb-comment";cLbl.className="book-lbl";cLbl.textContent="Ваш комментарий";
-    const cInp=document.createElement("textarea");cInp.className="fb-inp";cInp.id="fb-comment";cInp.placeholder="Напишите пожелания или замечания…";
-    const sendBtn=document.createElement("button");sendBtn.type="button";sendBtn.className="fb-send";sendBtn.textContent="📧 Отправить отзыв";
-    sendBtn.onclick=()=>{
-      if(!fbRating){showToast("⚠️ Поставьте оценку от 1 до 5");return;}
-      const body=`ОТЗЫВ\nОценка: ${fbRating}/5 ${"★".repeat(fbRating)}\nТеги: ${fbTags.join(", ")||"—"}\nКомментарий: ${cInp.value||"—"}\n\nОтправитель: ${clientName}\nТелефон: ${clientPhone}`;
-      window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Отзыв от "+clientName)}&body=${encodeURIComponent(body)}`;
-      addMsg(`✅ Спасибо за отзыв! ${"⭐".repeat(fbRating)}`,true);
-      showToast("💬 Отзыв отправлен!");fbRating=0;fbTags=[];
+  chatEl.innerHTML="";
+  fbRating=0;fbTags=[];
+  const w=document.createElement("div");w.className="feedback-page";
+  const starEmoji=["😞","😕","😐","😊","😍"];
+  const tagList=["Вежливый персонал","Быстрое обслуживание","Удобный бот","Большой выбор услуг","Доступные цены","Хорошее расположение","Удобно для инвалидов"];
+
+  w.innerHTML=`
+    <h2>💬 Обратная связь</h2>
+    <p class="fb-intro">Нам важно ваше мнение — это поможет сделать центр лучше.</p>
+
+    <div class="fb-step-lbl">Оцените работу центра</div>
+    <div class="fb-stars-big" id="fbStarsBig" role="group" aria-label="Оцените работу центра">
+      ${starEmoji.map((e,i)=>`<button type="button" class="fb-star-big" data-star="${i+1}" aria-label="Оценка ${i+1} из 5">${e}</button>`).join("")}
+    </div>
+
+    <div class="fb-step-lbl">Что понравилось?</div>
+    <div class="fb-tag-grid" id="fbTagGrid" role="group" aria-label="Выберите теги">
+      ${tagList.map(t=>`<button type="button" class="fb-tag-chip" data-tag="${t}" aria-pressed="false">${t}</button>`).join("")}
+    </div>
+
+    <div class="fb-step-lbl">Комментарий (необязательно)</div>
+    <textarea class="fb-inp" id="fbComment" placeholder="Напишите пожелания или замечания…" style="min-height:90px"></textarea>
+
+    <button type="button" class="fb-send-big" id="fbSendBtn">📧 Отправить отзыв</button>
+  `;
+  chatEl.appendChild(w);
+
+  w.querySelectorAll(".fb-star-big").forEach(btn=>{
+    btn.onclick=()=>{
+      const i=parseInt(btn.dataset.star);
+      fbRating=i;
+      w.querySelectorAll(".fb-star-big").forEach((x,j)=>x.classList.toggle("sel",j<i));
     };
-    wrap.appendChild(starsRow);wrap.appendChild(tagHd);wrap.appendChild(tagRow);
-    wrap.appendChild(cLbl);wrap.appendChild(cInp);wrap.appendChild(sendBtn);
-    actionsEl.appendChild(wrap);
-  },200);
+  });
+  w.querySelectorAll(".fb-tag-chip").forEach(btn=>{
+    btn.onclick=()=>{
+      const t=btn.dataset.tag;
+      const on=btn.classList.toggle("sel");
+      btn.setAttribute("aria-pressed",String(on));
+      if(on)fbTags.push(t);else fbTags=fbTags.filter(x=>x!==t);
+    };
+  });
+  w.querySelector("#fbSendBtn").onclick=()=>{
+    if(!fbRating){showToast("⚠️ Поставьте оценку от 1 до 5");return;}
+    const cInp=w.querySelector("#fbComment");
+    const body=`ОТЗЫВ\nОценка: ${fbRating}/5 ${"★".repeat(fbRating)}\nТеги: ${fbTags.join(", ")||"—"}\nКомментарий: ${cInp.value||"—"}\n\nОтправитель: ${clientName}\nТелефон: ${clientPhone}`;
+    window.location.href=`mailto:${ORG_EMAIL}?subject=${encodeURIComponent("Отзыв от "+clientName)}&body=${encodeURIComponent(body)}`;
+    chatEl.innerHTML="";
+    addMsg(`✅ Спасибо за отзыв! ${"⭐".repeat(fbRating)}`,true);
+    showToast("💬 Отзыв отправлен!");
+    fbRating=0;fbTags=[];
+    clearActions();
+  };
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 
 function showCityPlaceholder(section){
@@ -744,7 +851,7 @@ function showCityPlaceholder(section){
     ph.innerHTML+=`<div class="contact-row" style="margin-bottom:8px;"><div class="c-ico" aria-hidden="true">${r.ico}</div><div><div class="c-lbl">${r.lbl}</div><div class="c-val">${r.val}</div></div></div>`;
   });
   const sw=document.createElement("button");sw.type="button";sw.className="act-btn teal";sw.style.marginTop="6px";
-  sw.innerHTML="🏢 Перейти в Губкинский";sw.onclick=()=>document.querySelector('.city-btn[data-city="gubkin"]')?.click();
+  sw.innerHTML="🏢 Перейти в Губкинский";sw.onclick=()=>selectCity("gubkin");
   actionsEl.appendChild(ph);actionsEl.appendChild(sw);
 }
 
@@ -753,21 +860,154 @@ function statusBadge(st){
   const v=map[st]||map.new;
   return `<span class="st-badge ${v[1]}">${v[0]}</span>`;
 }
-function openProfile(){
-  const modal=document.createElement("div");modal.className="mo";modal.setAttribute("role","dialog");modal.setAttribute("aria-modal","true");modal.setAttribute("aria-label","Личный кабинет");
+
+function openOrdersPanel(){
+  const panel=document.getElementById("ordersPanel");
+  panel.classList.add("open");
+  renderOrdersPanel("all");
+}
+function closeOrdersPanel(){
+  document.getElementById("ordersPanel").classList.remove("open");
+}
+function ordFilter(f,btn){
+  document.querySelectorAll(".of-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderOrdersPanel(f);
+}
+function renderOrdersPanel(filter){
   const oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
   const bh=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+  const body=document.getElementById("ordBody");
+
+  const orderCards=oh.map((o,i)=>({
+    type:"order",idx:i,date:o.date,sortKey:o.date||"",
+    html:`<div class="ord-card">
+      <div class="ord-card-top">
+        <div class="ord-ico ord-ico-cart">🛒</div>
+        <div class="ord-card-main">
+          <div class="ord-card-title">${o.num?"Заявка "+o.num:"Заявка на услуги"}</div>
+          <div class="ord-card-date">📅 ${o.date}</div>
+        </div>
+        ${statusBadge(o.status)}
+      </div>
+      <div class="ord-card-body">
+        <div class="ord-card-sum">${o.sum} ₽</div>
+        <div class="ord-card-detail">${o.items}</div>
+      </div>
+      <div class="ord-card-actions">
+        ${o.itemsRaw?`<button class="ord-act" onclick="repeatOrder(${i})">🔁 Повторить</button>`:""}
+        <button class="ord-act danger" data-clear-single-order="${i}" onclick="removeOneOrder(${i})">🗑 Удалить</button>
+      </div>
+    </div>`
+  }));
+
+  const bookingCards=bh.map((b,i)=>({
+    type:"booking",idx:i,date:b.date,sortKey:b.date||"",
+    html:`<div class="ord-card">
+      <div class="ord-card-top">
+        <div class="ord-ico ord-ico-cal">📅</div>
+        <div class="ord-card-main">
+          <div class="ord-card-title">Талон ${b.num}</div>
+          <div class="ord-card-date">Оформлен ${b.date}</div>
+        </div>
+        <span class="st-badge st-new">Записан</span>
+      </div>
+      <div class="ord-card-body">
+        <div class="ord-card-spec">👤 ${b.spec}</div>
+        <div class="ord-card-detail">🕒 ${b.visitDate} в ${b.visitTime}<br>📍 ${b.dept}</div>
+      </div>
+      <div class="ord-card-actions">
+        <button class="ord-act" onclick="exportToCalendar(JSON.parse(localStorage.getItem('bookingsHistory'))[${i}])">📆 В календарь</button>
+        <button class="ord-act danger" data-cancel-idx="${i}" onclick="cancelBooking(${i})">✕ Отменить</button>
+      </div>
+    </div>`
+  }));
+
+  let all=[];
+  if(filter==="all"||filter==="orders")all=all.concat(orderCards);
+  if(filter==="all"||filter==="bookings")all=all.concat(bookingCards);
+  all.sort((a,b)=>(b.sortKey||"").localeCompare(a.sortKey||""));
+
+  if(!all.length){
+    const emptyMsg=filter==="bookings"?"Нет записей к специалистам":filter==="orders"?"Нет заявок на услуги":"Пока нет заявок и записей";
+    const emptySub=filter==="bookings"?"Запишитесь к специалисту через раздел «Записаться»":filter==="orders"?"Добавьте услуги из прейскуранта и оформите заявку":"Оформите заявку на услуги или запишитесь к специалисту";
+    body.innerHTML=`<div class="ord-empty"><div class="ord-empty-ico">📭</div><div class="ord-empty-title">${emptyMsg}</div><div class="ord-empty-sub">${emptySub}</div></div>`;
+    return;
+  }
+
+  let html='<div class="ord-summary">';
+  if(filter==="all")html+=`<div class="ord-sum-chip">🛒 ${oh.length} заявок</div><div class="ord-sum-chip">📅 ${bh.length} записей</div>`;
+  html+='</div>';
+  html+=all.map(c=>c.html).join("");
+  if(oh.length&&(filter==="all"||filter==="orders"))html+='<button class="ord-clear-all" data-clear-orders onclick="clearAllOrders()">🗑 Очистить все заявки</button>';
+  if(bh.length&&(filter==="all"||filter==="bookings"))html+='<button class="ord-clear-all" data-clear-all onclick="clearAllBookings()">🗑 Очистить все записи</button>';
+  body.innerHTML=html;
+}
+function removeOneOrder(idx){
+  const btn=document.querySelector('[data-clear-single-order="'+idx+'"]');
+  if(btn&&!btn.dataset.confirm){
+    btn.dataset.confirm="1";btn.textContent="⚠️ Точно удалить?";btn.classList.add("confirm");
+    setTimeout(()=>{if(btn.dataset.confirm){delete btn.dataset.confirm;btn.textContent="🗑 Удалить";btn.classList.remove("confirm");}},4000);
+    return;
+  }
+  const oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
+  oh.splice(idx,1);
+  localStorage.setItem("ordersHistory",JSON.stringify(oh));
+  ordersHistory=oh;
+  showToast("Заявка удалена");
+  const activeF=document.querySelector(".of-btn.active");
+  renderOrdersPanel(activeF?activeF.dataset.f:"all");
+}
+
+function openProfilePanel(){
+  const panel=document.getElementById("profilePanel");
+  panel.classList.add("open");
+  renderProfilePanel();
+}
+function closeProfilePanel(){
+  document.getElementById("profilePanel").classList.remove("open");
+}
+function getProfilePhoto(){
+  return localStorage.getItem("profilePhoto")||"";
+}
+function triggerPhotoUpload(){
+  document.getElementById("photoInput").click();
+}
+function handlePhotoChange(e){
+  const file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  if(!file.type.startsWith("image/")){showToast("Выберите файл изображения");return;}
+  if(file.size>5*1024*1024){showToast("Файл слишком большой (макс. 5 МБ)");return;}
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const img=new Image();
+    img.onload=function(){
+      const canvas=document.createElement("canvas");
+      const size=320;canvas.width=size;canvas.height=size;
+      const ctx=canvas.getContext("2d");
+      const scale=Math.max(size/img.width,size/img.height);
+      const w=img.width*scale,h=img.height*scale;
+      ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);
+      const dataUrl=canvas.toDataURL("image/jpeg",0.85);
+      localStorage.setItem("profilePhoto",dataUrl);
+      renderProfilePanel();
+      showToast("📸 Фото обновлено");
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value="";
+}
+function removePhoto(){
+  localStorage.removeItem("profilePhoto");
+  renderProfilePanel();
+  showToast("Фото удалено");
+}
+
+function renderProfilePanel(){
   const fav=JSON.parse(localStorage.getItem("favorites")||"[]");
-
-  const ordersHtml=oh.length===0
-    ?'<div class="hist-empty"><div class="empty-ico">📭</div><div class="empty-title">Нет заявок</div><div class="empty-sub">Добавьте услуги из прейскуранта и оформите первую заявку</div></div>'
-    :oh.map((o,i)=>`<div class="history-item"><div class="h-item-top"><span class="h-item-dt">📅 ${o.date}</span>${statusBadge(o.status)}</div><div class="h-item-title">${o.num?o.num+" — ":""}Сумма: ${o.sum} ₽</div><div class="h-item-detail">${o.items}</div>${o.itemsRaw?`<button class="h-act" onclick="repeatOrder(${i})">🔁 Повторить заявку</button>`:""}</div>`).join("")
-    +(oh.length?`<button class="h-act-clear" data-clear-orders onclick="clearAllOrders()">🗑 Очистить список заявок</button>`:"");
-
-  const bookingsHtml=bh.length===0
-    ?'<div class="hist-empty"><div class="empty-ico">📋</div><div class="empty-title">Нет записей</div><div class="empty-sub">Запишитесь к специалисту через раздел «Записаться»</div></div>'
-    :bh.map((b,i)=>`<div class="history-item booking-item"><div class="h-item-dt">📋 Талон ${b.num} — оформлен ${b.date}</div><div class="h-item-title">${b.spec}</div><div class="h-item-detail">📅 ${b.visitDate} в ${b.visitTime}<br>${b.dept}</div><div class="h-act-row"><button class="h-act" onclick="exportToCalendar(JSON.parse(localStorage.getItem('bookingsHistory'))[${i}])">📅 В календарь</button><button class="h-act danger" data-cancel-idx="${i}" onclick="cancelBooking(${i})">✕ Отменить</button></div></div>`).join("")
-    +(bh.length?`<button class="h-act-clear" data-clear-all onclick="clearAllBookings()">🗑 Очистить список записей</button>`:"");
+  const photo=getProfilePhoto();
+  const initials=(clientName||"?").split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
 
   const favHtml=fav.length===0
     ?'<div class="hist-empty"><div class="empty-ico">⭐</div><div class="empty-title">Нет избранных</div><div class="empty-sub">Нажмите ★ у любой услуги в прейскуранте</div></div>'
@@ -781,42 +1021,63 @@ function openProfile(){
     <div class="doc-card" onclick="downloadDoc('complaint')"><div class="doc-ico">📝</div><div><div class="doc-name">Бланк жалобы / предложения</div><div class="doc-desc">Обращение в администрацию центра</div></div><span class="doc-dl">⬇</span></div>
   </div>`;
 
-  modal.innerHTML=`<div class="mc">
-    <h3>👤 Личный кабинет</h3>
-    <div class="mo-info">
-      <p><span class="lbl">Получатель:</span><span class="val">${clientName}</span></p>
-      <p><span class="lbl">Телефон:</span><span class="val">${clientPhone}</span></p>
-      ${clientSnils&&clientSnils!=="—"&&clientSnils!==""?'<p><span class="lbl">СНИЛС:</span><span class="val">'+clientSnils+'</span></p>':""}
-      <p style="margin-bottom:0"><span class="lbl">Морошка:</span><span class="val">${hasMoroshka?"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Активна":"<img src=\"img/no-moroshka.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Нет карты"}</span></p>
+  const oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
+  const bh=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+
+  const body=document.getElementById("profBody");
+  body.innerHTML=`
+    <div class="prof-hero">
+      <div class="prof-ava-wrap">
+        <div class="prof-ava" onclick="triggerPhotoUpload()">
+          ${photo?`<img src="${photo}" alt="Фото профиля">`:`<span class="prof-ava-init">${initials}</span>`}
+        </div>
+        ${photo?'<button class="prof-ava-remove" onclick="event.stopPropagation();removePhoto()" aria-label="Удалить фото">✕</button>':""}
+      </div>
+      <div class="prof-name">${clientName}</div>
+      <div class="prof-phone">${clientPhone}</div>
+      <div class="prof-city-badge">📍 г. ${currentCityName}</div>
     </div>
+
+    <div class="prof-stats">
+      <div class="prof-stat"><div class="prof-stat-v">${oh.length}</div><div class="prof-stat-l">Заявок</div></div>
+      <div class="prof-stat"><div class="prof-stat-v">${bh.length}</div><div class="prof-stat-l">Записей</div></div>
+      <div class="prof-stat"><div class="prof-stat-v">${fav.length}</div><div class="prof-stat-l">Избранных</div></div>
+    </div>
+
+    ${clientSnils&&clientSnils!=="—"&&clientSnils!==""?`<div class="prof-info-row"><span class="lbl">СНИЛС:</span><span class="val">${clientSnils}</span></div>`:""}
+    <div class="prof-info-row"><span class="lbl">Морошка:</span><span class="val">${hasMoroshka?"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Активна":"<img src=\"img/no-moroshka.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Нет карты"}</span></div>
+
     <div class="cab-actions">
       <button class="cab-btn" onclick="editMyData()">✏️ Изменить данные</button>
-      <button class="cab-btn" onclick="document.querySelector('.mo')?.remove();openProfileSwitcher()">👨‍👩‍👦 Профили</button>
-      <button class="cab-btn" onclick="document.querySelector('.mo')?.remove();showCartStats()">📊 Статистика</button>
+      <button class="cab-btn" onclick="openProfileSwitcher()">👨‍👩‍👦 Профили</button>
+      <button class="cab-btn" onclick="showCartStats()">📊 Статистика</button>
     </div>
+
     <div class="history-tabs" role="tablist">
-      <button class="h-tab active" id="tab-orders" role="tab" aria-selected="true" onclick="switchTab('orders',this)">🛒 <span class="htab-text">Заявки</span> (${oh.length})</button>
-      <button class="h-tab" id="tab-bookings" role="tab" aria-selected="false" onclick="switchTab('bookings',this)">📋 <span class="htab-text">Записи</span> (${bh.length})</button>
-      <button class="h-tab" id="tab-fav" role="tab" aria-selected="false" onclick="switchTab('fav',this)">⭐ <span class="htab-text">Избр.</span> (${fav.length})</button>
-      <button class="h-tab" id="tab-docs" role="tab" aria-selected="false" onclick="switchTab('docs',this)">📁 <span class="htab-text">Док-ты</span></button>
-      <button class="h-tab" id="tab-settings" role="tab" aria-selected="false" onclick="switchTab('settings',this)">⚙️</button>
+      <button class="h-tab active" id="tab-fav" role="tab" aria-selected="true" onclick="switchProfTab('fav',this)">⭐ <span class="htab-text">Избранное</span> (${fav.length})</button>
+      <button class="h-tab" id="tab-docs" role="tab" aria-selected="false" onclick="switchProfTab('docs',this)">📁 <span class="htab-text">Документы</span></button>
+      <button class="h-tab" id="tab-settings" role="tab" aria-selected="false" onclick="switchProfTab('settings',this)">⚙️ <span class="htab-text">Настройки</span></button>
     </div>
-    <div class="history-list" id="hist-orders" role="tabpanel">${ordersHtml}</div>
-    <div class="history-list" id="hist-bookings" role="tabpanel" style="display:none">${bookingsHtml}</div>
-    <div class="history-list" id="hist-fav" role="tabpanel" style="display:none">${favHtml}</div>
-    <div class="history-list" id="hist-docs" role="tabpanel" style="display:none">${docsHtml}</div>
-    <div class="history-list" id="hist-settings" role="tabpanel" style="display:none">
+    <div class="history-list" id="profhist-fav" role="tabpanel">${favHtml}</div>
+    <div class="history-list" id="profhist-docs" role="tabpanel" style="display:none">${docsHtml}</div>
+    <div class="history-list" id="profhist-settings" role="tabpanel" style="display:none">
       <div class="settings-section">
         <div class="set-row"><span>Размер шрифта</span><div class="set-btns"><button class="set-btn" onclick="changeFontSize(-1)">А−</button><button class="set-btn" onclick="changeFontSize(1)">А+</button></div></div>
         <div class="set-row"><span>Тёмная тема</span><button class="set-btn" onclick="toggleDarkTheme()">${darkMode?"☀️ Выключить":"🌙 Включить"}</button></div>
         <div class="set-row"><span>Очистить все данные</span><button class="set-btn danger" onclick="if(confirm('Удалить все данные?')){localStorage.clear();location.reload();}">🗑 Сброс</button></div>
       </div>
     </div>
-    <button class="close-mo" onclick="this.closest('.mo').remove()">Закрыть</button>
-    <button class="act-btn logout" onclick="doLogout(this)" style="margin-top:10px;">🚪 Выйти / Сменить пользователя</button>
-  </div>`;
-  modal.onclick=e=>{if(e.target===modal)modal.remove();};
-  document.body.appendChild(modal);
+
+    <div style="display:flex;justify-content:center;margin-top:14px;"><button class="logout-btn-small" onclick="doLogout(this)">🚪 Выйти / Сменить пользователя</button></div>
+  `;
+}
+
+function switchProfTab(which,btn){
+  document.querySelectorAll("#profBody .h-tab").forEach(t=>{t.classList.remove("active");t.setAttribute("aria-selected","false");});
+  btn.classList.add("active");btn.setAttribute("aria-selected","true");
+  ["fav","docs","settings"].forEach(k=>{
+    const el=document.getElementById("profhist-"+k);if(el)el.style.display=k===which?"":"none";
+  });
 }
 
 function switchTab(which,btn){
@@ -849,7 +1110,7 @@ function saveMyData(){
   localStorage.setItem("clientSnils",clientSnils);
   showToast("💾 Данные обновлены");
   document.querySelectorAll(".mo").forEach(function(m){m.remove();});
-  openProfile();
+  renderProfilePanel();
 }
 
 function downloadDoc(type){
@@ -891,6 +1152,8 @@ function showAuth(){
     clientName=n;clientPhone=ph;clientSnils=localStorage.getItem("clientSnils")||"";
     ordersHistory=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
     bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+    const savedCity=localStorage.getItem("currentCity");
+    if(savedCity&&branchContent[savedCity])selectCity(savedCity,true);
     showWelcome();return;
   }
   const modal=document.createElement("div");modal.className="auth-ovl";modal.setAttribute("role","dialog");modal.setAttribute("aria-modal","true");modal.setAttribute("aria-label","Вход в систему");
@@ -905,6 +1168,14 @@ function showAuth(){
     <input type="text" id="aName" class="auth-inp" placeholder="Фамилия Имя Отчество" autocomplete="name" aria-label="Фамилия Имя Отчество" aria-required="true">
     <label for="aPhone" style="position:absolute;opacity:0;pointer-events:none">Телефон</label>
     <input type="tel" id="aPhone" class="auth-inp" placeholder="+7 (___) ___-__-__" autocomplete="tel" aria-label="Номер телефона" aria-required="true">
+    <label for="aCity" style="position:absolute;opacity:0;pointer-events:none">Филиал</label>
+    <select id="aCity" class="auth-inp auth-city-sel" aria-label="Ваш филиал">
+      <option value="gubkin">🏢 г. Губкинский</option>
+      <option value="muravlenko">🏢 г. Муравленко</option>
+      <option value="noyabrsk">🏢 г. Ноябрьск</option>
+      <option value="tarko">🏢 г. Тарко-Сале</option>
+      <option value="urengoy">🏢 пгт. Уренгой</option>
+    </select>
     <div class="cb-row">
       <input type="checkbox" id="aCb" aria-required="true">
       <label for="aCb">Даю согласие на обработку персональных данных (ФЗ-152)</label>
@@ -916,13 +1187,15 @@ function showAuth(){
     <button class="auth-skip" onclick="skipAuth(this)">Войти как Гость</button>
   </div>`;
   document.body.appendChild(modal);
-  const ni=modal.querySelector("#aName"),pi=modal.querySelector("#aPhone"),cb=modal.querySelector("#aCb"),btn=modal.querySelector("#aBtn");
+  const ni=modal.querySelector("#aName"),pi=modal.querySelector("#aPhone"),cb=modal.querySelector("#aCb"),btn=modal.querySelector("#aBtn"),ci=modal.querySelector("#aCity");
   const v=()=>{btn.disabled=!(ni.value.trim().length>3&&pi.value.replace(/\D/g,"").length>=11&&cb.checked);};
   pi.oninput=e=>{let m="+7 (___) ___-__-__",i=0,d=m.replace(/\D/g,""),v2=e.target.value.replace(/\D/g,"");if(d.length>=v2.length)v2=d;e.target.value=m.replace(/./g,a=>/[_\d]/.test(a)&&i<v2.length?v2.charAt(i++):i>=v2.length?"":a);v();};
   ni.oninput=v;cb.onchange=v;
   btn.onclick=()=>{
     clientName=ni.value.trim();clientPhone=pi.value.trim();clientSnils="";
     localStorage.setItem("clientName",clientName);localStorage.setItem("clientPhone",clientPhone);
+    const chosenCity=ci.value;
+    if(branchContent[chosenCity])selectCity(chosenCity,true);
     modal.remove();showWelcome();
   };
   ni.addEventListener("keydown",e=>{if(e.key==="Enter")pi.focus();});
@@ -955,47 +1228,11 @@ function showWelcome(){
   },500);
 }
 
-document.getElementById("cities").addEventListener("click",e=>{
-  const btn=e.target.closest(".city-btn");if(!btn||btn.classList.contains("active"))return;
-  document.querySelectorAll(".city-btn").forEach(b=>{b.classList.remove("active");b.setAttribute("aria-selected","false");});
-  btn.classList.add("active");btn.setAttribute("aria-selected","true");
-  currentCity=btn.dataset.city;currentCityName=btn.dataset.name;
-  servicesData=branchContent[currentCity].services;
-  staffData=branchContent[currentCity].staff;
-  document.getElementById("cityDisplay").textContent=`г. ${currentCityName}`;
-  updateHoursBanner();navHistory=[];currentCatId=null;currentSvcList=null;
-  document.getElementById("searchBar").classList.add("gone");
-  addMsg(`📍 Переключено на: <b>г. ${currentCityName}</b>`,true);
-  showMainMenu();
-});
-
 updateBadge();
 updateHoursBanner();
 setInterval(updateHoursBanner,60000);
 initSearch();
 showAuth();
-
-(function(){
-  var startY=0,pulling=false;
-  var chat=document.getElementById("chat");
-  chat.addEventListener("touchstart",function(e){
-    if(chat.scrollTop<=0)startY=e.touches[0].clientY;
-  },{passive:true});
-  chat.addEventListener("touchmove",function(e){
-    if(chat.scrollTop<=0&&e.touches[0].clientY-startY>60&&!pulling){
-      pulling=true;
-      chat.classList.add("ptr-active");
-    }
-  },{passive:true});
-  chat.addEventListener("touchend",function(){
-    if(pulling){
-      pulling=false;
-      chat.classList.remove("ptr-active");
-      if(navHistory.length===0)showMainMenu();
-      else goBack();
-    }
-  });
-})();
 
 (function(){
   let tapCount=0,tapTimer=null;
@@ -1014,8 +1251,8 @@ function tabGo(t){
   if(t==="home")showMainMenu();
   else if(t==="menu")showMenuPage();
   else if(t==="cart")openCart();
-  else if(t==="orders")openProfile();
-  else if(t==="profile")openProfile();
+  else if(t==="orders")openOrdersPanel();
+  else if(t==="profile")openProfilePanel();
 }
 function showMenuPage(){
   clearActions();chatEl.innerHTML="";setNav(false);
@@ -1043,4 +1280,24 @@ function showMenuPage(){
     var a=el.dataset.a;
     if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};
   });
+}
+
+const BRANCH_DISPLAY_NAMES={gubkin:"Губкинский",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"пгт. Уренгой"};
+
+function selectCity(cityKey,silent){
+  if(!branchContent[cityKey])return;
+  const wasSame=currentCity===cityKey;
+  currentCity=cityKey;
+  currentCityName=BRANCH_DISPLAY_NAMES[cityKey]||cityKey;
+  localStorage.setItem("currentCity",currentCity);localStorage.setItem("currentCityName",currentCityName);
+  servicesData=branchContent[currentCity].services;
+  staffData=branchContent[currentCity].staff;
+  const sel=document.getElementById("citySel");if(sel)sel.value=cityKey;
+  const cd=document.getElementById("cityDisplay");if(cd)cd.textContent="г. "+currentCityName;
+  if(!silent&&!wasSame){
+    updateHoursBanner();navHistory=[];currentCatId=null;currentSvcList=null;
+    document.getElementById("searchBar").classList.add("gone");
+    addMsg(`📍 Переключено на: <b>г. ${currentCityName}</b>`,true);
+    showMainMenu();
+  }
 }

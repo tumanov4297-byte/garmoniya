@@ -42,23 +42,20 @@
       <button class="a11y-btn" onclick="changeFontSize(1)" aria-label="Увеличить шрифт">А+</button>
     </div>
     <button class="a11y-btn theme-btn" id="themeBtn" onclick="toggleDarkTheme()" aria-label="Тёмная тема">🌙</button>
+    <select class="a11y-lang" id="citySel" onchange="selectCity(this.value)" aria-label="Выбор филиала">
+      <option value="gubkin">Губкинский</option>
+      <option value="muravlenko">Муравленко</option>
+      <option value="noyabrsk">Ноябрьск</option>
+      <option value="tarko">Тарко-Сале</option>
+      <option value="urengoy">Уренгой</option>
+    </select>
     <select class="a11y-lang" id="langSel" onchange="switchLang(this.value)" aria-label="Язык интерфейса">
       <option value="ru">Русский</option>
       <option value="en">English</option>
-      <option value="yrk">Ненэцяˮ</option>
-      <option value="kca">Хӑнты</option>
     </select>
   </div>
 
   <div class="hours-banner gone" id="hoursBanner" aria-live="polite" role="status"></div>
-
-  <nav class="cities" id="cities" role="tablist" aria-label="Выбор города">
-    <button class="city-btn active" data-city="gubkin"     data-name="Губкинский" role="tab" aria-selected="true">🏢 Губкинский</button>
-    <button class="city-btn"        data-city="muravlenko" data-name="Муравленко" role="tab" aria-selected="false">🏢 Муравленко</button>
-    <button class="city-btn"        data-city="noyabrsk"   data-name="Ноябрьск" role="tab" aria-selected="false">🏢 Ноябрьск</button>
-    <button class="city-btn"        data-city="tarko"      data-name="Тарко-Сале" role="tab" aria-selected="false">🏢 Тарко-Сале</button>
-    <button class="city-btn"        data-city="urengoy"    data-name="пгт. Уренгой" role="tab" aria-selected="false">🏢 пгт. Уренгой</button>
-  </nav>
 
   <div class="search-bar gone" id="searchBar" role="search">
     <div class="search-wrap">
@@ -71,10 +68,7 @@
   <div class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Диалог с помощником"></div>
   <div class="actions" id="actions" role="region" aria-label="Действия"></div>
 
-  <nav class="bottom-nav" id="bottomNav" role="navigation" aria-label="Навигация">
-    <button class="bnav-btn back gone" id="backBtn" onclick="goBack()" aria-label="Вернуться назад">← Назад</button>
-    <button class="bnav-btn home" id="homeBtn" onclick="showMainMenu()" aria-label="Главное меню">🏠 Главная</button>
-  </nav>
+  <button id="backBtn" class="gone" style="display:none" aria-hidden="true"></button>
 
   <nav class="tab-bar" id="tabBar">
     <button class="tb active" onclick="tabGo('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Главная</span></button>
@@ -92,6 +86,26 @@
     <div class="cart-body" id="cartBody"></div>
     <div class="cart-footer" id="cartFooter"></div>
   </div>
+
+  <div class="orders-panel" id="ordersPanel" role="dialog" aria-modal="true" aria-label="Мои заявки">
+    <div class="ord-hdr">
+      <h2>📋 Мои заявки</h2>
+      <button class="cart-x" onclick="closeOrdersPanel()" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="ord-filters" id="ordFilters">
+      <button class="of-btn active" data-f="all" onclick="ordFilter('all',this)">Все</button>
+      <button class="of-btn" data-f="orders" onclick="ordFilter('orders',this)">🛒 Заявки</button>
+      <button class="of-btn" data-f="bookings" onclick="ordFilter('bookings',this)">📅 Записи</button>
+    </div>
+    <div class="ord-body" id="ordBody"></div>
+  </div>
+
+  <div class="profile-panel" id="profilePanel" role="dialog" aria-modal="true" aria-label="Личный кабинет">
+    <button class="prof-close" onclick="closeProfilePanel()" aria-label="Закрыть">✕</button>
+    <div class="prof-body" id="profBody"></div>
+  </div>
+
+  <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhotoChange(event)">
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="assertive"></div>
