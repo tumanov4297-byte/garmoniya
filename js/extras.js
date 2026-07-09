@@ -1,8 +1,25 @@
 
-const FONT_STEPS=[13,14.5,16,18,20];
-let fontIdx=parseInt(localStorage.getItem("fontIdx"))||1;
+const FONT_STEPS=[0.85,0.925,1,1.125,1.25];
+let fontIdx=parseInt(localStorage.getItem("fontIdx"));
+if(isNaN(fontIdx)||fontIdx<0||fontIdx>=FONT_STEPS.length)fontIdx=2;
+const SUPPORTS_ZOOM=(function(){
+  try{const t=document.createElement("div");t.style.zoom="1.1";return t.style.zoom==="1.1";}catch(e){return false;}
+})();
 function applyFontSize(){
-  document.documentElement.style.setProperty("--fz-base",FONT_STEPS[fontIdx]+"px");
+  const scale=FONT_STEPS[fontIdx];
+  const shell=document.getElementById("shell");
+  if(shell){
+    if(SUPPORTS_ZOOM){
+      shell.style.zoom=scale;
+      shell.style.transform="";
+    }else{
+      shell.style.transform="scale("+scale+")";
+      shell.style.transformOrigin="top center";
+      shell.style.width=(100/scale)+"%";
+      shell.style.height=(100/scale)+"%";
+    }
+  }
+  document.documentElement.style.setProperty("--fz-base",Math.round(16*scale)+"px");
 }
 function changeFontSize(dir){
   fontIdx=Math.max(0,Math.min(FONT_STEPS.length-1,fontIdx+dir));
@@ -222,6 +239,7 @@ const I18N={
     menu_cart:"Корзина",menu_feedback:"Обратная связь",menu_feedback_sub:"Оценить качество",
     menu_moroshka:"Карта Морошка",menu_moroshka_sub:"Льготы и скидки",
     menu_cabinet:"Мой кабинет",menu_cabinet_sub:"История, талоны",
+    menu_gallery:"Фотогалерея",
     sec_services:"Услуги и информация",sec_cabinet:"Кабинет",
     ask_helper:"Спросить помощника",ask_helper_sub:"Задайте вопрос — подскажу нужный раздел",
     btn_close:"Закрыть",btn_back:"← Назад",btn_home:"🏠 Главная",
@@ -233,7 +251,28 @@ const I18N={
     profiles_title:"👨‍👩‍👦 Профили получателей",profiles_hint:"Переключайтесь между получателями",
     profiles_add:"➕ Добавить получателя",profiles_active:"Активен",
     switched_to:"📍 Переключено на",how_help:"Чем могу помочь?",
-    lang_name:"Русский"
+    lang_name:"Русский",
+    tb_home:"Главная",tb_menu:"Услуги",tb_cart:"Корзина",tb_orders:"Заявки",tb_profile:"Профиль",
+    orders_title:"📋 Мои заявки",orders_filter_all:"Все",orders_filter_orders:"🛒 Заявки",orders_filter_bookings:"📅 Записи",
+    orders_empty_title:"Пока нет заявок и записей",orders_empty_orders:"Нет заявок на услуги",orders_empty_bookings:"Нет записей к специалистам",
+    close_and_return:"Закрыть и вернуться",
+    services_title:"Прейскурант услуг",services_search_ph:"Поиск услуги по названию...",
+    staff_title:"Сотрудники",staff_search_ph:"Поиск по ФИО или должности...",
+    booking_title:"📝 Запись к специалисту",
+    booking_step1:"Выберите отделение",booking_step2:"Выберите специалиста",
+    booking_step3:"Выберите дату",booking_step4:"Выберите время",
+    booking_comment:"Комментарий (необязательно)",booking_comment_ph:"Цель визита, особые потребности…",
+    booking_confirm:"Проверьте данные записи",booking_send:"📧 Подтвердить запись",
+    feedback_title:"💬 Обратная связь",feedback_intro:"Нам важно ваше мнение — это поможет сделать центр лучше.",
+    feedback_rate:"Оцените работу центра",feedback_like:"Что понравилось?",
+    feedback_comment_ph:"Напишите пожелания или замечания…",feedback_send:"📧 Отправить отзыв",
+    gallery_title:"🖼️ Фотогалерея центра",gallery_empty:"Пока нет фотографий",
+    settings_title:"Настройки",settings_appearance:"Внешний вид",settings_data:"Мои данные",
+    settings_font:"Размер шрифта",settings_theme:"Тёмная тема",
+    settings_export:"Экспорт моих данных",settings_reset:"Очистить все данные",
+    logout_btn:"🚪 Выйти / Сменить пользователя",
+    edit_data:"✏️ Изменить данные",quick_orders:"Мои заявки",quick_services:"Прейскурант",
+    quick_booking:"Записаться",quick_feedback:"Отзыв"
   },
   en:{
     greeting_morning:"☀️ Good morning",greeting_day:"🌤 Good afternoon",greeting_evening:"🌙 Good evening",
@@ -251,6 +290,7 @@ const I18N={
     menu_cart:"Cart",menu_feedback:"Feedback",menu_feedback_sub:"Rate our service",
     menu_moroshka:"Moroshka card",menu_moroshka_sub:"Discounts",
     menu_cabinet:"My account",menu_cabinet_sub:"History, tickets",
+    menu_gallery:"Photo gallery",
     sec_services:"Services & Info",sec_cabinet:"Account",
     ask_helper:"Ask assistant",ask_helper_sub:"Ask a question — I'll find the right section",
     btn_close:"Close",btn_back:"← Back",btn_home:"🏠 Home",
@@ -262,7 +302,28 @@ const I18N={
     profiles_title:"👨‍👩‍👦 Recipient profiles",profiles_hint:"Switch between recipients",
     profiles_add:"➕ Add recipient",profiles_active:"Active",
     switched_to:"📍 Switched to",how_help:"How can I help?",
-    lang_name:"English"
+    lang_name:"English",
+    tb_home:"Home",tb_menu:"Services",tb_cart:"Cart",tb_orders:"Orders",tb_profile:"Profile",
+    orders_title:"📋 My requests",orders_filter_all:"All",orders_filter_orders:"🛒 Requests",orders_filter_bookings:"📅 Bookings",
+    orders_empty_title:"No requests or bookings yet",orders_empty_orders:"No service requests",orders_empty_bookings:"No appointments booked",
+    close_and_return:"Close and return",
+    services_title:"Price list",services_search_ph:"Search services by name...",
+    staff_title:"Staff",staff_search_ph:"Search by name or position...",
+    booking_title:"📝 Book an appointment",
+    booking_step1:"Choose department",booking_step2:"Choose specialist",
+    booking_step3:"Choose date",booking_step4:"Choose time",
+    booking_comment:"Comment (optional)",booking_comment_ph:"Purpose of visit, special needs…",
+    booking_confirm:"Review your appointment",booking_send:"📧 Confirm appointment",
+    feedback_title:"💬 Feedback",feedback_intro:"Your opinion matters — it helps us improve the center.",
+    feedback_rate:"Rate the center's work",feedback_like:"What did you like?",
+    feedback_comment_ph:"Write your suggestions or comments…",feedback_send:"📧 Send feedback",
+    gallery_title:"🖼️ Photo gallery",gallery_empty:"No photos yet",
+    settings_title:"Settings",settings_appearance:"Appearance",settings_data:"My data",
+    settings_font:"Font size",settings_theme:"Dark theme",
+    settings_export:"Export my data",settings_reset:"Clear all data",
+    logout_btn:"🚪 Log out / Switch user",
+    edit_data:"✏️ Edit data",quick_orders:"My requests",quick_services:"Price list",
+    quick_booking:"Book visit",quick_feedback:"Feedback"
   },
   yrk:{
     greeting_morning:"☀️ Ям яля",greeting_day:"🌤 Ям яля",greeting_evening:"🌙 Пыд яля",
@@ -296,14 +357,50 @@ function t(key){
   return (I18N[currentLang]&&I18N[currentLang][key])||I18N.ru[key]||key;
 }
 
+function applyTabBarLabels(){
+  const map={tbLblHome:"tb_home",tbLblMenu:"tb_menu",tbLblCart:"tb_cart",tbLblOrders:"tb_orders",tbLblProfile:"tb_profile"};
+  Object.keys(map).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=t(map[id]);
+  });
+  const staticMap={
+    cartTitleH2:"cart_title",cartCloseLbl:"close_and_return",
+    ordersTitleH2:"orders_title",ordersCloseLbl:"close_and_return",
+    ordFilterAll:"orders_filter_all",ordFilterOrders:"orders_filter_orders",ordFilterBookings:"orders_filter_bookings",
+    profCloseLbl:"close_and_return"
+  };
+  Object.keys(staticMap).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=t(staticMap[id]);
+  });
+}
 function switchLang(lang){
   currentLang=lang;
   localStorage.setItem("lang",lang);
   const sel=document.getElementById("langSel");
   if(sel)sel.value=lang;
   showToast("🌐 "+t("lang_name"));
+  applyTabBarLabels();
 
-  if(typeof showMainMenu==="function"&&document.querySelector(".dash")){
+  const doc=document;
+  if(doc.getElementById("cartPanel")&&doc.getElementById("cartPanel").classList.contains("open")&&typeof renderCart==="function"){
+    renderCart();
+  }else if(doc.getElementById("ordersPanel")&&doc.getElementById("ordersPanel").classList.contains("open")&&typeof renderOrdersPanel==="function"){
+    const activeF=doc.querySelector(".of-btn.active");
+    renderOrdersPanel(activeF?activeF.dataset.f:"all");
+  }else if(doc.getElementById("profilePanel")&&doc.getElementById("profilePanel").classList.contains("open")&&typeof renderProfilePanel==="function"){
+    renderProfilePanel();
+  }else if(doc.querySelector(".pricelist")&&typeof showServices==="function"){
+    showServices();
+  }else if(doc.querySelector(".booking-page")&&typeof showBooking==="function"){
+    showBooking();
+  }else if(doc.querySelector(".feedback-page")&&typeof showFeedback==="function"){
+    showFeedback();
+  }else if(doc.querySelector(".svc-page")&&typeof showMenuPage==="function"){
+    showMenuPage();
+  }else if(doc.querySelector(".gallery-page")&&typeof showGallery==="function"){
+    showGallery();
+  }else if(doc.querySelector(".home-view")&&typeof showMainMenu==="function"){
     showMainMenu();
   }
 }
@@ -311,6 +408,7 @@ function switchLang(lang){
 document.addEventListener("DOMContentLoaded",()=>{
   const sel=document.getElementById("langSel");
   if(sel)sel.value=currentLang;
+  applyTabBarLabels();
 });
 
 function showRating(context){

@@ -66,43 +66,48 @@
   </div>
 
   <div class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Диалог с помощником"></div>
+  <div class="scroll-hint-fade" aria-hidden="true"></div>
   <div class="actions" id="actions" role="region" aria-label="Действия"></div>
 
   <button id="backBtn" class="gone" style="display:none" aria-hidden="true"></button>
 
   <nav class="tab-bar" id="tabBar">
-    <button class="tb active" onclick="tabGo('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Главная</span></button>
-    <button class="tb" onclick="tabGo('menu')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Услуги</span></button>
-    <button class="tb" id="tb_cart" onclick="tabGo('cart')"><div class="tb-cart-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><span class="tb-badge gone" id="tbCartBadge">0</span></div><span>Корзина</span></button>
-    <button class="tb" onclick="tabGo('orders')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Заявки</span></button>
-    <button class="tb" onclick="tabGo('profile')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Профиль</span></button>
+    <div class="tb-pill" id="tbPill"></div>
+    <button class="tb active" onclick="tabGo('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span id="tbLblHome">Главная</span></button>
+    <button class="tb" onclick="tabGo('menu')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span id="tbLblMenu">Услуги</span></button>
+    <button class="tb" id="tb_cart" onclick="tabGo('cart')"><div class="tb-cart-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><span class="tb-badge gone" id="tbCartBadge">0</span></div><span id="tbLblCart">Корзина</span></button>
+    <button class="tb" onclick="tabGo('orders')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span id="tbLblOrders">Заявки</span></button>
+    <button class="tb" onclick="tabGo('profile')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span id="tbLblProfile">Профиль</span></button>
   </nav>
 
   <div class="cart-panel" id="cartPanel" role="dialog" aria-modal="true" aria-label="Корзина заявки">
     <div class="cart-hdr">
-      <h2>🛒 Корзина заявки</h2>
+      <h2 id="cartTitleH2">🛒 Корзина заявки</h2>
       <button class="cart-x" onclick="closeCart()" aria-label="Закрыть корзину">✕</button>
     </div>
     <div class="cart-body" id="cartBody"></div>
     <div class="cart-footer" id="cartFooter"></div>
+    <div class="panel-close-bar"><button class="panel-close-btn" onclick="closeCart()"><span class="pcb-arrow">←</span> <span id="cartCloseLbl">Закрыть и вернуться</span></button></div>
   </div>
 
   <div class="orders-panel" id="ordersPanel" role="dialog" aria-modal="true" aria-label="Мои заявки">
     <div class="ord-hdr">
-      <h2>📋 Мои заявки</h2>
+      <h2 id="ordersTitleH2">📋 Мои заявки</h2>
       <button class="cart-x" onclick="closeOrdersPanel()" aria-label="Закрыть">✕</button>
     </div>
     <div class="ord-filters" id="ordFilters">
-      <button class="of-btn active" data-f="all" onclick="ordFilter('all',this)">Все</button>
-      <button class="of-btn" data-f="orders" onclick="ordFilter('orders',this)">🛒 Заявки</button>
-      <button class="of-btn" data-f="bookings" onclick="ordFilter('bookings',this)">📅 Записи</button>
+      <button class="of-btn active" data-f="all" onclick="ordFilter('all',this)" id="ordFilterAll">Все</button>
+      <button class="of-btn" data-f="orders" onclick="ordFilter('orders',this)" id="ordFilterOrders">🛒 Заявки</button>
+      <button class="of-btn" data-f="bookings" onclick="ordFilter('bookings',this)" id="ordFilterBookings">📅 Записи</button>
     </div>
     <div class="ord-body" id="ordBody"></div>
+    <div class="panel-close-bar"><button class="panel-close-btn" onclick="closeOrdersPanel()"><span class="pcb-arrow">←</span> <span id="ordersCloseLbl">Закрыть и вернуться</span></button></div>
   </div>
 
   <div class="profile-panel" id="profilePanel" role="dialog" aria-modal="true" aria-label="Личный кабинет">
     <button class="prof-close" onclick="closeProfilePanel()" aria-label="Закрыть">✕</button>
     <div class="prof-body" id="profBody"></div>
+    <div class="panel-close-bar"><button class="panel-close-btn" onclick="closeProfilePanel()"><span class="pcb-arrow">←</span> <span id="profCloseLbl">Закрыть и вернуться</span></button></div>
   </div>
 
   <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhotoChange(event)">

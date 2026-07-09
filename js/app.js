@@ -1,4 +1,5 @@
 
+const BRANCH_DISPLAY_NAMES={gubkin:"Губкинский",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"пгт. Уренгой"};
 let currentCity="gubkin",currentCityName="Губкинский",hasMoroshka=null;
 let navHistory=[],cart=JSON.parse(localStorage.getItem("cart")||"[]");
 let clientName="",clientPhone="",clientSnils="",ordersHistory=[],bookingsHistory=[];
@@ -38,6 +39,43 @@ function showTyping(cb,delay=360){
 function showToast(msg,dur=2800){
   const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),dur);
+}
+function showSuccessAnim(text){
+  const ovl=document.createElement("div");ovl.className="success-anim-ovl";
+  const colors=["#1B8585","#26b0a8","#ffe8b8","#ffffff","#22a5a0"];
+  let confetti="";
+  for(let i=0;i<24;i++){
+    const c=colors[i%colors.length];
+    const left=Math.random()*100;
+    const delay=(Math.random()*0.4).toFixed(2);
+    const dur=(0.9+Math.random()*0.6).toFixed(2);
+    const rot=Math.floor(Math.random()*360);
+    confetti+=`<div class="sa-confetti" style="left:${left}%;background:${c};animation-delay:${delay}s;animation-duration:${dur}s;--rot:${rot}deg"></div>`;
+  }
+  ovl.innerHTML=`<div class="sa-confetti-wrap">${confetti}</div>
+    <div class="sa-check-wrap">
+      <svg class="sa-check-svg" viewBox="0 0 52 52"><circle class="sa-check-circle" cx="26" cy="26" r="24"/><path class="sa-check-mark" d="M14 27l7 7 17-17"/></svg>
+    </div>
+    ${text?`<div class="sa-text">${text}</div>`:""}`;
+  document.body.appendChild(ovl);
+  setTimeout(()=>{ovl.classList.add("sa-fade");setTimeout(()=>ovl.remove(),400);},1600);
+}
+function flyToCart(sourceEl){
+  if(!sourceEl)return;
+  const cartTab=document.getElementById("tb_cart");
+  if(!cartTab)return;
+  const srcRect=sourceEl.getBoundingClientRect();
+  const dstRect=cartTab.getBoundingClientRect();
+  const flyer=document.createElement("div");flyer.className="fly-to-cart";flyer.textContent="🛒";
+  flyer.style.left=(srcRect.left+srcRect.width/2-12)+"px";
+  flyer.style.top=(srcRect.top+srcRect.height/2-12)+"px";
+  document.body.appendChild(flyer);
+  const dx=(dstRect.left+dstRect.width/2)-(srcRect.left+srcRect.width/2);
+  const dy=(dstRect.top+dstRect.height/2)-(srcRect.top+srcRect.height/2);
+  flyer.style.setProperty("--dx",dx+"px");
+  flyer.style.setProperty("--dy",dy+"px");
+  requestAnimationFrame(()=>flyer.classList.add("fly-go"));
+  setTimeout(()=>flyer.remove(),650);
 }
 function setNav(showBack){document.getElementById("backBtn").classList.toggle("gone",!showBack);}
 function pushNav(fn){navHistory.push(fn);}
@@ -251,7 +289,7 @@ function clearAllOrders(){
 function renderCart(){
   const body=document.getElementById("cartBody"),footer=document.getElementById("cartFooter");
   if(cart.length===0){
-    body.innerHTML='<div class="cart-empty">🛒 Корзина пуста<br><span style="font-size:14px;color:#8AA0A0;margin-top:8px;display:block;">Добавьте услуги из прейскуранта</span></div>';
+    body.innerHTML='<div class="cart-empty">'+t("cart_empty")+'<br><span style="font-size:14px;color:#8AA0A0;margin-top:8px;display:block;">'+(currentLang==="en"?"Add services from the price list":"Добавьте услуги из прейскуранта")+'</span></div>';
     footer.innerHTML="";return;
   }
   body.innerHTML=cart.map(it=>`
@@ -274,8 +312,8 @@ function renderCart(){
     <div class="cart-total"><span>Итого:</span><span aria-live="polite">${total.toLocaleString()} ₽</span></div>
     ${savingsHtml}
     <div class="cart-rcpt">Заявка будет отправлена на <strong>${getOrderEmail()}</strong><br>Получатель: <strong>${clientName||"—"}</strong></div>
-    <button class="cart-send" onclick="sendOrder()" aria-label="Отправить заявку на email">📧 Отправить заявку</button>
-    <button class="cart-clr" onclick="clearCart()">🗑 Очистить корзину</button>`;
+    <button class="cart-send" onclick="sendOrder()" aria-label="${t("cart_send")}">${t("cart_send")}</button>
+    <button class="cart-clr" onclick="clearCart()">${t("cart_clear")}</button>`;
 }
 function sendOrder(){
   if(!cart.length)return;
@@ -326,6 +364,7 @@ function doSendOrder(){
     items:cart.map(i=>({name:i.name,qty:i.qty,price:i.price}))
   });
   cart=[];saveCart();updateBadge();renderCart();closeCart();
+  showSuccessAnim("Заявка отправлена!");
   addMsg("✅ Почтовый клиент открыт. Нажмите «Отправить» — заявка уйдёт специалисту!",true);
   showToast("✅ Заявка сформирована!");
   if(typeof showRating==="function")showRating("order");
@@ -377,6 +416,22 @@ function greeting(){
   if(h>=12&&h<17)return t("greeting_day");
   return t("greeting_evening");
 }
+function timeOfDayClass(){
+  const h=new Date().getHours();
+  if(h>=5&&h<12)return "ga-morning";
+  if(h>=12&&h<17)return "ga-day";
+  if(h>=17&&h<22)return "ga-evening";
+  return "ga-night";
+}
+function emptyIllustration(){
+  return `<svg class="empty-illust" viewBox="0 0 120 100" aria-hidden="true">
+    <ellipse cx="60" cy="88" rx="38" ry="7" fill="#1B8585" opacity=".08"/>
+    <rect x="24" y="34" width="72" height="46" rx="12" fill="none" stroke="#1B8585" stroke-width="2.5" stroke-dasharray="6 6" opacity=".35"/>
+    <path class="empty-illust-heart" d="M60 46c5 3 9 8 9 14 0 7-6 12-13 12 6 0 10-4 10-10 0-8-6-14-15-16 3-1 6-1 9 0z" fill="#1B8585" opacity=".55"/>
+    <circle class="empty-illust-dot" cx="86" cy="30" r="3" fill="#ffb84d" opacity=".7"/>
+    <circle class="empty-illust-dot2" cx="30" cy="26" r="2.4" fill="#1B8585" opacity=".5"/>
+  </svg>`;
+}
 
 function menuCard(it){
   var c=document.createElement("div");c.className="card";
@@ -403,7 +458,7 @@ function showMainMenu(){
   chatEl.innerHTML="";
   var gr=greeting();
   var w=document.createElement("div");w.className="home-view";
-  var html='<div class="greet-anim"><div class="ga-shimmer"></div><div class="ga-orb ga-1"></div><div class="ga-orb ga-2"></div><div class="ga-orb ga-3"></div><svg class="ga-heart-deco" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.2"/><circle cx="50" cy="14" r="4" fill="#ffffff"/></svg><svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg><div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-sub">Чем могу помочь?</span></div><div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.jpg" class="ga-bot-img" alt=""></div></div>';
+  var html='<div class="greet-anim '+timeOfDayClass()+'"><div class="ga-shimmer"></div><div class="ga-orb-wrap" id="gaOrbWrap1"><div class="ga-orb ga-1"></div></div><div class="ga-orb-wrap" id="gaOrbWrap2"><div class="ga-orb ga-2"></div></div><div class="ga-orb-wrap" id="gaOrbWrap3"><div class="ga-orb ga-3"></div></div><svg class="ga-heart-deco" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.2"/><circle cx="50" cy="14" r="4" fill="#ffffff"/></svg><svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg><div class="ga-sparkle ga-sp1"></div><div class="ga-sparkle ga-sp2"></div><div class="ga-sparkle ga-sp3"></div><div class="ga-sparkle ga-sp4"></div><div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-name-accent"></span><span class="ga-sub">Чем могу помочь?</span></div><div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.jpg" class="ga-bot-img" alt=""></div></div>';
   html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-present.jpg" class="bb-ava"><div class="bb-txt"><b>Помощник «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
   html+='<div class="news-sec-title">Новости и обновления центра</div>';
   html+='<div class="news-feed">';
@@ -411,7 +466,7 @@ function showMainMenu(){
     newsData.forEach(function(n){
       var d=new Date(n.date);
       var dateStr=d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
-      html+='<div class="news-card"><div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
+      html+='<div class="news-card">'+(n.image?'<img src="'+n.image+'" class="news-img" alt="">':'')+'<div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
     });
   }else{
     html+='<div class="news-empty"><div class="ne-ico">📰</div><b>Новостей пока нет</b><span>Здесь появятся новости и обновления центра</span></div>';
@@ -427,24 +482,40 @@ function showMainMenu(){
   if(typeof showOnboarding==="function")showOnboarding();
 }
 
+const CAT_GRADIENTS=[
+  "linear-gradient(135deg,#6366f1,#4f46e5)","linear-gradient(135deg,#f59e0b,#d97706)",
+  "linear-gradient(135deg,#10b981,#059669)","linear-gradient(135deg,#ec4899,#db2777)",
+  "linear-gradient(135deg,#06b6d4,#0891b2)","linear-gradient(135deg,#8b5cf6,#7c3aed)",
+  "linear-gradient(135deg,#f43f5e,#e11d48)","linear-gradient(135deg,#14b8a6,#0d9488)",
+  "linear-gradient(135deg,#eab308,#ca8a04)","linear-gradient(135deg,#3b82f6,#2563eb)",
+  "linear-gradient(135deg,#a855f7,#9333ea)","linear-gradient(135deg,#22c55e,#16a34a)"
+];
+function catColor(id){return CAT_GRADIENTS[id%CAT_GRADIENTS.length];}
+
 function showServices(){
   clearActions();setNav(true);
   if(!servicesData.length){addMsg("Нет данных для этого филиала.",true);return;}
   chatEl.innerHTML="";
   var pg=document.createElement("div");pg.className="pricelist";
-  var html='<h2>Прейскурант услуг</h2><div class="pl-search"><input type="text" id="plSearchInp" placeholder="Поиск услуги по названию..." oninput="plFilterGlobal(this.value)" aria-label="Поиск услуги"></div>';
-  html+='<div id="plCatList" class="pl-catlist">';
-  servicesData.forEach(function(cat){
-    html+='<button class="pl-catcard" data-cid="'+cat.id+'" onclick="plOpenCat('+cat.id+')" aria-label="'+cat.name.replace(/"/g,"&quot;")+', '+cat.items.length+' услуг">'
-        +'<span class="pl-catcard-ico">'+cat.icon+'</span>'
-        +'<span class="pl-catcard-txt"><b>'+cat.name+'</b><span>'+cat.items.length+' '+plWordForm(cat.items.length,["услуга","услуги","услуг"])+'</span></span>'
-        +'<span class="pl-catcard-arr">›</span></button>';
-  });
-  html+='</div>';
-  html+='<div id="plSearchResults" class="pl-searchres gone"></div>';
-  html+='<div id="plCatDetail" class="pl-catdetail gone"></div>';
-  pg.innerHTML=html;
+  var skHtml='<h2>'+t("services_title")+'</h2><div class="pl-search"><input type="text" placeholder="'+t("services_search_ph")+'" disabled></div><div class="pl-catlist">';
+  for(var s=0;s<6;s++)skHtml+='<div class="pl-skel-card"><div class="pl-skel-ico"></div><div class="pl-skel-txt"><div class="pl-skel-line" style="width:70%"></div><div class="pl-skel-line" style="width:40%"></div></div></div>';
+  skHtml+='</div>';
+  pg.innerHTML=skHtml;
   chatEl.appendChild(pg);
+  setTimeout(function(){
+    var html='<h2>'+t("services_title")+'</h2><div class="pl-search"><input type="text" id="plSearchInp" placeholder="'+t("services_search_ph")+'" oninput="plFilterGlobal(this.value)" aria-label="'+t("services_search_ph")+'"></div>';
+    html+='<div id="plCatList" class="pl-catlist">';
+    servicesData.forEach(function(cat){
+      html+='<button class="pl-catcard" data-cid="'+cat.id+'" onclick="plOpenCat('+cat.id+')" aria-label="'+cat.name.replace(/"/g,"&quot;")+', '+cat.items.length+' услуг">'
+          +'<span class="pl-catcard-ico" style="background:'+catColor(cat.id)+'">'+cat.icon+'</span>'
+          +'<span class="pl-catcard-txt"><b>'+cat.name+'</b><span>'+cat.items.length+' '+plWordForm(cat.items.length,["услуга","услуги","услуг"])+'</span></span>'
+          +'<span class="pl-catcard-arr">›</span></button>';
+    });
+    html+='</div>';
+    html+='<div id="plSearchResults" class="pl-searchres gone"></div>';
+    html+='<div id="plCatDetail" class="pl-catdetail gone"></div>';
+    pg.innerHTML=html;
+  },160);
   actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 function plWordForm(n,forms){
@@ -485,6 +556,7 @@ function plAddToCart(btn){
   var mor=btn.dataset.mor!==""?parseInt(btn.dataset.mor):null;
   var price=hasMoroshka&&mor!=null?mor:base;
   addToCart(uid,name,price,btn,base,mor);
+  flyToCart(btn);
   var it=cart.find(function(i){return i.id===uid;});
   if(it&&it.qty>1){
     setTimeout(function(){btn.textContent=it.qty;btn.classList.add("has-qty");},950);
@@ -533,6 +605,7 @@ function showBooking(){
 
   w.innerHTML=`
     <h2>📝 Запись к специалисту</h2>
+    <div class="bk-progress"><div class="bk-progress-fill" id="bkProgressFill"></div></div>
     <div class="bk-step-lbl">1. Выберите отделение</div>
     <div class="bk-dept-list" id="bkDeptList">
       ${depts.map(d=>`<button class="bk-dept-card" data-dept="${d.replace(/"/g,"&quot;")}">${d}</button>`).join("")}
@@ -555,6 +628,9 @@ function showBooking(){
     <div class="bk-summary gone" id="bkSummary"></div>
   `;
   chatEl.appendChild(w);
+  const progressFillEl=w.querySelector("#bkProgressFill");
+  function updateProgress(step){progressFillEl.style.width=(step*25)+"%";}
+  updateProgress(0);
 
   const deptListEl=w.querySelector("#bkDeptList");
   const step2El=w.querySelector("#bkStep2"),specListEl=w.querySelector("#bkSpecList");
@@ -601,6 +677,7 @@ function showBooking(){
           step3El.classList.remove("gone");daysEl.classList.remove("gone");
           step4El.classList.add("gone");timeWrapEl.classList.add("gone");timeWrapEl.innerHTML="";
           commentWrapEl.classList.add("gone");
+          updateProgress(2);
           updateSummary();
           step3El.scrollIntoView({behavior:"smooth",block:"start"});
         };
@@ -609,6 +686,7 @@ function showBooking(){
       step3El.classList.add("gone");daysEl.classList.add("gone");
       step4El.classList.add("gone");timeWrapEl.classList.add("gone");
       commentWrapEl.classList.add("gone");
+      updateProgress(1);
       updateSummary();
       step2El.scrollIntoView({behavior:"smooth",block:"start"});
     };
@@ -637,6 +715,7 @@ function showBooking(){
         renderTimeSlots();
         step4El.classList.remove("gone");timeWrapEl.classList.remove("gone");
         commentWrapEl.classList.add("gone");
+        updateProgress(3);
         updateSummary();
         step4El.scrollIntoView({behavior:"smooth",block:"start"});
       };
@@ -657,6 +736,7 @@ function showBooking(){
         btn.classList.add("sel");btn.setAttribute("aria-pressed","true");
         selTime=btn.dataset.time;
         commentWrapEl.classList.remove("gone");
+        updateProgress(4);
         updateSummary();
       };
     });
@@ -685,6 +765,7 @@ function showBooking(){
       comment:commentVal
     });
     chatEl.innerHTML="";
+    showSuccessAnim("Запись оформлена!");
     addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${selDate}</b> в <b>${selTime}</b><br>👤 ${selSpec}`,true);
     showToast("✅ Талон "+ticketNum+" сохранён!");
     clearActions();
@@ -794,7 +875,7 @@ function showGallery(){
   const w=document.createElement("div");w.className="gallery-page";
   let html='<h2>🖼️ Фотогалерея центра</h2>';
   if(!galleryData.length){
-    html+='<div class="gal-empty"><div class="gal-empty-ico">📷</div><div class="gal-empty-title">Пока нет фотографий</div><div class="gal-empty-sub">Скоро здесь появятся фото центра «Гармония»</div></div>';
+    html+='<div class="gal-empty">'+emptyIllustration()+'<div class="gal-empty-title">Пока нет фотографий</div><div class="gal-empty-sub">Скоро здесь появятся фото центра «Гармония»</div></div>';
   }else{
     html+='<div class="gal-grid">';
     galleryData.forEach((g,i)=>{
@@ -874,6 +955,7 @@ function showFeedback(){
     const body=`${emailTemplates.feedback.intro}\nОценка: ${fbRating}/5 ${"★".repeat(fbRating)}\nТеги: ${fbTags.join(", ")||"—"}\nКомментарий: ${cInp.value||"—"}\n\nОтправитель: ${clientName}\nТелефон: ${clientPhone}\nФилиал: г. ${currentCityName}`;
     window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.feedback.subject,{name:clientName}))}&body=${encodeURIComponent(body)}`;
     chatEl.innerHTML="";
+    showSuccessAnim("Спасибо за отзыв!");
     addMsg(`✅ Спасибо за отзыв! ${"⭐".repeat(fbRating)}`,true);
     showToast("💬 Отзыв отправлен!");
     fbRating=0;fbTags=[];
@@ -968,9 +1050,9 @@ function renderOrdersPanel(filter){
   all.sort((a,b)=>(b.sortKey||"").localeCompare(a.sortKey||""));
 
   if(!all.length){
-    const emptyMsg=filter==="bookings"?"Нет записей к специалистам":filter==="orders"?"Нет заявок на услуги":"Пока нет заявок и записей";
-    const emptySub=filter==="bookings"?"Запишитесь к специалисту через раздел «Записаться»":filter==="orders"?"Добавьте услуги из прейскуранта и оформите заявку":"Оформите заявку на услуги или запишитесь к специалисту";
-    body.innerHTML=`<div class="ord-empty"><div class="ord-empty-ico">📭</div><div class="ord-empty-title">${emptyMsg}</div><div class="ord-empty-sub">${emptySub}</div></div>`;
+    const emptyMsg=filter==="bookings"?t("orders_empty_bookings"):filter==="orders"?t("orders_empty_orders"):t("orders_empty_title");
+    const emptySub=filter==="bookings"?(currentLang==="en"?"Book an appointment via the 'Book visit' section":"Запишитесь к специалисту через раздел «Записаться»"):filter==="orders"?(currentLang==="en"?"Add services from the price list and submit a request":"Добавьте услуги из прейскуранта и оформите заявку"):(currentLang==="en"?"Submit a service request or book an appointment":"Оформите заявку на услуги или запишитесь к специалисту");
+    body.innerHTML=`<div class="ord-empty">${emptyIllustration()}<div class="ord-empty-title">${emptyMsg}</div><div class="ord-empty-sub">${emptySub}</div></div>`;
     return;
   }
 
@@ -1051,28 +1133,25 @@ function renderProfilePanel(){
   const catLabels={pensioner:"Пенсионер",disabled:"Инвалид",family:"Семья с детьми",large_family:"Многодетная семья",veteran:"Ветеран",other:"Другое"};
 
   const favHtml=fav.length===0
-    ?'<div class="hist-empty"><div class="empty-ico">⭐</div><div class="empty-title">Нет избранных</div><div class="empty-sub">Нажмите ★ у любой услуги в прейскуранте</div></div>'
-    :fav.map(f=>`<div class="history-item"><div class="h-item-title">${f.n}</div><div class="h-item-detail">${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString()} ₽</div><button class="h-act" onclick="addFavToCart('${f.id}')">🛒 В корзину</button></div>`).join("");
+    ?'<div class="hist-empty">'+emptyIllustration()+'<div class="empty-title">Нет избранных</div><div class="empty-sub">Нажмите ★ у любой услуги в прейскуранте</div></div>'
+    :fav.map(f=>`<div class="pcard-item"><div class="pcard-item-txt"><b>${f.n}</b><span>${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString()} ₽</span></div><button class="pcard-item-act" onclick="addFavToCart('${f.id}')">🛒</button></div>`).join("");
 
-  const docsHtml=`<div class="docs-list">
-    <div class="doc-card" onclick="downloadDoc('application')"><div class="doc-ico">📄</div><div><div class="doc-name">Заявление на обслуживание</div><div class="doc-desc">Заявление на получение социальных услуг</div></div><span class="doc-dl">⬇</span></div>
-    <div class="doc-card" onclick="downloadDoc('consent')"><div class="doc-ico">🔒</div><div><div class="doc-name">Согласие на обработку данных</div><div class="doc-desc">Согласие на обработку персональных данных (ФЗ-152)</div></div><span class="doc-dl">⬇</span></div>
-    <div class="doc-card" onclick="downloadDoc('moroshka')"><div class="doc-ico"><img src="img/moroshka-logo.jpg" class="moroshka-ico" alt=""></div><div><div class="doc-name">Памятка «Морошка»</div><div class="doc-desc">Как оформить и использовать карту «Морошка»</div></div><span class="doc-dl">⬇</span></div>
-    <div class="doc-card" onclick="downloadDoc('rights')"><div class="doc-ico">📋</div><div><div class="doc-name">Права получателя услуг</div><div class="doc-desc">Перечень прав получателя социальных услуг</div></div><span class="doc-dl">⬇</span></div>
-    <div class="doc-card" onclick="downloadDoc('complaint')"><div class="doc-ico">📝</div><div><div class="doc-name">Бланк жалобы / предложения</div><div class="doc-desc">Обращение в администрацию центра</div></div><span class="doc-dl">⬇</span></div>
+  const docsHtml=`<div class="pcard-doclist">
+    <button class="pcard-doc" onclick="downloadDoc('application')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">📄</span><span class="pcard-doc-txt"><b>Заявление на обслуживание</b><span>Заявление на получение социальных услуг</span></span><span class="pcard-doc-dl">⬇</span></button>
+    <button class="pcard-doc" onclick="downloadDoc('consent')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🔒</span><span class="pcard-doc-txt"><b>Согласие на обработку данных</b><span>Персональные данные (ФЗ-152)</span></span><span class="pcard-doc-dl">⬇</span></button>
+    <button class="pcard-doc" onclick="downloadDoc('moroshka')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#10b981,#059669)"><img src="img/moroshka-logo.jpg" class="pcard-doc-img" alt=""></span><span class="pcard-doc-txt"><b>Памятка «Морошка»</b><span>Как оформить и использовать карту</span></span><span class="pcard-doc-dl">⬇</span></button>
+    <button class="pcard-doc" onclick="downloadDoc('rights')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">📋</span><span class="pcard-doc-txt"><b>Права получателя услуг</b><span>Перечень прав получателя соц. услуг</span></span><span class="pcard-doc-dl">⬇</span></button>
+    <button class="pcard-doc" onclick="downloadDoc('complaint')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#ec4899,#db2777)">📝</span><span class="pcard-doc-txt"><b>Бланк жалобы / предложения</b><span>Обращение в администрацию центра</span></span><span class="pcard-doc-dl">⬇</span></button>
   </div>`;
 
   const oh=JSON.parse(localStorage.getItem("ordersHistory")||"[]");
   const bh=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
 
-  const anketaHtml=(userProfile.category||userProfile.address||userProfile.birthDate)?`
-    <div class="prof-anketa">
-      <div class="prof-anketa-hdr"><span>📋 Анкета получателя</span><button class="prof-anketa-edit" onclick="editQuestionnaire()">Изменить</button></div>
-      ${userProfile.category?`<div class="prof-info-row"><span class="lbl">Категория:</span><span class="val">${catLabels[userProfile.category]||userProfile.category}</span></div>`:""}
-      ${userProfile.birthDate?`<div class="prof-info-row"><span class="lbl">Дата рождения:</span><span class="val">${userProfile.birthDate}</span></div>`:""}
-      ${userProfile.address?`<div class="prof-info-row"><span class="lbl">Адрес:</span><span class="val">${userProfile.address}</span></div>`:""}
-    </div>`:`
-    <button class="prof-anketa-fill" onclick="editQuestionnaire()">📋 Заполнить анкету получателя →</button>`;
+  const anketaBody=(userProfile.category||userProfile.address||userProfile.birthDate)?`
+      ${userProfile.category?`<div class="pinfo-row"><span class="pinfo-ico">🏷️</span><span class="pinfo-txt"><span class="pinfo-lbl">Категория</span><span class="pinfo-val">${catLabels[userProfile.category]||userProfile.category}</span></span></div>`:""}
+      ${userProfile.birthDate?`<div class="pinfo-row"><span class="pinfo-ico">🎂</span><span class="pinfo-txt"><span class="pinfo-lbl">Дата рождения</span><span class="pinfo-val">${userProfile.birthDate}</span></span></div>`:""}
+      ${userProfile.address?`<div class="pinfo-row"><span class="pinfo-ico">🏠</span><span class="pinfo-txt"><span class="pinfo-lbl">Адрес</span><span class="pinfo-val">${userProfile.address}</span></span></div>`:""}`
+    :`<button class="pinfo-fill-btn" onclick="editQuestionnaire()">📋 Заполнить анкету получателя <span class="pinfo-fill-arr">→</span></button>`;
 
   const body=document.getElementById("profBody");
   body.innerHTML=`
@@ -1089,49 +1168,68 @@ function renderProfilePanel(){
     </div>
 
     <div class="prof-stats">
-      <div class="prof-stat"><div class="prof-stat-v">${oh.length}</div><div class="prof-stat-l">Заявок</div></div>
-      <div class="prof-stat"><div class="prof-stat-v">${bh.length}</div><div class="prof-stat-l">Записей</div></div>
-      <div class="prof-stat"><div class="prof-stat-v">${fav.length}</div><div class="prof-stat-l">Избранных</div></div>
+      <div class="prof-stat"><span class="prof-stat-ico">📋</span><div class="prof-stat-v">${oh.length}</div><div class="prof-stat-l">Заявок</div></div>
+      <div class="prof-stat"><span class="prof-stat-ico">📅</span><div class="prof-stat-v">${bh.length}</div><div class="prof-stat-l">Записей</div></div>
+      <div class="prof-stat"><span class="prof-stat-ico">⭐</span><div class="prof-stat-v">${fav.length}</div><div class="prof-stat-l">Избранных</div></div>
     </div>
 
-    <div class="prof-quick-grid">
-      <button class="prof-quick-btn" onclick="closeProfilePanel();openOrdersPanel();"><span class="pq-ico">📋</span>Мои заявки</button>
-      <button class="prof-quick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showServices);"><span class="pq-ico">🛍️</span>Прейскурант</button>
-      <button class="prof-quick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showBooking);"><span class="pq-ico">📝</span>Записаться</button>
-      <button class="prof-quick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showFeedback);"><span class="pq-ico">💬</span>Отзыв</button>
-    </div>
-
-    ${clientSnils&&clientSnils!=="—"&&clientSnils!==""?`<div class="prof-info-row"><span class="lbl">СНИЛС:</span><span class="val">${clientSnils}</span></div>`:""}
-    <div class="prof-info-row"><span class="lbl">Морошка:</span><span class="val">${hasMoroshka?"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Активна":"<img src=\"img/no-moroshka.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Нет карты"}</span></div>
-
-    ${anketaHtml}
-
-    <div class="cab-actions">
-      <button class="cab-btn" onclick="editMyData()">✏️ Изменить данные</button>
-      <button class="cab-btn" onclick="openProfileSwitcher()">👨‍👩‍👦 Профили</button>
-      <button class="cab-btn" onclick="showCartStats()">📊 Статистика</button>
-    </div>
-
-    <div class="history-tabs" role="tablist">
-      <button class="h-tab active" id="tab-fav" role="tab" aria-selected="true" onclick="switchProfTab('fav',this)">⭐ <span class="htab-text">Избранное</span> (${fav.length})</button>
-      <button class="h-tab" id="tab-docs" role="tab" aria-selected="false" onclick="switchProfTab('docs',this)">📁 <span class="htab-text">Документы</span></button>
-      <button class="h-tab" id="tab-settings" role="tab" aria-selected="false" onclick="switchProfTab('settings',this)">⚙️ <span class="htab-text">Настройки</span></button>
-    </div>
-    <div class="history-list" id="profhist-fav" role="tabpanel">${favHtml}</div>
-    <div class="history-list" id="profhist-docs" role="tabpanel" style="display:none">${docsHtml}</div>
-    <div class="history-list" id="profhist-settings" role="tabpanel" style="display:none">
-      <div class="settings-section">
-        <div class="set-group-lbl">Внешний вид</div>
-        <div class="set-row"><span>Размер шрифта</span><div class="set-btns"><button class="set-btn" onclick="changeFontSize(-1)">А−</button><button class="set-btn" onclick="changeFontSize(1)">А+</button></div></div>
-        <div class="set-row"><span>Тёмная тема</span><button class="set-btn" onclick="toggleDarkTheme()">${darkMode?"☀️ Выключить":"🌙 Включить"}</button></div>
-        <div class="set-group-lbl">Мои данные</div>
-        <div class="set-row"><span>Экспорт моих данных</span><button class="set-btn" onclick="exportMyData()">⬇️ Скачать</button></div>
-        <div class="set-row"><span>Очистить все данные</span><button class="set-btn danger" onclick="if(confirm('Удалить все данные?')){localStorage.clear();location.reload();}">🗑 Сброс</button></div>
+    <div class="pcard">
+      <div class="pcard-hdr">Быстрые действия</div>
+      <div class="pquick-grid">
+        <button class="pquick-btn" onclick="closeProfilePanel();openOrdersPanel();"><span class="pquick-ico" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">📋</span><span>Мои заявки</span></button>
+        <button class="pquick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showServices);"><span class="pquick-ico" style="background:linear-gradient(135deg,#10b981,#059669)">🛍️</span><span>Прейскурант</span></button>
+        <button class="pquick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showBooking);"><span class="pquick-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📝</span><span>Записаться</span></button>
+        <button class="pquick-btn" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showFeedback);"><span class="pquick-ico" style="background:linear-gradient(135deg,#ec4899,#db2777)">💬</span><span>Отзыв</span></button>
       </div>
+    </div>
+
+    <div class="pcard">
+      <div class="pcard-hdr">Личные данные <button class="pcard-hdr-edit" onclick="editMyData()">✏️ Изменить</button></div>
+      ${clientSnils&&clientSnils!=="—"&&clientSnils!==""?`<div class="pinfo-row"><span class="pinfo-ico">🪪</span><span class="pinfo-txt"><span class="pinfo-lbl">СНИЛС</span><span class="pinfo-val">${clientSnils}</span></span></div>`:""}
+      <div class="pinfo-row"><span class="pinfo-ico">${hasMoroshka?'<img src="img/moroshka-logo.jpg" class="pinfo-moroshka-ico" alt="">':'🍊'}</span><span class="pinfo-txt"><span class="pinfo-lbl">Карта Морошка</span><span class="pinfo-val">${hasMoroshka?"Активна":"Не активна"}</span></span></div>
+      ${anketaBody}
+    </div>
+
+    <div class="pcard">
+      <div class="pcard-hdr">Управление</div>
+      <div class="pmanage-grid">
+        <button class="pmanage-btn" onclick="openProfileSwitcher()"><span class="pmanage-ico">👨‍👩‍👦</span>Профили</button>
+        <button class="pmanage-btn" onclick="showCartStats()"><span class="pmanage-ico">📊</span>Статистика</button>
+      </div>
+    </div>
+
+    <div class="pseg-control" role="tablist">
+      <div class="pseg-pill" id="psegPill"></div>
+      <button class="pseg-btn active" id="tab-fav" role="tab" aria-selected="true" onclick="switchProfTab('fav',this)">⭐ Избранное</button>
+      <button class="pseg-btn" id="tab-docs" role="tab" aria-selected="false" onclick="switchProfTab('docs',this)">📁 Документы</button>
+      <button class="pseg-btn" id="tab-settings" role="tab" aria-selected="false" onclick="switchProfTab('settings',this)">⚙️ Настройки</button>
+    </div>
+    <div class="pcard pcard-tabcontent" id="profhist-fav" role="tabpanel">${favHtml}</div>
+    <div class="pcard pcard-tabcontent" id="profhist-docs" role="tabpanel" style="display:none">${docsHtml}</div>
+    <div class="pcard pcard-tabcontent" id="profhist-settings" role="tabpanel" style="display:none">
+      <div class="pcard-hdr" style="margin-bottom:2px">Внешний вид</div>
+      <div class="pset-row"><span class="pset-lbl">🔤 Размер шрифта</span><div class="pset-btns"><button class="pset-btn" onclick="changeFontSize(-1)">А−</button><button class="pset-btn" onclick="changeFontSize(1)">А+</button></div></div>
+      <div class="pset-row"><span class="pset-lbl">🌙 Тёмная тема</span><button class="pswitch ${darkMode?"on":""}" onclick="toggleDarkTheme();this.classList.toggle('on')" role="switch" aria-checked="${darkMode}"><span class="pswitch-knob"></span></button></div>
+      <div class="pcard-hdr" style="margin:14px 0 2px">Мои данные</div>
+      <div class="pset-row"><span class="pset-lbl">⬇️ Экспорт моих данных</span><button class="pset-btn wide" onclick="exportMyData()">Скачать</button></div>
+      <div class="pset-row"><span class="pset-lbl">🗑 Очистить все данные</span><button class="pset-btn wide danger" onclick="if(confirm('Удалить все данные?')){localStorage.clear();location.reload();}">Сброс</button></div>
     </div>
 
     <div style="display:flex;justify-content:center;margin-top:14px;"><button class="logout-btn-small" onclick="doLogout(this)">🚪 Выйти / Сменить пользователя</button></div>
   `;
+  requestAnimationFrame(()=>{
+    const activeTab=body.querySelector(".pseg-btn.active");
+    if(activeTab)movePillToSeg(activeTab);
+  });
+}
+function movePillToSeg(btn){
+  const pill=document.getElementById("psegPill");
+  const bar=btn.closest(".pseg-control");
+  if(!pill||!bar)return;
+  const barRect=bar.getBoundingClientRect();
+  const btnRect=btn.getBoundingClientRect();
+  pill.style.width=btnRect.width+"px";
+  pill.style.transform="translate3d("+(btnRect.left-barRect.left)+"px,0,0)";
 }
 
 function exportMyData(){
@@ -1167,8 +1265,9 @@ function exportMyData(){
 }
 
 function switchProfTab(which,btn){
-  document.querySelectorAll("#profBody .h-tab").forEach(t=>{t.classList.remove("active");t.setAttribute("aria-selected","false");});
+  document.querySelectorAll("#profBody .pseg-btn").forEach(t=>{t.classList.remove("active");t.setAttribute("aria-selected","false");});
   btn.classList.add("active");btn.setAttribute("aria-selected","true");
+  movePillToSeg(btn);
   ["fav","docs","settings"].forEach(k=>{
     const el=document.getElementById("profhist-"+k);if(el)el.style.display=k===which?"":"none";
   });
@@ -1327,6 +1426,29 @@ updateHoursBanner();
 setInterval(updateHoursBanner,60000);
 initSearch();
 showAuth();
+setTimeout(()=>{
+  const activeTab=document.querySelector(".tb.active");
+  if(activeTab)movePillTo(activeTab);
+},400);
+
+(function(){
+  let ticking=false;
+  chatEl.addEventListener("scroll",function(){
+    if(ticking)return;
+    ticking=true;
+    requestAnimationFrame(function(){
+      const banner=chatEl.querySelector(".greet-anim");
+      if(banner){
+        const sc=Math.min(chatEl.scrollTop,140);
+        const w1=banner.querySelector("#gaOrbWrap1"),w2=banner.querySelector("#gaOrbWrap2"),w3=banner.querySelector("#gaOrbWrap3");
+        if(w1)w1.style.transform="translate3d(0,"+(sc*0.18)+"px,0)";
+        if(w2)w2.style.transform="translate3d(0,"+(-sc*0.12)+"px,0)";
+        if(w3)w3.style.transform="translate3d(0,"+(sc*0.1)+"px,0)";
+      }
+      ticking=false;
+    });
+  },{passive:true});
+})();
 
 (function(){
   let tapCount=0,tapTimer=null,ignoreClickUntil=0;
@@ -1361,15 +1483,29 @@ showAuth();
   });
 })();
 
+function movePillTo(btn){
+  const pill=document.getElementById("tbPill");
+  if(!pill||!btn)return;
+  const bar=document.getElementById("tabBar");
+  const barRect=bar.getBoundingClientRect();
+  const btnRect=btn.getBoundingClientRect();
+  pill.style.width=btnRect.width+"px";
+  pill.style.transform="translate3d("+(btnRect.left-barRect.left)+"px,0,0)";
+}
 function tabGo(t){
   document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");});
   event.currentTarget.classList.add("active");
+  movePillTo(event.currentTarget);
   if(t==="home")showMainMenu();
   else if(t==="menu")showMenuPage();
   else if(t==="cart")openCart();
   else if(t==="orders")openOrdersPanel();
   else if(t==="profile")openProfilePanel();
 }
+window.addEventListener("resize",()=>{
+  const active=document.querySelector(".tb.active");
+  if(active)movePillTo(active);
+});
 function showMenuPage(){
   clearActions();chatEl.innerHTML="";setNav(false);
   var w=document.createElement("div");w.className="svc-page";
@@ -1398,8 +1534,6 @@ function showMenuPage(){
     if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};
   });
 }
-
-const BRANCH_DISPLAY_NAMES={gubkin:"Губкинский",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"пгт. Уренгой"};
 
 function selectCity(cityKey,silent){
   if(!branchContent[cityKey])return;

@@ -538,7 +538,8 @@ function showNews(){
     }
     items.forEach(n=>{
       const c=document.createElement("div");c.className="news-card";
-      c.innerHTML=`<div class="news-top"><span class="news-tag">${n.tag||"Анонс"}</span><span class="news-date">${n.date||""}</span></div>`+
+      c.innerHTML=(n.image?`<img src="${n.image}" class="news-img" alt="">`:"")+
+        `<div class="news-top"><span class="news-tag">${n.tag||"Анонс"}</span><span class="news-date">${n.date||""}</span></div>`+
         `<div class="news-ttl">${n.title}</div><div class="news-text">${n.text}</div>`;
       list.appendChild(c);
     });
