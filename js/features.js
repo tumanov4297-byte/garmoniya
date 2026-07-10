@@ -358,6 +358,35 @@ function smallTalk(q){
     return{answer:`Конечно${hi}, уточните, пожалуйста, вопрос ещё раз — постараюсь ответить понятнее.`,actions:[]};
   if(/(ты можешь позвонить|перезвони мне сам|наберешь меня|наберёшь меня)/.test(q))
     return{answer:`Сам я звонить не умею, но могу оформить заявку на обратный звонок — специалист центра перезвонит вам в удобное время.`,actions:[{label:"📞 Заказать обратный звонок",fn:"showCallback",cl:"gold"}]};
+
+  // ═══ Общие темы для разговора — бот честно ограничен, но дружелюбен ═══
+  if(/(какая погода|какая сегодня погода|погода на улице|дождь будет|снег будет|холодно на улице|жарко на улице)/.test(q))
+    return{answer:`Погоду я, к сожалению, не вижу — не подключён к прогнозу 🌤 Но одеваться в ЯНАО лучше всегда теплее, чем кажется! Чем ещё могу помочь?`,actions:[]};
+  if(/(какой сегодня праздник|скоро праздник|новый год|день победы|8 марта|23 февраля|с праздником)/.test(q))
+    return{answer:`Хорошая тема! 🎉 Кстати, к праздникам центр иногда проводит мероприятия — загляните в афишу, вдруг что-то интересное как раз намечается.`,actions:[{label:"🎟️ Мероприятия",fn:"showEvents",cl:"teal"}]};
+  if(/(внук|внучк|правнук|правнучк)/.test(q))
+    return{answer:`Как тепло, что вы о них рассказываете${hi} 🌿 Кстати, если внуки помогают вам с телефоном — это же они и с ботом разобраться помогут!`,actions:[]};
+  if(/(собака|кошка|(?<![а-яёА-ЯЁ])кот(?![а-яёА-ЯЁ])|коте[ик]|(?<![а-яёА-ЯЁ])пёс(?![а-яёА-ЯЁ])|питомец|домашнее животное|щенок|котёнок)/.test(q))
+    return{answer:`Как здорово, что у вас есть питомец! 🐾 Кстати, в некоторых филиалах есть услуга по уходу за домашними животными — если вдруг понадобится.`,actions:[]};
+  if(/(люблю готовить|люблю вязать|люблю читать|моё хобби|хобби|увлекаюсь|увлечение|занимаюсь рукоделием|люблю рисовать|вышива)/.test(q))
+    return{answer:`Прекрасное занятие${hi}! 🌿 Кстати, центр иногда проводит мастер-классы и творческие встречи — вдруг найдёте единомышленников.`,actions:[{label:"🎟️ Мероприятия",fn:"showEvents",cl:"teal"}]};
+  if(/(как прошёл день|как ваш день|хороший день|тяжёлый день выдался|длинный день)/.test(q))
+    return{answer:`Спасибо, что спросили${hi}! У меня каждый день ровный — я же бот 😊 А как у вас дела? Если что-то нужно решить — я рядом.`,actions:[]};
+  if(/(что нового|как жизнь молодая|давно не виделись|соскучилась|соскучился)/.test(q))
+    return{answer:`Приятно, что заглянули${hi}! 🌿 У меня без изменений — всё так же готов помочь с услугами центра. Как у вас дела?`,actions:[]};
+  if(/(зима|лето|осень|весна|времена года|север суровый|полярная ночь|северное сияние)/.test(q))
+    return{answer:`Наш округ и правда особенный — полярная ночь и сияние видели немногие 🌌 Береги себя${nm?", "+nm:""} в любую погоду. Чем могу помочь по делу?`,actions:[]};
+  if(/(что почитать|посоветуй фильм|что посмотреть|какую музыку|любимая книга)/.test(q))
+    return{answer:`Тут я не советчик — рекомендации фильмов не моя сильная сторона 😊 А вот с записью к специалисту или прейскурантом услуг помогу отлично!`,actions:[]};
+  if(/(как вас зовут|у тебя есть имя|как тебя зовут)/.test(q))
+    return{answer:`Меня зовут просто — Помощник «Гармония» 🌿 Можно обращаться и на «ты», и на «вы», как вам удобнее.`,actions:[]};
+  if(/(что означает гармония|почему гармония|название центра)/.test(q))
+    return{answer:`«Гармония» — потому что мы стремимся к балансу заботы и уважения к каждому получателю услуг 🌿 Красивое название, правда?`,actions:[]};
+  if(/(хорошего дня|хорошего вечера|доброй ночи|удачного дня|хорошей недели)/.test(q))
+    return{answer:`И вам${hi}, всего наилучшего! 🌿 Обращайтесь, если понадоблюсь.`,actions:[]};
+  if(/(тяжело жить|трудные времена|непростой период|сложный год)/.test(q))
+    return{answer:`Понимаю${hi}, времена бывают разные 💛 Если нужна поддержка специалиста — не откладывайте обращение, мы рядом.`,actions:[{label:"🆘 Экстренная помощь",fn:"showEmergency",cl:"red"},{label:"📝 Записаться",fn:"showBooking",cl:"gold"}]};
+
   return null;
 }
 
@@ -678,22 +707,26 @@ function showHomeWorker(){
 
 function showEvents(){
   clearActions();setNav(true);
-  document.getElementById("searchBar").classList.add("gone");
-  addMsg("🎟️ Афиша мероприятий. Нажмите «Записаться» — мы подтвердим участие.",true);
-  setTimeout(()=>{
-    const list=document.createElement("div");list.className="news-list";
-    const items=(typeof eventsData!=="undefined")?eventsData:[];
-    if(!items.length){addMsg("Пока мероприятий нет.",true);return;}
-    items.forEach(e=>{
-      const c=document.createElement("div");c.className="event-card";
-      c.innerHTML=`<div class="news-top"><span class="ev-date">🗓 ${e.date}</span><span class="ev-seats">мест: ${e.seats}</span></div>`+
-        `<div class="news-ttl">${e.title}</div><div class="ev-place">📍 ${e.place}</div><div class="news-text">${e.desc}</div>`;
-      const b=document.createElement("button");b.type="button";b.className="act-btn teal";b.style.marginTop="10px";
-      b.textContent="✅ Записаться";b.onclick=()=>signupEvent(e.id);
-      c.appendChild(b);list.appendChild(c);
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="events-page";
+  const items=(typeof eventsData!=="undefined")?eventsData:[];
+  let html='<h2>🎟️ Афиша мероприятий</h2>';
+  html+='<div class="adm-hint" style="margin-bottom:14px">Нажмите «Записаться» — мы подтвердим участие.</div>';
+  if(!items.length){
+    html+='<div class="ev-empty">'+emptyIllustration()+'<div class="empty-title">Мероприятий пока нет</div><div class="empty-sub">Загляните позже — здесь появится афиша</div></div>';
+  }else{
+    html+='<div class="ev-list">';
+    items.forEach(function(e){
+      html+='<div class="ev-card">'+(e.image?'<img src="'+e.image+'" class="ev-img" alt="">':'')
+          +'<div class="ev-top"><span class="ev-date">🗓 '+e.date+'</span><span class="ev-seats">мест: '+e.seats+'</span></div>'
+          +'<div class="ev-title">'+e.title+'</div><div class="ev-place">📍 '+e.place+'</div><div class="ev-desc">'+e.desc+'</div>'
+          +'<button type="button" class="ev-signup-btn" onclick="signupEvent(\''+e.id+'\')">✅ Записаться</button></div>';
     });
-    actionsEl.appendChild(list);
-  },200);
+    html+='</div>';
+  }
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 function signupEvent(id){
   const e=(typeof eventsData!=="undefined"?eventsData:[]).find(x=>x.id===id);if(!e)return;

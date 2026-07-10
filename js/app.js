@@ -458,7 +458,13 @@ function showMainMenu(){
   chatEl.innerHTML="";
   var gr=greeting();
   var w=document.createElement("div");w.className="home-view";
-  var html='<div class="greet-anim '+timeOfDayClass()+'"><div class="ga-shimmer"></div><div class="ga-orb-wrap" id="gaOrbWrap1"><div class="ga-orb ga-1"></div></div><div class="ga-orb-wrap" id="gaOrbWrap2"><div class="ga-orb ga-2"></div></div><div class="ga-orb-wrap" id="gaOrbWrap3"><div class="ga-orb ga-3"></div></div><svg class="ga-heart-deco" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.2"/><circle cx="50" cy="14" r="4" fill="#ffffff"/></svg><svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg><div class="ga-sparkle ga-sp1"></div><div class="ga-sparkle ga-sp2"></div><div class="ga-sparkle ga-sp3"></div><div class="ga-sparkle ga-sp4"></div><div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-name-accent"></span><span class="ga-sub">Чем могу помочь?</span></div><div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.jpg" class="ga-bot-img" alt=""></div></div>';
+  var html='<div class="greet-anim '+timeOfDayClass()+'">'
+    +'<div class="ga-blob-field"><div class="ga-blob ga-blob-1"></div><div class="ga-blob ga-blob-2"></div><div class="ga-blob ga-blob-3"></div><div class="ga-blob ga-blob-4"></div><div class="ga-blob ga-blob-5"></div></div>'
+    +'<svg class="ga-heart-deco" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.2"/><circle cx="50" cy="14" r="4" fill="#ffffff"/></svg>'
+    +'<svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg>'
+    +'<div class="ga-sparkle ga-sp1"></div><div class="ga-sparkle ga-sp2"></div><div class="ga-sparkle ga-sp3"></div><div class="ga-sparkle ga-sp4"></div><div class="ga-sparkle ga-sp5"></div><div class="ga-sparkle ga-sp6"></div>'
+    +'<div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-name-accent"></span><span class="ga-sub">Чем могу помочь?</span></div>'
+    +'<div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.jpg" class="ga-bot-img" alt=""></div></div>';
   html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-present.jpg" class="bb-ava"><div class="bb-txt"><b>Помощник «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
   html+='<div class="news-sec-title">Новости и обновления центра</div>';
   html+='<div class="news-feed">';
@@ -823,37 +829,86 @@ function stCloseDept(){
 
 function showContacts(){
   clearActions();setNav(true);
+  chatEl.innerHTML="";
   var cd=cityData[currentCity]||cityData.gubkin;
-  var html='📍 <b>Контакты — г. '+currentCityName+'</b>';
-  html+='<div class="contact-row"><div class="c-ico">🏢</div><div><div class="c-lbl">АДРЕС</div><div class="c-val">'+cd.address+'</div></div></div>';
-  html+='<div class="contact-row"><div class="c-ico">📞</div><div><div class="c-lbl">ПРИЁМНАЯ</div><div class="c-val"><a href="tel:+'+cd.phoneRaw+'">'+cd.phone+'</a></div></div></div>';
-  html+='<div class="contact-row"><div class="c-ico">✉️</div><div><div class="c-lbl">EMAIL</div><div class="c-val"><a href="mailto:'+cd.email+'">'+cd.email+'</a></div></div></div>';
-  html+='<div class="contact-row"><div class="c-ico">🕒</div><div><div class="c-lbl">РЕЖИМ</div><div class="c-val">'+cd.hours+'</div></div></div>';
-  html+='<div class="chat-menu" style="margin-top:8px"><a class="cm-btn" href="tel:+'+cd.phoneRaw+'">📞 Позвонить</a><a class="cm-btn" href="mailto:'+cd.email+'">✉️ Написать</a></div>';
-  addMsg(html,true);
+  const w=document.createElement("div");w.className="contacts-page";
+  let html='<h2>📍 Контакты — г. '+currentCityName+'</h2>';
+  html+='<div class="pcard">';
+  html+='<div class="pinfo-row"><span class="pinfo-ico">🏢</span><span class="pinfo-txt"><span class="pinfo-lbl">Адрес</span><span class="pinfo-val">'+cd.address+'</span></span></div>';
+  html+='<div class="pinfo-row"><span class="pinfo-ico">📞</span><span class="pinfo-txt"><span class="pinfo-lbl">Приёмная</span><span class="pinfo-val"><a href="tel:+'+cd.phoneRaw+'">'+cd.phone+'</a></span></span></div>';
+  html+='<div class="pinfo-row"><span class="pinfo-ico">✉️</span><span class="pinfo-txt"><span class="pinfo-lbl">Email</span><span class="pinfo-val"><a href="mailto:'+cd.email+'">'+cd.email+'</a></span></span></div>';
+  html+='<div class="pinfo-row"><span class="pinfo-ico">🕒</span><span class="pinfo-txt"><span class="pinfo-lbl">Режим работы</span><span class="pinfo-val">'+cd.hours+'</span></span></div>';
+  html+='</div>';
+  html+='<div class="pquick-grid contacts-actions"><button class="pquick-btn" onclick="location.href=\'tel:+'+cd.phoneRaw+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#10b981,#059669)">📞</span><span>Позвонить</span></button>'
+      +'<button class="pquick-btn" onclick="location.href=\'mailto:'+cd.email+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">✉️</span><span>Написать</span></button></div>';
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 
 function showFAQ(){
   clearActions();setNav(true);
-  var html='❓ <b>Часто задаваемые вопросы</b>';
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="faq-page";
+  let html='<h2>❓ Часто задаваемые вопросы</h2>';
+  html+='<div class="faq-search-wrap"><input type="text" id="faqSearchInp" placeholder="Поиск по вопросам..." oninput="faqFilterList(this.value)" aria-label="Поиск по вопросам"></div>';
+  html+='<div id="faqList" class="faq-list">';
   faqData.forEach(function(item,i){
-    html+='<div class="faq-inline"><div class="fq-q" onclick="this.parentElement.classList.toggle(&quot;open&quot;)">'+item.q+'<span class="fq-arr">▼</span></div><div class="fq-a">'+item.a+'</div></div>';
+    html+='<div class="faq-card" data-faq-idx="'+i+'">'
+        +'<button class="faq-card-q" onclick="this.parentElement.classList.toggle(\'open\')" aria-expanded="false">'
+        +'<span class="faq-q-text">'+item.q+'</span><span class="faq-arr">▾</span></button>'
+        +'<div class="faq-card-a">'+item.a+'</div></div>';
   });
-  addMsg(html,true);
+  html+='</div>';
+  html+='<div id="faqEmpty" class="faq-empty gone">'+emptyIllustration()+'<div class="empty-title">Ничего не найдено</div><div class="empty-sub">Попробуйте другой запрос или спросите помощника напрямую</div></div>';
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
+function faqFilterList(q){
+  q=q.trim().toLowerCase();
+  const cards=document.querySelectorAll("#faqList .faq-card");
+  let visible=0;
+  cards.forEach(function(c){
+    const idx=+c.dataset.faqIdx;
+    const item=faqData[idx];
+    const match=!q||item.q.toLowerCase().includes(q)||item.a.toLowerCase().includes(q);
+    c.style.display=match?"":"none";
+    if(match)visible++;
+  });
+  document.getElementById("faqEmpty").classList.toggle("gone",visible>0);
 }
 
 function showEmergency(){
   clearActions();setNav(true);
+  chatEl.innerHTML="";
   var cd=cityData[currentCity]||cityData.gubkin;
-  var html='🆘 <b>Экстренная психологическая помощь</b><br><br>';
-  if(currentCity==="gubkin"){
-    html+='🧠 <b>Давыденко Алла Иосифовна</b><br>📞 '+MAIN_PHONE+' доб. 710<br>✉️ aidavydenko@yanao.ru<br><br>';
-    html+='🧠 <b>Сарсембаева Алия Наиловна</b><br>📞 '+MAIN_PHONE+' доб. 716<br>✉️ ansarsembaeva@yanao.ru';
+  const w=document.createElement("div");w.className="emergency-page";
+  let html='<h2>🆘 Экстренная психологическая помощь</h2>';
+  html+='<div class="adm-hint">Если ситуация острая — сразу звоните. Специалисты готовы выслушать и поддержать.</div>';
+
+  const psychologists=(typeof staffData!=="undefined"?staffData:[]).filter(function(s){
+    return s.pos&&s.pos.toLowerCase().includes("психолог");
+  });
+
+  if(psychologists.length){
+    html+='<div class="pcard" style="margin-top:14px">';
+    psychologists.forEach(function(p,i){
+      const ini=p.name.split(" ").slice(0,2).map(function(x){return x[0];}).join("").toUpperCase();
+      const ph=p.ext?cd.phone+" доб. "+p.ext:cd.phone;
+      html+='<div class="pinfo-row"'+(i===0?' style="padding-top:0"':'')+'><span class="pinfo-ico" style="background:linear-gradient(135deg,#ec4899,#db2777);color:#fff">'+ini+'</span><span class="pinfo-txt"><span class="pinfo-val">'+p.name+'</span><span class="pinfo-lbl">'+p.pos+' · 📞 '+ph+(p.email?' · ✉️ '+p.email:'')+'</span></span></div>';
+    });
+    html+='</div>';
   }else{
-    html+='📞 '+cd.phone+'<br>✉️ '+cd.email;
+    html+='<div class="pcard" style="margin-top:14px"><div class="pinfo-row" style="padding-top:0"><span class="pinfo-ico">📞</span><span class="pinfo-txt"><span class="pinfo-lbl">Свяжитесь с центром</span><span class="pinfo-val">'+cd.phone+'</span></span></div></div>';
   }
-  html+='<div class="chat-menu" style="margin-top:10px"><a class="cm-btn" href="tel:+'+cd.phoneRaw+'" style="background:#ef4444;color:#fff;border-color:#ef4444">📞 Позвонить</a><a class="cm-btn" href="tel:112" style="background:#dc2626;color:#fff;border-color:#dc2626">🚨 112</a></div>';
-  addMsg(html,true);
+
+  html+='<div class="pquick-grid" style="grid-template-columns:1fr 1fr;margin-top:14px">'
+      +'<button class="pquick-btn" onclick="location.href=\'tel:+'+cd.phoneRaw+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#ef4444,#dc2626)">📞</span><span>Позвонить в центр</span></button>'
+      +'<button class="pquick-btn" onclick="location.href=\'tel:112\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#dc2626,#b91c1c)">🚨</span><span>Экстренная 112</span></button></div>';
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 
 function showMoroshkaInfo(){
@@ -1431,24 +1486,7 @@ setTimeout(()=>{
   if(activeTab)movePillTo(activeTab);
 },400);
 
-(function(){
-  let ticking=false;
-  chatEl.addEventListener("scroll",function(){
-    if(ticking)return;
-    ticking=true;
-    requestAnimationFrame(function(){
-      const banner=chatEl.querySelector(".greet-anim");
-      if(banner){
-        const sc=Math.min(chatEl.scrollTop,140);
-        const w1=banner.querySelector("#gaOrbWrap1"),w2=banner.querySelector("#gaOrbWrap2"),w3=banner.querySelector("#gaOrbWrap3");
-        if(w1)w1.style.transform="translate3d(0,"+(sc*0.18)+"px,0)";
-        if(w2)w2.style.transform="translate3d(0,"+(-sc*0.12)+"px,0)";
-        if(w3)w3.style.transform="translate3d(0,"+(sc*0.1)+"px,0)";
-      }
-      ticking=false;
-    });
-  },{passive:true});
-})();
+
 
 (function(){
   let tapCount=0,tapTimer=null,ignoreClickUntil=0;
@@ -1545,8 +1583,9 @@ function selectCity(cityKey,silent){
   staffData=branchContent[currentCity].staff;
   const sel=document.getElementById("citySel");if(sel)sel.value=cityKey;
   const cd=document.getElementById("cityDisplay");if(cd)cd.textContent="г. "+currentCityName;
+  updateHoursBanner();
   if(!silent&&!wasSame){
-    updateHoursBanner();navHistory=[];currentCatId=null;currentSvcList=null;
+    navHistory=[];currentCatId=null;currentSvcList=null;
     document.getElementById("searchBar").classList.add("gone");
     addMsg(`📍 Переключено на: <b>г. ${currentCityName}</b>`,true);
     showMainMenu();

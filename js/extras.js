@@ -560,31 +560,47 @@ function showLiveChat(){
 function editQuestionnaire(){
   document.querySelectorAll(".mo").forEach(m=>m.remove());
   let p={};try{p=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
-  const catLabels={pensioner:"Пенсионер",disabled:"Инвалид",family:"Семья с детьми",large_family:"Многодетная семья",veteran:"Ветеран",other:"Другое"};
+  const cats=[
+    ["pensioner","Пенсионер","👴"],["disabled","Инвалид","♿"],
+    ["family","Семья с детьми","👨‍👩‍👧"],["large_family","Многодетная семья","👨‍👩‍👧‍👦"],
+    ["veteran","Ветеран","🎖️"],["other","Другое","📋"]
+  ];
+  let selectedCat=p.category||"";
   const ovl=document.createElement("div");ovl.className="mo";
   ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
-  ovl.innerHTML=`<div class="mc" style="max-width:400px">
-    <h3 style="text-align:center">📋 Анкета получателя</h3>
-    <p style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:14px">Данные помогают точнее подбирать услуги. Заполнение необязательно.</p>
-    <label class="admin-lbl">Дата рождения</label>
-    <input type="date" class="admin-inp" id="eqBirth" value="${p.birthDate||""}">
-    <label class="admin-lbl">Категория</label>
-    <select class="admin-inp" id="eqCat">
-      <option value="">Выберите...</option>
-      ${Object.entries(catLabels).map(([k,l])=>`<option value="${k}" ${p.category===k?"selected":""}>${l}</option>`).join("")}
-    </select>
-    <label class="admin-lbl">Адрес проживания</label>
-    <input class="admin-inp" id="eqAddr" value="${(p.address||"").replace(/"/g,"&quot;")}" placeholder="Город, улица, дом, квартира">
-    <label class="admin-lbl">Особые потребности</label>
-    <textarea class="admin-inp" id="eqNote" rows="2" placeholder="Пожелания, особенности...">${p.note||""}</textarea>
-    <button class="act-btn teal" id="eqSave" style="width:100%;margin-top:12px;min-height:48px">💾 Сохранить</button>
-    <button class="close-mo" style="width:100%;margin-top:6px" onclick="this.closest('.mo').remove()">Отмена</button>
+  ovl.innerHTML=`<div class="mc eq-mc" style="max-width:420px">
+    <div class="eq-hdr">
+      <div class="eq-hdr-ico">📋</div>
+      <h3>Анкета получателя</h3>
+      <p>Данные помогают точнее подбирать услуги.<br>Заполнение необязательно.</p>
+    </div>
+
+    <div class="eq-lbl">Категория</div>
+    <div class="eq-cat-grid" id="eqCatGrid">
+      ${cats.map(([k,l,ico])=>`<button type="button" class="eq-cat-card${selectedCat===k?" sel":""}" data-cat="${k}"><span class="eq-cat-ico">${ico}</span><span>${l}</span></button>`).join("")}
+    </div>
+
+    <div class="eq-field"><span class="eq-field-ico">🎂</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqBirth">Дата рождения</label><input type="date" class="eq-input" id="eqBirth" value="${p.birthDate||""}"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">🏠</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqAddr">Адрес проживания</label><input class="eq-input" id="eqAddr" value="${(p.address||"").replace(/"/g,"&quot;")}" placeholder="Город, улица, дом, квартира"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqNote">Особые потребности</label><textarea class="eq-input" id="eqNote" rows="2" placeholder="Пожелания, особенности...">${p.note||""}</textarea></div></div>
+
+    <button class="eq-save-btn" id="eqSave">💾 Сохранить анкету</button>
+    <button class="eq-cancel-btn" onclick="this.closest('.mo').remove()">Отмена</button>
   </div>`;
   document.body.appendChild(ovl);
+
+  ovl.querySelectorAll(".eq-cat-card").forEach(function(btn){
+    btn.onclick=function(){
+      ovl.querySelectorAll(".eq-cat-card").forEach(function(b){b.classList.remove("sel");});
+      btn.classList.add("sel");
+      selectedCat=btn.dataset.cat;
+    };
+  });
+
   ovl.querySelector("#eqSave").onclick=()=>{
     const data={
       birthDate:document.getElementById("eqBirth").value,
-      category:document.getElementById("eqCat").value,
+      category:selectedCat,
       address:document.getElementById("eqAddr").value,
       note:document.getElementById("eqNote").value,
       filledAt:new Date().toISOString()

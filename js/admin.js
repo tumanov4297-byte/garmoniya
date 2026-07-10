@@ -434,6 +434,11 @@
         <input class="admin-inp" data-ei="${i}" data-f="title" value="${esc(e.title)}" placeholder="Название мероприятия">
         <input class="admin-inp" data-ei="${i}" data-f="place" value="${esc(e.place)}" placeholder="Место проведения">
         <textarea class="admin-inp" data-ei="${i}" data-f="desc" rows="2" placeholder="Описание">${esc(e.desc)}</textarea>
+        <div class="adm-news-img-row">
+          ${e.image?`<img src="${e.image}" class="adm-news-thumb">`:""}
+          <button class="admin-btn small ghost" data-imgevt="${i}">${e.image?"🖼️ Заменить фото":"🖼️ Прикрепить фото"}</button>
+          ${e.image?`<button class="adm-del" data-delimgevt="${i}" aria-label="Удалить фото">✕</button>`:""}
+        </div>
       </div>`;
     });
     if(!eventsData.length)html+='<div class="adm-empty-state">Мероприятий пока нет.</div>';
@@ -452,6 +457,9 @@
     };
     const collectEvents=()=>{
       const map={};
+      eventsData.forEach((e,i)=>{map[i]=Object.assign({},e);
+        const parts=(e.date||"").split(" ");map[i].date=parts[0]||"";map[i].time=parts[1]||"";
+      });
       body.querySelectorAll("[data-ei]").forEach(inp=>{
         const i=+inp.dataset.ei;(map[i]=map[i]||{});
         const f=inp.dataset.f;
@@ -461,7 +469,9 @@
       Object.keys(map).sort((a,b)=>a-b).forEach(k=>{
         const ev=map[k];
         const dateStr=ev.date&&ev.time?ev.date+" "+ev.time:(ev.date||"");
-        eventsData.push({id:"ev"+id++,date:dateStr,title:ev.title,place:ev.place,desc:ev.desc,seats:ev.seats||0});
+        const obj={id:"ev"+id++,date:dateStr,title:ev.title,place:ev.place,desc:ev.desc,seats:ev.seats||0};
+        if(ev.image)obj.image=ev.image;
+        eventsData.push(obj);
       });
     };
     body.querySelector("#saveNews").onclick=()=>{collectNews();collectEvents();saveOverrides();showToast("💾 Новости и мероприятия сохранены");};
@@ -481,6 +491,20 @@
       const i=+b.dataset.delimgnews;
       collectNews();collectEvents();
       delete newsData[i].image;
+      saveOverrides();renderNews(body);
+    });
+    body.querySelectorAll("[data-imgevt]").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.imgevt;
+      pickAndResizeImage(dataUrl=>{
+        collectNews();collectEvents();
+        eventsData[i].image=dataUrl;
+        saveOverrides();renderNews(body);
+      });
+    });
+    body.querySelectorAll("[data-delimgevt]").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.delimgevt;
+      collectNews();collectEvents();
+      delete eventsData[i].image;
       saveOverrides();renderNews(body);
     });
   }
