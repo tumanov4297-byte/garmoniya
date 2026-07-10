@@ -66,14 +66,29 @@ body{font-family:'Inter',sans-serif;font-size:var(--fz-base);background:linear-g
 .cart-badge.gone{display:none;}
 @keyframes badgePop{0%{transform:scale(0);}60%{transform:scale(1.2);}100%{transform:scale(1);}}
 
-/* HOURS BANNER */
-.hours-banner{flex-shrink:0;padding:7px 14px;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;transition:all 0.3s;}
-.hours-banner.open{background:var(--green-light);color:var(--green);}
-.hours-banner.closed{background:var(--red-light);color:var(--red);}
+/* HOURS BANNER — редизайн: аккуратная плашка-статус */
+.hours-banner{flex-shrink:0;margin:10px 14px 0;padding:10px 14px;display:flex;align-items:center;gap:11px;border-radius:16px;transition:all 0.3s;animation:hbSlideIn .4s cubic-bezier(.16,1,.3,1) both;backdrop-filter:blur(16px) saturate(1.6);-webkit-backdrop-filter:blur(16px) saturate(1.6);box-shadow:0 4px 18px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.5);position:relative;overflow:hidden;}
+.hours-banner::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.35),rgba(255,255,255,.05));pointer-events:none;}
+@keyframes hbSlideIn{0%{opacity:0;transform:translate3d(0,-6px,0);}100%{opacity:1;transform:translate3d(0,0,0);}}
+.hours-banner.open{background:rgba(16,185,129,.1);border:1px solid rgba(255,255,255,.4);}
+.hours-banner.closed{background:rgba(192,57,43,.09);border:1px solid rgba(255,255,255,.35);}
+.hb-ico-wrap,.hb-txt{position:relative;z-index:1;}
 .hours-banner.gone{display:none;}
-.hours-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.open .hours-dot{background:var(--green-mid);animation:dot-blink 2s infinite;}
-.closed .hours-dot{background:var(--red);}
+.hb-ico-wrap{position:relative;width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.hb-ico-pulse{position:absolute;inset:0;border-radius:50%;background:rgba(16,185,129,.35);animation:hbPulse 2.2s ease-out infinite;}
+@keyframes hbPulse{0%{transform:scale(.6);opacity:.7;}100%{transform:scale(1.5);opacity:0;}}
+.hb-ico{position:relative;font-size:16px;z-index:1;}
+.hb-txt{display:flex;flex-direction:column;gap:0;line-height:1.3;}
+.hb-status{font-size:12.5px;font-weight:800;}
+.open .hb-status{color:var(--green);}
+.closed .hb-status{color:var(--red);}
+.hb-detail{font-size:11px;font-weight:600;color:var(--text-tertiary);}
+.dark .hours-banner.open{background:rgba(16,185,129,.14);border-color:rgba(255,255,255,.12);}
+.dark .hours-banner.closed{background:rgba(239,68,68,.13);border-color:rgba(255,255,255,.1);}
+.dark .hours-banner::before{background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.01));}
+.dark .hb-detail{color:#8899bb;}
+.dark .open .hb-status{color:#4ade9a;}
+.dark .closed .hb-status{color:#f87171;}
 @keyframes dot-blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
 
 /* SEARCH BAR */
@@ -1732,3 +1747,135 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .dark .eq-cat-card{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#a0b0c8;}
 .dark .eq-field-ico{background:rgba(255,255,255,.06);}
 .dark .eq-input{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:#e8ecf4;}
+
+/* ═══ Подсветка конкретной услуги, найденной помощником ═══ */
+.pl-row-highlight{animation:plRowHighlight 2.4s ease-out;border-radius:12px;}
+@keyframes plRowHighlight{
+  0%{background:rgba(242,166,60,.35);box-shadow:0 0 0 3px rgba(242,166,60,.5);}
+  15%{background:rgba(242,166,60,.35);box-shadow:0 0 0 3px rgba(242,166,60,.5);}
+  100%{background:transparent;box-shadow:0 0 0 0 rgba(242,166,60,0);}
+}
+
+/* ═══════════════════════════════════════
+   ТАКСИ — полноценный модуль заказа
+═══════════════════════════════════════ */
+.taxi-page{padding:4px 0;width:100%;box-sizing:border-box;}
+.taxi-hero{text-align:center;padding:22px 16px 20px;background:linear-gradient(135deg,var(--teal-dark),var(--teal));border-radius:20px;margin-bottom:16px;color:#fff;}
+.taxi-hero-ico{font-size:38px;display:block;margin-bottom:8px;animation:taxiBounce 2.4s ease-in-out infinite;}
+@keyframes taxiBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+.taxi-hero h2{font-size:18px;font-weight:800;margin-bottom:6px;}
+.taxi-hero p{font-size:12px;opacity:.85;line-height:1.5;max-width:320px;margin:0 auto;}
+
+.taxi-tariff-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.taxi-tariff-card{width:100%;box-sizing:border-box;text-align:left;background:#fff;border:1.5px solid rgba(0,0,0,.05);border-radius:16px;padding:14px;cursor:pointer;font-family:inherit;transition:.2s;box-shadow:0 2px 8px rgba(0,0,0,.04);animation:pcardIn .35s cubic-bezier(.16,1,.3,1) both;}
+.taxi-tariff-card:hover{border-color:var(--teal);box-shadow:0 4px 16px var(--teal-glow);transform:translateY(-1px);}
+.taxi-tariff-card:active{transform:scale(.98);}
+.taxi-tariff-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.taxi-tariff-badge{font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:8px;color:#fff;}
+.taxi-tariff-badge.gold{background:linear-gradient(135deg,#f2a63c,#d97706);}
+.taxi-tariff-badge.green{background:linear-gradient(135deg,#22c55e,#16a34a);}
+.taxi-tariff-badge.teal{background:linear-gradient(135deg,var(--teal),var(--teal-mid));}
+.taxi-tariff-arr{color:var(--text-tertiary);font-size:16px;}
+.taxi-tariff-name{font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:8px;}
+.taxi-tariff-price{display:flex;align-items:center;gap:8px;}
+.ttp-main{font-size:19px;font-weight:800;color:var(--teal-dark);}
+.ttp-old{font-size:13px;color:var(--text-tertiary);text-decoration:line-through;}
+.ttp-hint{font-size:11px;color:var(--text-tertiary);}
+.ttp-mor-ico{width:16px;height:16px;object-fit:contain;}
+
+.taxi-drivers-note{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-secondary);background:rgba(27,133,133,.05);padding:10px 12px;border-radius:12px;margin-bottom:6px;}
+.tdn-ico{font-size:15px;}
+
+.taxi-selected-card{background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:16px;}
+.taxi-selected-lbl{font-size:13px;font-weight:700;opacity:.9;margin-bottom:4px;}
+.taxi-selected-price{font-size:22px;font-weight:800;}
+.taxi-selected-price span{font-size:13px;font-weight:600;opacity:.75;}
+
+.taxi-route-visual{display:flex;gap:12px;margin-bottom:14px;}
+.taxi-route-line{display:flex;flex-direction:column;align-items:center;padding-top:14px;}
+.taxi-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.taxi-dot-from{background:var(--teal);}
+.taxi-dot-to{background:#e05252;}
+.taxi-dashes{width:2px;flex:1;min-height:38px;background:repeating-linear-gradient(to bottom,var(--border) 0,var(--border) 4px,transparent 4px,transparent 8px);margin:4px 0;}
+.taxi-route-inputs{flex:1;display:flex;flex-direction:column;gap:10px;}
+
+.taxi-confirm-card{background:#fff;border-radius:20px;padding:22px 18px;box-shadow:0 4px 20px rgba(0,0,0,.06);text-align:center;animation:pcardIn .4s cubic-bezier(.16,1,.3,1) both;}
+.taxi-confirm-check{font-size:36px;margin-bottom:6px;}
+.taxi-confirm-title{font-size:17px;font-weight:800;color:var(--text-primary);margin-bottom:4px;}
+.taxi-confirm-ticket{font-size:12.5px;color:var(--teal);font-weight:700;background:rgba(27,133,133,.08);display:inline-block;padding:4px 12px;border-radius:10px;margin-bottom:16px;}
+.taxi-confirm-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.04);text-align:left;font-size:12.5px;}
+.taxi-confirm-row span{color:var(--text-tertiary);}
+.taxi-confirm-row b{color:var(--text-primary);}
+.taxi-driver-card{display:flex;align-items:center;gap:12px;background:rgba(27,133,133,.06);border-radius:14px;padding:12px;margin-top:14px;text-align:left;}
+.taxi-driver-ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-mid));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.taxi-driver-info{display:flex;flex-direction:column;gap:2px;}
+.taxi-driver-lbl{font-size:10.5px;color:var(--text-tertiary);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.taxi-driver-name{font-size:13.5px;font-weight:800;color:var(--text-primary);}
+
+.taxi-redirect-card{display:flex;align-items:center;gap:12px;background:rgba(34,197,94,.06);border:1.5px dashed rgba(34,197,94,.25);border-radius:16px;padding:14px;margin-bottom:12px;}
+.taxi-redirect-ico{font-size:28px;flex-shrink:0;}
+.taxi-redirect-txt{display:flex;flex-direction:column;gap:3px;}
+.taxi-redirect-txt b{font-size:13px;color:var(--text-primary);}
+.taxi-redirect-txt span{font-size:11px;color:var(--text-secondary);line-height:1.4;}
+
+/* Тёмная тема */
+.dark .taxi-tariff-card{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.06);}
+.dark .taxi-tariff-name{color:#e8ecf4;}
+.dark .ttp-main{color:#4db8b8;}
+.dark .taxi-drivers-note{background:rgba(255,255,255,.04);color:#a0b0c8;}
+.dark .taxi-confirm-card{background:#242a42;}
+.dark .taxi-confirm-title{color:#e8ecf4;}
+.dark .taxi-confirm-row{border-color:rgba(255,255,255,.06);}
+.dark .taxi-confirm-row b{color:#e8ecf4;}
+.dark .taxi-driver-card{background:rgba(255,255,255,.05);}
+.dark .taxi-driver-name{color:#e8ecf4;}
+.dark .taxi-redirect-card{background:rgba(34,197,94,.08);}
+.dark .taxi-redirect-txt b{color:#e8ecf4;}
+.dark .taxi-redirect-txt span{color:#a0b0c8;}
+
+/* ═══ Выделенная кнопка «Такси» в меню ═══ */
+.sp-item-taxi{position:relative;border:1.5px solid rgba(34,197,94,.3);background:linear-gradient(135deg,rgba(34,197,94,.05),rgba(255,255,255,1));box-shadow:0 3px 12px rgba(34,197,94,.12);animation:taxiMenuGlow 3s ease-in-out infinite;}
+@keyframes taxiMenuGlow{0%,100%{box-shadow:0 3px 12px rgba(34,197,94,.12);}50%{box-shadow:0 5px 18px rgba(34,197,94,.24);}}
+.sp-ico-taxi{animation:taxiIcoWiggle 4s ease-in-out infinite;}
+@keyframes taxiIcoWiggle{0%,92%,100%{transform:rotate(0deg);}94%{transform:rotate(-8deg);}96%{transform:rotate(8deg);}98%{transform:rotate(-4deg);}}
+.sp-taxi-badge{position:absolute;top:8px;right:34px;background:linear-gradient(135deg,#f2a63c,#d97706);color:#fff;font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:8px;letter-spacing:.3px;text-transform:uppercase;}
+.dark .sp-item-taxi{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(255,255,255,.03));}
+
+/* ═══ Такси: автодополнение адресов + геолокация ═══ */
+.taxi-addr-wrap{position:relative;}
+.taxi-addr-wrap .eq-input{padding-right:44px;}
+.taxi-geo-btn{position:absolute;top:50%;right:6px;transform:translateY(-50%);width:32px;height:32px;border-radius:10px;border:none;background:rgba(27,133,133,.08);font-size:15px;cursor:pointer;transition:.2s;}
+.taxi-geo-btn:hover{background:rgba(27,133,133,.16);}
+.taxi-geo-btn:active{transform:translateY(-50%) scale(.9);}
+.taxi-addr-suggest{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:20;max-height:220px;overflow-y:auto;animation:pcardIn .2s ease both;}
+.taxi-addr-item{display:block;width:100%;box-sizing:border-box;text-align:left;padding:10px 12px;background:none;border:none;border-bottom:1px solid rgba(0,0,0,.04);font-family:inherit;font-size:12px;color:var(--text-primary);cursor:pointer;line-height:1.4;}
+.taxi-addr-item:last-child{border-bottom:none;}
+.taxi-addr-item:hover{background:rgba(27,133,133,.06);}
+.taxi-addr-loading,.taxi-addr-empty{padding:12px;font-size:11.5px;color:var(--text-tertiary);text-align:center;}
+
+/* ═══ Такси: логотип и заголовок ═══ */
+.taxi-hero-logo{width:44px;height:44px;object-fit:contain;border-radius:12px;background:#fff;padding:4px;margin:0 auto 8px;display:block;box-shadow:0 3px 10px rgba(0,0,0,.15);}
+
+/* ═══ Такси: переключатель тарифа по карте Морошка ═══ */
+.taxi-selected-price-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.taxi-mor-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
+.taxi-mor-toggle img{width:15px;height:15px;object-fit:contain;}
+.taxi-mor-toggle.on{background:var(--gold-bright);border-color:var(--gold-bright);color:#3a2a00;}
+.taxi-mor-toggle-main{width:100%;justify-content:center;background:#fff;border:1.5px solid rgba(0,0,0,.08);color:var(--text-secondary);padding:10px;border-radius:14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.03);}
+.taxi-mor-toggle-main img{width:18px;height:18px;}
+.taxi-mor-toggle-main.on{background:linear-gradient(135deg,var(--teal-xlight),#fff);border-color:var(--teal);color:var(--teal-dark);}
+
+.dark .taxi-addr-suggest{background:#242a42;border-color:rgba(255,255,255,.1);}
+.dark .taxi-addr-item{color:#e8ecf4;border-color:rgba(255,255,255,.06);}
+.dark .taxi-addr-item:hover{background:rgba(255,255,255,.05);}
+.dark .taxi-geo-btn{background:rgba(255,255,255,.08);}
+.dark .taxi-mor-toggle-main{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:#a0b0c8;}
+
+/* ═══ Такси: быстрые категории назначения ═══ */
+.taxi-quick-dest{margin-bottom:14px;}
+.taxi-quick-dest-lbl{font-size:10.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:8px;}
+.taxi-quick-dest-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.taxi-chip{padding:7px 12px;border-radius:20px;border:1.5px solid rgba(0,0,0,.08);background:#fff;font-size:11.5px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap;}
+.taxi-chip:hover{border-color:var(--teal);color:var(--teal);background:rgba(27,133,133,.05);}
+.taxi-chip:active{transform:scale(.94);}
+.dark .taxi-chip{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:#a0b0c8;}

@@ -40,9 +40,9 @@ const ASST_INTENTS=[
   {kw:["убор","помыть","помой","мытье","мытьё","окна","полы","пыль","чисто","прибрат"],
    answer:"Уборкой и мытьём занимается раздел «Чистка и уборка жилых помещений».",
    hint:["чистке и уборке","уборке жилых"]},
-  {kw:["такси","довез","доехать","отвез","перевоз","транспорт","до больниц","до поликлин"],
-   answer:"Поездки выполняет «Социальное такси» — с сопровождением или без, по заявке за 1 рабочий день.",
-   hint:["перевозке на автомобильном"]},
+  {kw:["такси","довез","доехать","отвез","перевоз","транспорт","до больниц","до поликлин","закажи машину","вызови машину","нужна машина","подвезти","подвезет","отвезти","съездить","поехать в","заказать поездку","вызвать такси"],
+   answer:"Поездки выполняет «Социальное такси» — с сопровождением или без, по льготному или полному тарифу. Открываю раздел заказа:",
+   actions:[{label:"🚕 Заказать такси",fn:"showTaxi",cl:"teal"}]},
   {kw:["сиделк","няня","няню","присмотр детьми","посидеть с реб"],
    answer:"Услуги по присмотру и уходу — в разделе «Услуги сиделки и няни».",
    hint:["услуги сиделки"]},
@@ -421,7 +421,20 @@ function findCatAcrossBranches(hints){
   return null;
 }
 
-function resolveIntentResult(it){
+function findItemInCategory(cat,q){
+  if(!cat||!cat.items||!cat.items.length)return -1;
+  const qWords=q.split(" ").filter(function(w){return w.length>2;});
+  let bestIdx=-1,bestScore=0;
+  cat.items.forEach(function(item,idx){
+    const nameNorm=asstNorm(item.n);
+    let score=0;
+    qWords.forEach(function(w){if(nameNorm.includes(w))score+=w.length;});
+    if(score>bestScore){bestScore=score;bestIdx=idx;}
+  });
+  return bestScore>=3?bestIdx:-1;
+}
+
+function resolveIntentResult(it,q){
   // Спец-маркеры в ответе
   if(it.answer==="__DATETIME__"){
     const now=new Date();
@@ -443,7 +456,14 @@ function resolveIntentResult(it){
   // Действия с hint — резолвим категорию динамически (безопасно для любого филиала)
   if(it.hint){
     const cat=findCatByHint(it.hint);
-    if(cat)return{answer:it.answer,actions:[{label:`${cat.icon} ${cat.name}`,fn:"showCategory",arg:cat.id,cl:"teal"}]};
+    if(cat){
+      const itemIdx=q?findItemInCategory(cat,q):-1;
+      if(itemIdx>=0){
+        const uid=cat.id*1000+itemIdx;
+        return{answer:it.answer,actions:[{label:`${cat.icon} ${cat.items[itemIdx].n}`,fn:"showCategory",arg:cat.id,arg2:uid,cl:"teal"}]};
+      }
+      return{answer:it.answer,actions:[{label:`${cat.icon} ${cat.name}`,fn:"showCategory",arg:cat.id,cl:"teal"}]};
+    }
     const cross=findCatAcrossBranches(it.hint);
     if(cross)return{answer:it.answer+` В филиале «${currentCityName}» этой услуги нет, но она есть в филиале <b>${cross.cityName}</b>. Переключиться?`,
       actions:[{label:"🏢 Перейти в "+cross.cityName,fn:"switchBranchByKey",arg:"'"+cross.city+"'",cl:"teal"}]};
@@ -464,13 +484,21 @@ function smartAsk(query){
     it.kw.forEach(k=>{const nk=asstNorm(k);if(q.includes(nk))score+=Math.max(1,nk.length);});
     if(score>bestScore){bestScore=score;best=it;}
   });
-  if(best&&bestScore>=2)return resolveIntentResult(best);
+  if(best&&bestScore>=2)return resolveIntentResult(best,q);
 
   const hit=findServiceCategory(q);
-  if(hit)return{answer:`Кажется, вам подойдёт раздел «${hit.name}». Открыть его?`,
-    actions:[{label:`${hit.icon} ${hit.name}`,fn:"showCategory",arg:hit.id,cl:"teal"}]};
+  if(hit){
+    const itemIdx=findItemInCategory(hit,q);
+    if(itemIdx>=0){
+      const uid=hit.id*1000+itemIdx;
+      return{answer:`Нашёл подходящую услугу: «${hit.items[itemIdx].n}»`,
+        actions:[{label:`${hit.icon} ${hit.items[itemIdx].n}`,fn:"showCategory",arg:hit.id,arg2:uid,cl:"teal"}]};
+    }
+    return{answer:`Кажется, вам подойдёт раздел «${hit.name}». Открыть его?`,
+      actions:[{label:`${hit.icon} ${hit.name}`,fn:"showCategory",arg:hit.id,cl:"teal"}]};
+  }
 
-  if(best&&bestScore>0)return resolveIntentResult(best);
+  if(best&&bestScore>0)return resolveIntentResult(best,q);
 
   const fq=faqAnswer(q);if(fq)return fq;
 
@@ -501,10 +529,14 @@ function switchBranchByKey(cityKey){
 }
 
 
-function asstGo(fnName,arg){
+function asstGo(fnName,arg,arg2){
   if(typeof window[fnName]==="function"){
     pushNav(showAssistant);
-    showTyping(()=>{arg!==undefined?window[fnName](arg):window[fnName]();});
+    showTyping(()=>{
+      if(arg2!==undefined)window[fnName](arg,arg2);
+      else if(arg!==undefined)window[fnName](arg);
+      else window[fnName]();
+    });
   }
 }
 
@@ -548,7 +580,7 @@ function askFlow(query){
     let html=res.answer;
     if(res.actions&&res.actions.length){
       html+='<div class="asst-actions">'+res.actions.map(a=>
-        `<button type="button" class="act-btn ${a.cl||"teal"}" onclick="asstGo('${a.fn}'${a.arg!==undefined?","+a.arg:""})">${a.label}</button>`
+        `<button type="button" class="act-btn ${a.cl||"teal"}" onclick="asstGo('${a.fn}'${a.arg!==undefined?","+a.arg:""}${a.arg2!==undefined?","+a.arg2:""})">${a.label}</button>`
       ).join("")+"</div>";
     }
     addMsg(html,true);

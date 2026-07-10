@@ -1,4 +1,30 @@
 
+// ═══════════════════════════════════════════════════════════
+// КОНФИГУРАЦИЯ ПОДКЛЮЧЕНИЯ К СЕРВЕРУ (ИСЗН ЯНАО)
+// Сейчас всё работает на локальных данных (js/data.js).
+// Когда backend будет готов — переключить REMOTE_API.enabled=true
+// и указать реальный BASE_URL. Подробности: docs/ISZN_INTEGRATION.md
+// ═══════════════════════════════════════════════════════════
+const REMOTE_API={
+  enabled:false,               // false = локальные данные (как сейчас), true = запросы на сервер
+  baseUrl:"",                  // например: "https://iszn.yanao.ru/api/v1"
+  endpoints:{
+    branches:"/branches",
+    services:"/branches/{city}/services",
+    staff:"/branches/{city}/staff",
+    orders:"/orders",          // POST — отправка заявки на услуги
+    bookings:"/bookings",      // POST — запись к специалисту
+    taxiOrders:"/taxi/orders", // POST — заказ такси
+    auth:"/auth/login"         // POST — серверная авторизация администратора
+  }
+};
+async function apiRequest(path,options){
+  if(!REMOTE_API.enabled)throw new Error("REMOTE_API отключён — используются локальные данные (см. js/data.js)");
+  const res=await fetch(REMOTE_API.baseUrl+path,Object.assign({headers:{"Content-Type":"application/json"}},options||{}));
+  if(!res.ok)throw new Error("Сервер вернул ошибку "+res.status);
+  return res.json();
+}
+
 const BRANCH_DISPLAY_NAMES={gubkin:"Губкинский",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"пгт. Уренгой"};
 let currentCity="gubkin",currentCityName="Губкинский",hasMoroshka=null;
 let navHistory=[],cart=JSON.parse(localStorage.getItem("cart")||"[]");
@@ -92,11 +118,11 @@ function updateHoursBanner(){
   const isOpen=isWeekday&&mins>=openMins&&mins<closeMins;
   if(isOpen){
     b.className="hours-banner open";
-    b.innerHTML='<div class="hours-dot" aria-hidden="true"></div>Сейчас открыто — работаем до '+cd.closeH+':'+String(cd.closeM).padStart(2,'0');
+    b.innerHTML='<span class="hb-ico-wrap"><span class="hb-ico-pulse"></span><span class="hb-ico">🟢</span></span><span class="hb-txt"><span class="hb-status">Сейчас открыто</span><span class="hb-detail">Работаем до '+cd.closeH+':'+String(cd.closeM).padStart(2,'0')+'</span></span>';
   }else{
     b.className="hours-banner closed";
     const nextDay=(dow===5||dow===6||dow===0)?"в понедельник":"завтра";
-    b.innerHTML='<div class="hours-dot" aria-hidden="true"></div>Сейчас закрыто. Откроемся '+nextDay+' в 08:30';
+    b.innerHTML='<span class="hb-ico-wrap"><span class="hb-ico">🌙</span></span><span class="hb-txt"><span class="hb-status">Сейчас закрыто</span><span class="hb-detail">Откроемся '+nextDay+' в 08:30</span></span>';
   }
 }
 
@@ -536,20 +562,43 @@ function plRenderRow(cat,it,ii){
   var p=hasMoroshka&&it.m!=null?it.m:it.p;
   var sv=hasMoroshka&&it.m!=null?'<span class="pl-save">Экономия '+(it.p-it.m)+' ₽</span>':"";
   var nameEsc=it.n.replace(/'/g,"\\'").replace(/"/g,"&quot;");
-  return '<div class="pl-row"><div class="pl-name">'+it.n+'</div><div class="pl-right"><div class="pl-price">'+p+' ₽</div>'+sv+'</div><button class="pl-add" data-uid="'+uid+'" data-name="'+nameEsc+'" data-base="'+it.p+'" data-mor="'+(it.m!=null?it.m:"")+'" onclick="plAddToCart(this)" aria-label="Добавить '+nameEsc+' в корзину">+</button></div>';
+  return '<div class="pl-row" data-row-uid="'+uid+'"><div class="pl-name">'+it.n+'</div><div class="pl-right"><div class="pl-price">'+p+' ₽</div>'+sv+'</div><button class="pl-add" data-uid="'+uid+'" data-name="'+nameEsc+'" data-base="'+it.p+'" data-mor="'+(it.m!=null?it.m:"")+'" onclick="plAddToCart(this)" aria-label="Добавить '+nameEsc+' в корзину">+</button></div>';
 }
-function plOpenCat(id){
+function plOpenCat(id,highlightUid){
   var cat=servicesData.find(function(c){return c.id===id;});if(!cat)return;
   document.getElementById("plCatList").classList.add("gone");
   document.getElementById("plSearchResults").classList.add("gone");
   document.getElementById("plSearchInp").value="";
   var det=document.getElementById("plCatDetail");
+  var isTaxiCat=cat.name.toLowerCase().indexOf("перевозке")>=0||cat.name.toLowerCase().indexOf("перевозка")>=0;
   var html='<button class="pl-back" onclick="plCloseCat()">← Все категории</button>';
+  if(isTaxiCat&&highlightUid===undefined){
+    html+='<div class="pl-sec-t">'+cat.icon+' '+cat.name+'</div>';
+    html+='<div class="taxi-redirect-card"><span class="taxi-redirect-ico">🚕</span><div class="taxi-redirect-txt"><b>Удобнее заказать через раздел «Такси»</b><span>Выбор тарифа, адрес, время и автоматическое назначение водителя — в одном месте</span></div></div>';
+    html+='<button class="eq-save-btn" onclick="showTaxi()">🚕 Перейти к заказу такси</button>';
+    det.innerHTML=html;
+    det.classList.remove("gone");
+    det.scrollIntoView({behavior:"smooth",block:"start"});
+    return;
+  }
   html+='<div class="pl-sec-t">'+cat.icon+' '+cat.name+'</div>';
   cat.items.forEach(function(it,ii){html+=plRenderRow(cat,it,ii);});
   det.innerHTML=html;
   det.classList.remove("gone");
-  det.scrollIntoView({behavior:"smooth",block:"start"});
+  if(highlightUid!==undefined){
+    setTimeout(function(){
+      var row=det.querySelector('[data-row-uid="'+highlightUid+'"]');
+      if(row){
+        row.scrollIntoView({behavior:"smooth",block:"center"});
+        row.classList.add("pl-row-highlight");
+        setTimeout(function(){row.classList.remove("pl-row-highlight");},2400);
+      }else{
+        det.scrollIntoView({behavior:"smooth",block:"start"});
+      }
+    },80);
+  }else{
+    det.scrollIntoView({behavior:"smooth",block:"start"});
+  }
 }
 function plCloseCat(){
   document.getElementById("plCatDetail").classList.add("gone");
@@ -596,11 +645,265 @@ function plFilterGlobal(q){
   res.innerHTML=html;
   res.classList.remove("gone");
 }
-function showCategory(catId){
+function showCategory(catId,highlightUid){
   showServices();
-  setTimeout(function(){plOpenCat(catId);},50);
+  setTimeout(function(){plOpenCat(catId,highlightUid);},220);
 }
 
+// ═══════════════════════════════════════
+// ТАКСИ — полноценный модуль заказа
+// ═══════════════════════════════════════
+let taxiState={tariffIdx:null,from:"",to:"",date:"",time:"",comment:""};
+
+let taxiShowMor=hasMoroshka;
+function showTaxi(){
+  clearActions();setNav(true);
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="taxi-page";
+  const tariffs=getTaxiTariffs();
+  const drivers=getTaxiDrivers();
+  taxiShowMor=hasMoroshka;
+  let html='<div class="taxi-hero"><img src="img/logo-icon.png" class="taxi-hero-logo" alt="Гармония"><span class="taxi-hero-ico">🚕</span><h2>Социальное такси</h2><p>Поездки на автомобиле центра — с сопровождением специалиста или без, по льготному или полному тарифу</p></div>';
+
+  if(!tariffs.items.length){
+    html+='<div class="ev-empty">'+emptyIllustration()+'<div class="empty-title">Такси недоступно в этом филиале</div><div class="empty-sub">Уточните возможность перевозки по телефону центра</div></div>';
+    w.innerHTML=html;chatEl.appendChild(w);
+    actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+    return;
+  }
+
+  html+='<button type="button" class="taxi-mor-toggle taxi-mor-toggle-main '+(taxiShowMor?"on":"")+'" id="taxiMorToggleMain" aria-pressed="'+taxiShowMor+'"><img src="img/moroshka-logo.jpg" alt=""><span>Показывать цены по карте «Морошка»</span></button>';
+
+  html+='<div class="taxi-tariff-list" id="taxiTariffList">';
+  tariffs.items.forEach(function(t){
+    html+=taxiTariffCardHtml(t);
+  });
+  html+='</div>';
+
+  if(drivers.length){
+    html+='<div class="taxi-drivers-note"><span class="tdn-ico">🚗</span>Работают '+drivers.length+' '+plWordForm(drivers.length,["водитель","водителя","водителей"])+' центра — водитель назначается автоматически при заказе</div>';
+  }
+
+  w.innerHTML=html;
+  chatEl.appendChild(w);
+  w.querySelectorAll(".taxi-tariff-card").forEach(function(btn){
+    btn.onclick=function(){taxiOpenBookingForm(+btn.dataset.tidx);};
+  });
+  const morBtn=document.getElementById("taxiMorToggleMain");
+  if(morBtn)morBtn.onclick=function(){
+    taxiShowMor=!taxiShowMor;
+    morBtn.classList.toggle("on",taxiShowMor);
+    morBtn.setAttribute("aria-pressed",String(taxiShowMor));
+    document.getElementById("taxiTariffList").innerHTML=tariffs.items.map(taxiTariffCardHtml).join("");
+    document.querySelectorAll(".taxi-tariff-card").forEach(function(btn){
+      btn.onclick=function(){taxiOpenBookingForm(+btn.dataset.tidx);};
+    });
+  };
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
+function taxiTariffCardHtml(t){
+  const badgeClass=t.label.indexOf("сопровожд")>=0?"gold":t.label.indexOf("городу")>=0?"green":"teal";
+  const showMor=taxiShowMor&&t.moroshka!=null;
+  return '<button type="button" class="taxi-tariff-card" data-tidx="'+t.idx+'">'
+    +'<div class="taxi-tariff-top"><span class="taxi-tariff-badge '+badgeClass+'">'+t.duration+' мин</span><span class="taxi-tariff-arr">›</span></div>'
+    +'<div class="taxi-tariff-name">'+t.label+'</div>'
+    +'<div class="taxi-tariff-price"><span class="ttp-main">'+(showMor?t.moroshka:t.base)+' ₽</span>'
+    +(showMor?'<span class="ttp-old">'+t.base+' ₽</span><img src="img/moroshka-logo.jpg" class="ttp-mor-ico" alt="">':t.moroshka!=null?'<span class="ttp-hint">Со скидкой «Морошка»: '+t.moroshka+' ₽</span>':'')
+    +'</div></button>';
+}
+
+function taxiOpenBookingForm(tariffIdx){
+  const tariffs=getTaxiTariffs();
+  const t=tariffs.items.find(function(x){return x.idx===tariffIdx;});
+  if(!t)return;
+  taxiState={tariffIdx:tariffIdx,from:"",to:"",date:"",time:"",comment:"",moroshkaView:taxiShowMor};
+  clearActions();setNav(true);
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="taxi-page";
+  const today=new Date().toISOString().split("T")[0];
+  w.innerHTML=`
+    <button class="pl-back" onclick="showTaxi()">← Все тарифы</button>
+    <div class="taxi-selected-card">
+      <div class="taxi-selected-lbl">${t.label}</div>
+      <div class="taxi-selected-price-row">
+        <div class="taxi-selected-price" id="taxiSelPrice">${taxiState.moroshkaView?t.moroshka:t.base} ₽ <span>· ${t.duration} мин</span></div>
+        ${t.moroshka!=null?`<button type="button" class="taxi-mor-toggle ${taxiState.moroshkaView?"on":""}" id="taxiMorToggle" aria-pressed="${taxiState.moroshkaView}"><img src="img/moroshka-logo.jpg" alt=""><span>Морошка</span></button>`:""}
+      </div>
+    </div>
+    <div class="taxi-route-visual">
+      <div class="taxi-route-line">
+        <span class="taxi-dot taxi-dot-from"></span>
+        <span class="taxi-dashes"></span>
+        <span class="taxi-dot taxi-dot-to"></span>
+      </div>
+      <div class="taxi-route-inputs">
+        <div class="taxi-addr-wrap">
+          <input class="eq-input" id="taxiFrom" placeholder="Откуда забрать (адрес)" autocomplete="off">
+          <button type="button" class="taxi-geo-btn" id="taxiGeoBtn" title="Использовать моё местоположение">📍</button>
+          <div class="taxi-addr-suggest gone" id="taxiFromSuggest"></div>
+        </div>
+        <div class="taxi-addr-wrap">
+          <input class="eq-input" id="taxiTo" placeholder="Куда везти (адрес)" autocomplete="off">
+          <div class="taxi-addr-suggest gone" id="taxiToSuggest"></div>
+        </div>
+      </div>
+    </div>
+    <div class="taxi-quick-dest">
+      <span class="taxi-quick-dest-lbl">Часто ищут:</span>
+      <div class="taxi-quick-dest-chips" id="taxiQuickDest">
+        <button type="button" class="taxi-chip" data-q="Больница">🏥 Больница</button>
+        <button type="button" class="taxi-chip" data-q="Поликлиника">🩺 Поликлиника</button>
+        <button type="button" class="taxi-chip" data-q="Аптека">💊 Аптека</button>
+        <button type="button" class="taxi-chip" data-q="МФЦ">📄 МФЦ</button>
+        <button type="button" class="taxi-chip" data-q="Пенсионный фонд">💰 Пенсионный фонд</button>
+        <button type="button" class="taxi-chip" data-q="Сбербанк">🏦 Сбербанк</button>
+        <button type="button" class="taxi-chip" data-cson="1">🏢 ЦСОН «Гармония»</button>
+      </div>
+    </div>
+    <div class="eq-field"><span class="eq-field-ico">📅</span><div class="eq-field-body"><label class="eq-field-lbl">Дата поездки</label><input type="date" class="eq-input" id="taxiDate" min="${today}" value="${today}"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">🕒</span><div class="eq-field-body"><label class="eq-field-lbl">Время</label><input type="time" class="eq-input" id="taxiTime" value="10:00"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl">Комментарий (необязательно)</label><textarea class="eq-input" id="taxiComment" rows="2" placeholder="Особые пожелания..."></textarea></div></div>
+    <button class="eq-save-btn" id="taxiSubmit">🚕 Заказать такси</button>
+  `;
+  chatEl.appendChild(w);
+  w.querySelector("#taxiSubmit").onclick=function(){taxiConfirmBooking(tariffIdx);};
+  attachAddressAutocomplete(document.getElementById("taxiFrom"),document.getElementById("taxiFromSuggest"));
+  attachAddressAutocomplete(document.getElementById("taxiTo"),document.getElementById("taxiToSuggest"));
+  document.querySelectorAll("#taxiQuickDest .taxi-chip").forEach(function(chip){
+    chip.onclick=function(){
+      const toInput=document.getElementById("taxiTo");
+      const toSuggest=document.getElementById("taxiToSuggest");
+      if(chip.dataset.cson){
+        const cd=cityData[currentCity]||cityData.gubkin;
+        toInput.value=cd.address;
+        toSuggest.classList.add("gone");
+      }else{
+        toInput.value=chip.dataset.q+" "+currentCityName;
+        taxiFetchSuggestions(chip.dataset.q,toSuggest,toInput);
+      }
+    };
+  });
+  const geoBtn=document.getElementById("taxiGeoBtn");
+  if(geoBtn)geoBtn.onclick=function(){taxiUseMyLocation(document.getElementById("taxiFrom"));};
+  const morToggle=document.getElementById("taxiMorToggle");
+  if(morToggle)morToggle.onclick=function(){
+    taxiState.moroshkaView=!taxiState.moroshkaView;
+    morToggle.classList.toggle("on",taxiState.moroshkaView);
+    morToggle.setAttribute("aria-pressed",String(taxiState.moroshkaView));
+    document.getElementById("taxiSelPrice").innerHTML=(taxiState.moroshkaView?t.moroshka:t.base)+" ₽ <span>· "+t.duration+" мин</span>";
+  };
+  w.scrollIntoView({behavior:"smooth",block:"start"});
+  actionsEl.innerHTML="";
+}
+
+// ═══ Автодополнение адресов через OpenStreetMap Nominatim (бесплатно, без ключа) ═══
+let taxiAcTimer=null;
+function attachAddressAutocomplete(inputEl,suggestEl){
+  if(!inputEl||!suggestEl)return;
+  inputEl.addEventListener("input",function(){
+    const q=inputEl.value.trim();
+    clearTimeout(taxiAcTimer);
+    if(q.length<3){suggestEl.classList.add("gone");suggestEl.innerHTML="";return;}
+    taxiAcTimer=setTimeout(function(){taxiFetchSuggestions(q,suggestEl,inputEl);},450);
+  });
+  document.addEventListener("click",function(e){
+    if(e.target!==inputEl&&!suggestEl.contains(e.target))suggestEl.classList.add("gone");
+  });
+}
+function taxiFetchSuggestions(query,suggestEl,inputEl){
+  suggestEl.innerHTML='<div class="taxi-addr-loading">Ищу адрес…</div>';
+  suggestEl.classList.remove("gone");
+  const cityQualifier=currentCityName.replace(/^пгт\.?\s*/i,"");
+  const url="https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=ru&q="+encodeURIComponent(query+" "+cityQualifier+" ЯНАО");
+  fetch(url,{headers:{"Accept-Language":"ru"}}).then(function(r){return r.json();}).then(function(list){
+    if(!list||!list.length){suggestEl.innerHTML='<div class="taxi-addr-empty">Ничего не найдено — впишите адрес вручную</div>';return;}
+    suggestEl.innerHTML=list.map(function(item){
+      const label=item.display_name.replace(/'/g,"&#39;");
+      return '<button type="button" class="taxi-addr-item" data-addr="'+label+'">📍 '+label+'</button>';
+    }).join("");
+    suggestEl.querySelectorAll(".taxi-addr-item").forEach(function(btn){
+      btn.onclick=function(){
+        inputEl.value=btn.dataset.addr;
+        suggestEl.classList.add("gone");
+      };
+    });
+  }).catch(function(){
+    suggestEl.innerHTML='<div class="taxi-addr-empty">Не удалось загрузить подсказки — впишите адрес вручную</div>';
+  });
+}
+function taxiUseMyLocation(inputEl){
+  if(!navigator.geolocation){showToast("⚠️ Геолокация не поддерживается браузером");return;}
+  showToast("📍 Определяю местоположение…");
+  navigator.geolocation.getCurrentPosition(function(pos){
+    const lat=pos.coords.latitude,lon=pos.coords.longitude;
+    const url="https://nominatim.openstreetmap.org/reverse?format=json&lat="+lat+"&lon="+lon+"&addressdetails=1";
+    fetch(url,{headers:{"Accept-Language":"ru"}}).then(function(r){return r.json();}).then(function(data){
+      if(data&&data.display_name){inputEl.value=data.display_name;showToast("📍 Адрес определён");}
+      else showToast("⚠️ Не удалось определить адрес");
+    }).catch(function(){showToast("⚠️ Не удалось определить адрес");});
+  },function(){showToast("⚠️ Доступ к геолокации не разрешён");},{timeout:8000});
+}
+
+function taxiConfirmBooking(tariffIdx){
+  const tariffs=getTaxiTariffs();
+  const t=tariffs.items.find(function(x){return x.idx===tariffIdx;});
+  if(!t)return;
+  const from=document.getElementById("taxiFrom").value.trim();
+  const to=document.getElementById("taxiTo").value.trim();
+  const date=document.getElementById("taxiDate").value;
+  const time=document.getElementById("taxiTime").value;
+  const comment=document.getElementById("taxiComment").value.trim();
+  if(!from||!to){showToast("⚠️ Укажите адрес отправления и назначения");return;}
+  if(!date||!time){showToast("⚠️ Укажите дату и время поездки");return;}
+
+  const drivers=getTaxiDrivers();
+  let driver=null;
+  if(drivers.length){
+    let rot=parseInt(localStorage.getItem("taxiDriverRotation")||"0");
+    driver=drivers[rot%drivers.length];
+    localStorage.setItem("taxiDriverRotation",String(rot+1));
+  }
+
+  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
+  const ticketNum="ТАК-"+String(ticketCounter).padStart(4,"0");
+  const useMor=taxiState.moroshkaView&&t.moroshka!=null;
+  const price=useMor?t.moroshka:t.base;
+  const cd=cityData[currentCity]||cityData.gubkin;
+
+  const body=`Заказ социального такси\nТалон: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${price} ₽\nОткуда: ${from}\nКуда: ${to}\nДата: ${date}, время: ${time}\nКомментарий: ${comment||"—"}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nВодитель: ${driver?driver.name:"—"}`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси "+ticketNum+" — "+clientName)}&body=${encodeURIComponent(body)}`;
+
+  const taxiHistory=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
+  taxiHistory.unshift({
+    num:ticketNum,tariff:t.label,duration:t.duration,price:price,from:from,to:to,
+    date:date,time:time,comment:comment,driverName:driver?driver.name:null,
+    createdAt:new Date().toISOString(),cityName:currentCityName
+  });
+  localStorage.setItem("taxiHistory",JSON.stringify(taxiHistory));
+
+  chatEl.innerHTML="";
+  showSuccessAnim("Такси заказано!");
+  const w=document.createElement("div");w.className="taxi-page";
+  w.innerHTML=`
+    <div class="taxi-confirm-card">
+      <div class="taxi-confirm-check">✅</div>
+      <div class="taxi-confirm-title">Такси заказано</div>
+      <div class="taxi-confirm-ticket">Талон ${ticketNum}</div>
+      <div class="taxi-confirm-row"><span>Тариф</span><b>${t.label}</b></div>
+      <div class="taxi-confirm-row"><span>Стоимость</span><b>${price} ₽</b></div>
+      <div class="taxi-confirm-row"><span>Дата и время</span><b>${date}, ${time}</b></div>
+      <div class="taxi-confirm-row"><span>Маршрут</span><b>${esc(from)} → ${esc(to)}</b></div>
+      ${driver?`<div class="taxi-driver-card">
+        <div class="taxi-driver-ava">🚗</div>
+        <div class="taxi-driver-info"><span class="taxi-driver-lbl">Ваш водитель</span><span class="taxi-driver-name">${driver.name}</span></div>
+      </div>`:""}
+    </div>
+    <div class="adm-hint">📧 Откроется почтовый клиент — нажмите «Отправить», чтобы заявка ушла в центр.</div>
+  `;
+  chatEl.appendChild(w);
+  actionsEl.innerHTML='<button class="act-btn teal" onclick="showTaxi()" style="width:100%">🚕 Заказать ещё раз</button><button class="act-btn" onclick="showMainMenu()" style="width:100%;margin-top:8px">🏠 Главная</button>';
+  function esc(s){return (s||"").replace(/</g,"&lt;");}
+}
 function showBooking(){
   clearActions();setNav(true);
   if(!staffData.length){showCityPlaceholder("записи");return;}
@@ -1551,6 +1854,7 @@ function showMenuPage(){
     '<h2>Все разделы</h2>'+
     '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#1B8585,#0d6b6b)">📋</span><div class="sp-txt"><b>Прейскурант</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="booking"><span class="sp-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📅</span><div class="sp-txt"><b>Записаться</b><span>К специалисту</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item sp-item-taxi" data-a="taxi"><span class="sp-ico sp-ico-taxi" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🚕</span><div class="sp-txt"><b>Такси</b><span>Заказать поездку</span></div><span class="sp-taxi-badge">Новое</span><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="staff"><span class="sp-ico" style="background:linear-gradient(135deg,#10b981,#059669)">👥</span><div class="sp-txt"><b>Сотрудники</b><span>Справочник</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-tablet.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-more">Услуги и информация</div>'+
@@ -1566,7 +1870,7 @@ function showMenuPage(){
     '<div class="sp-g" data-a="feedback"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">⭐</span><b>Отзыв</b></div>'+
     '</div>';
   chatEl.appendChild(w);
-  var acts={services:showServices,booking:showBooking,staff:showStaff,assistant:showAssistant,homeWorker:showHomeWorker,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,faq:showFAQ,moroshka:showMoroshkaInfo,feedback:showFeedback,gallery:showGallery};
+  var acts={services:showServices,booking:showBooking,taxi:showTaxi,staff:showStaff,assistant:showAssistant,homeWorker:showHomeWorker,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,faq:showFAQ,moroshka:showMoroshkaInfo,feedback:showFeedback,gallery:showGallery};
   w.querySelectorAll("[data-a]").forEach(function(el){
     var a=el.dataset.a;
     if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};

@@ -296,6 +296,22 @@ const faqData=[
   {q:"Безопасно ли оставлять свои данные в этом боте?",a:"Да, при регистрации вы даёте согласие на обработку персональных данных, которые используются только для оформления заявок и записи к специалистам."}
 ];
 
+// ═══ ТАКСИ — динамический поиск реальных данных (водители + тарифы) ═══
+function getTaxiDrivers(){
+  return (staffData||[]).filter(function(s){return s.pos&&s.pos.toLowerCase().indexOf("водитель")>=0;});
+}
+function getTaxiTariffs(){
+  var cat=(servicesData||[]).find(function(c){return c.name.toLowerCase().indexOf("перевозке")>=0||c.name.toLowerCase().indexOf("перевозка")>=0;});
+  if(!cat)return {cat:null,items:[]};
+  return {cat:cat,items:cat.items.map(function(it,idx){
+    var label=it.n.indexOf("с сопровождением")>=0?"С сопровождением специалиста":
+      it.n.indexOf("в пределах населенного пункта")>=0?"По городу (короткая поездка)":
+      "Без сопровождения специалиста";
+    var duration=it.n.match(/(\d+)\s*мин/);
+    return {idx:idx,name:it.n,label:label,duration:duration?duration[1]:"30",base:it.p,moroshka:it.m};
+  })};
+}
+
 const newsData=[
   {
     date:"2026-07-08",
