@@ -848,26 +848,59 @@ function attachAddressAutocomplete(inputEl,suggestEl){
     if(e.target!==inputEl&&!suggestEl.contains(e.target))suggestEl.classList.add("gone");
   });
 }
+function taxiBuildQueryVariants(query,cityQualifier){
+  const variants=[];
+  const suffix=" "+cityQualifier+" ЯНАО";
+  variants.push(query+suffix);
+
+  // "3-й микрорайон 42" — разбираем на номер мкрн + номер дома, пробуем разные формулировки
+  var m=query.match(/^(\d{1,3})[-–]?й?\s*(?:мк?рн?|микрорайон)\.?\s+(\d{1,4}[а-яa-z]?)$/i);
+  if(m){
+    var mk=m[1],house=m[2];
+    variants.push(mk+" микрорайон "+house+suffix);
+    variants.push("микрорайон "+mk+" дом "+house+suffix);
+    variants.push(mk+"-й микрорайон, дом "+house+suffix);
+    variants.push(mk+" мкр "+house+suffix);
+    variants.push(mk+" микрорайон"+suffix); // хотя бы район, без дома
+  }
+  // "3 мкрн" без дома — тоже пробуем несколько формулировок написания
+  var m2=query.match(/^(\d{1,3})[-–]?й?\s*(?:мк?рн?|микрорайон)\.?$/i);
+  if(m2){
+    variants.push(m2[1]+" микрорайон"+suffix);
+    variants.push("микрорайон "+m2[1]+suffix);
+    variants.push(m2[1]+" мкр"+suffix);
+  }
+  return [...new Set(variants)];
+}
 function taxiFetchSuggestions(query,suggestEl,inputEl){
   suggestEl.innerHTML='<div class="taxi-addr-loading">Ищу адрес…</div>';
   suggestEl.classList.remove("gone");
   const cityQualifier=currentCityName.replace(/^пгт\.?\s*/i,"");
-  const url="https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=ru&q="+encodeURIComponent(query+" "+cityQualifier+" ЯНАО");
-  fetch(url,{headers:{"Accept-Language":"ru"}}).then(function(r){return r.json();}).then(function(list){
-    if(!list||!list.length){suggestEl.innerHTML='<div class="taxi-addr-empty">Ничего не найдено — впишите адрес вручную</div>';return;}
-    suggestEl.innerHTML=list.map(function(item){
-      const label=item.display_name.replace(/'/g,"&#39;");
-      return '<button type="button" class="taxi-addr-item" data-addr="'+label+'">📍 '+label+'</button>';
-    }).join("");
-    suggestEl.querySelectorAll(".taxi-addr-item").forEach(function(btn){
-      btn.onclick=function(){
-        inputEl.value=btn.dataset.addr;
-        suggestEl.classList.add("gone");
-      };
+  const variants=taxiBuildQueryVariants(query,cityQualifier);
+
+  function tryVariant(idx){
+    if(idx>=variants.length){
+      suggestEl.innerHTML='<div class="taxi-addr-empty">Ничего не найдено — впишите адрес вручную</div>';
+      return;
+    }
+    const url="https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=ru&q="+encodeURIComponent(variants[idx]);
+    fetch(url,{headers:{"Accept-Language":"ru"}}).then(function(r){return r.json();}).then(function(list){
+      if(!list||!list.length){tryVariant(idx+1);return;}
+      suggestEl.innerHTML=list.map(function(item){
+        const label=item.display_name.replace(/'/g,"&#39;");
+        return '<button type="button" class="taxi-addr-item" data-addr="'+label+'">📍 '+label+'</button>';
+      }).join("");
+      suggestEl.querySelectorAll(".taxi-addr-item").forEach(function(btn){
+        btn.onclick=function(){
+          inputEl.value=btn.dataset.addr;
+          suggestEl.classList.add("gone");
+        };
+      });
+    }).catch(function(){
+      suggestEl.innerHTML='<div class="taxi-addr-empty">Не удалось загрузить подсказки — впишите адрес вручную</div>';
     });
-  }).catch(function(){
-    suggestEl.innerHTML='<div class="taxi-addr-empty">Не удалось загрузить подсказки — впишите адрес вручную</div>';
-  });
+  }
+  tryVariant(0);
 }
 function taxiUseMyLocation(inputEl){
   if(!navigator.geolocation){showToast("⚠️ Геолокация не поддерживается браузером");return;}
