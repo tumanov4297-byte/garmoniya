@@ -798,12 +798,50 @@ function taxiOpenBookingForm(tariffIdx){
 
 // ═══ Автодополнение адресов через OpenStreetMap Nominatim (бесплатно, без ключа) ═══
 let taxiAcTimer=null;
+function taxiQuickLocalSuggestions(query){
+  const q=query.trim();
+  const suggestions=[];
+  // Чисто число — предлагаем частые местные варианты (микрорайон/дом/квартира)
+  if(/^\d{1,3}$/.test(q)){
+    suggestions.push(q+"-й микрорайон");
+    suggestions.push("дом "+q);
+    suggestions.push("квартира "+q);
+  }
+  // "3 мкрн", "3мкрн", "мкрн 3" — расширяем до полной формы
+  var mkrnMatch=q.match(/^(\d{1,3})\s*мк?[рн]?[рн]?\.?$/i)||q.match(/^мкрн?\.?\s*(\d{1,3})$/i);
+  if(mkrnMatch)suggestions.push(mkrnMatch[1]+"-й микрорайон");
+  // "3 дом", "д 3", "д.3" — расширяем
+  var domMatch=q.match(/^д\.?\s*(\d{1,4})$/i);
+  if(domMatch)suggestions.push("дом "+domMatch[1]);
+  // Общие сокращения улиц — расширяем аббревиатуру, если ввод начинается с неё
+  const abbrevMap={"ул":"улица","пр":"проспект","пр-т":"проспект","пер":"переулок","б-р":"бульвар","мкрн":"микрорайон"};
+  Object.keys(abbrevMap).forEach(function(ab){
+    var re=new RegExp("^"+ab+"\\.?\\s+(.+)","i");
+    var m=q.match(re);
+    if(m)suggestions.push(abbrevMap[ab]+" "+m[1]);
+  });
+  return [...new Set(suggestions)];
+}
 function attachAddressAutocomplete(inputEl,suggestEl){
   if(!inputEl||!suggestEl)return;
   inputEl.addEventListener("input",function(){
     const q=inputEl.value.trim();
     clearTimeout(taxiAcTimer);
-    if(q.length<3){suggestEl.classList.add("gone");suggestEl.innerHTML="";return;}
+    if(!q){suggestEl.classList.add("gone");suggestEl.innerHTML="";return;}
+    const quick=taxiQuickLocalSuggestions(q);
+    if(quick.length){
+      suggestEl.innerHTML=quick.map(function(s){
+        return '<button type="button" class="taxi-addr-item taxi-addr-item-quick" data-quick="'+s.replace(/'/g,"&#39;")+'">✏️ '+s+' <span class="taxi-addr-quick-hint">— уточнить</span></button>';
+      }).join("");
+      suggestEl.classList.remove("gone");
+      suggestEl.querySelectorAll(".taxi-addr-item-quick").forEach(function(btn){
+        btn.onclick=function(){
+          inputEl.value=btn.dataset.quick;
+          taxiFetchSuggestions(btn.dataset.quick,suggestEl,inputEl);
+        };
+      });
+    }
+    if(q.length<3){if(!quick.length){suggestEl.classList.add("gone");suggestEl.innerHTML="";}return;}
     taxiAcTimer=setTimeout(function(){taxiFetchSuggestions(q,suggestEl,inputEl);},450);
   });
   document.addEventListener("click",function(e){
