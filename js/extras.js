@@ -253,7 +253,7 @@ const I18N={
     switched_to:"📍 Переключено на",how_help:"Чем могу помочь?",
     lang_name:"Русский",
     tb_home:"Главная",tb_menu:"Услуги",tb_cart:"Корзина",tb_orders:"Заявки",tb_profile:"Профиль",
-    orders_title:"📋 Мои заявки",orders_filter_all:"Все",orders_filter_orders:"🛒 Заявки",orders_filter_bookings:"📅 Записи",
+    orders_title:"📋 Мои заявки",orders_filter_all:"Все",orders_filter_orders:"🛒 Заявки",orders_filter_bookings:"📅 Записи",orders_filter_taxi:"🚕 Такси",
     orders_empty_title:"Пока нет заявок и записей",orders_empty_orders:"Нет заявок на услуги",orders_empty_bookings:"Нет записей к специалистам",
     close_and_return:"Закрыть и вернуться",
     services_title:"Прейскурант услуг",services_search_ph:"Поиск услуги по названию...",
@@ -304,7 +304,7 @@ const I18N={
     switched_to:"📍 Switched to",how_help:"How can I help?",
     lang_name:"English",
     tb_home:"Home",tb_menu:"Services",tb_cart:"Cart",tb_orders:"Orders",tb_profile:"Profile",
-    orders_title:"📋 My requests",orders_filter_all:"All",orders_filter_orders:"🛒 Requests",orders_filter_bookings:"📅 Bookings",
+    orders_title:"📋 My requests",orders_filter_all:"All",orders_filter_orders:"🛒 Requests",orders_filter_bookings:"📅 Bookings",orders_filter_taxi:"🚕 Taxi",
     orders_empty_title:"No requests or bookings yet",orders_empty_orders:"No service requests",orders_empty_bookings:"No appointments booked",
     close_and_return:"Close and return",
     services_title:"Price list",services_search_ph:"Search services by name...",
@@ -366,7 +366,7 @@ function applyTabBarLabels(){
   const staticMap={
     cartTitleH2:"cart_title",cartCloseLbl:"close_and_return",
     ordersTitleH2:"orders_title",ordersCloseLbl:"close_and_return",
-    ordFilterAll:"orders_filter_all",ordFilterOrders:"orders_filter_orders",ordFilterBookings:"orders_filter_bookings",
+    ordFilterAll:"orders_filter_all",ordFilterOrders:"orders_filter_orders",ordFilterBookings:"orders_filter_bookings",ordFilterTaxi:"orders_filter_taxi",
     profCloseLbl:"close_and_return"
   };
   Object.keys(staticMap).forEach(id=>{
@@ -499,23 +499,25 @@ function showSeasonalGreeting(){
 function showOnboarding(){
   if(localStorage.getItem("onboardingDone"))return;
   const steps=[
-    {emoji:"👋",title:"Добро пожаловать!",text:"Я — виртуальный помощник центра «Гармония». Помогу с услугами, записью и вопросами."},
-    {emoji:"📋",title:"Прейскурант",text:"В разделе «Прейскурант» — все услуги с ценами. Нажмите ★, чтобы добавить в избранное."},
+    {emoji:"👋",title:"Добро пожаловать!",text:"Я — виртуальный помощник центра «Гармония». Помогу с услугами, записью, такси и вопросами."},
+    {emoji:"📋",title:"Анкета получателя",text:"Заполните анкету один раз в личном кабинете — ФИО, СНИЛС и данные сами подставятся в заявки."},
+    {emoji:"📖",title:"Прейскурант",text:"В разделе «Прейскурант» — все услуги с ценами. Нажмите ★, чтобы добавить в избранное."},
     {emoji:"🤖",title:"Помощник",text:"Нажмите «Спросить помощника» и задайте вопрос своими словами — подскажу нужный раздел."},
+    {emoji:"🚕",title:"Такси",text:"Закажите поездку с сопровождением или без. Есть бесплатный тариф для льготных категорий."},
     {emoji:"🛒",title:"Корзина",text:"Добавляйте услуги в корзину кнопкой «+» и отправляйте заявку одним нажатием."},
-    {emoji:"📝",title:"Запись",text:"Запишитесь к специалисту, закажите обратный звонок или вызовите соцработника на дом."},
     {emoji:"🍊",title:"Карта Морошка",text:"Включите тумблер 🍊 в шапке — цены пересчитаются со скидкой 5%."},
-    {emoji:"👤",title:"Личный кабинет",text:"В кабинете — история заявок, записи, избранное и документы для скачивания."},
-    {emoji:"🌙",title:"Настройки",text:"Под шапкой: размер шрифта (А−/А+), тёмная тема (🌙) и язык интерфейса."}
+    {emoji:"👤",title:"Личный кабинет",text:"В кабинете — история заявок, записи, заказы такси, избранное и документы для скачивания."}
   ];
   let idx=0;
   const ovl=document.createElement("div");ovl.className="onb-ovl";
   function render(){
     const s=steps[idx];
     const isLast=idx===steps.length-1;
-    const dots=steps.map((_,i)=>`<span class="onb-dot ${i===idx?"active":""}"></span>`).join("");
+    const progress=Math.round(((idx+1)/steps.length)*100);
+    const dots=steps.map((_,i)=>`<span class="onb-dot ${i===idx?"active":i<idx?"done":""}"></span>`).join("");
     ovl.innerHTML=`<div class="onb-card">
-      <div class="onb-emoji">${s.emoji}</div>
+      <div class="onb-progress"><div class="onb-progress-fill" style="width:${progress}%"></div></div>
+      <div class="onb-emoji-badge"><span class="onb-emoji">${s.emoji}</span></div>
       <div class="onb-title">${s.title}</div>
       <div class="onb-text">${s.text}</div>
       <div class="onb-dots">${dots}</div>
@@ -524,12 +526,17 @@ function showOnboarding(){
         <button class="onb-btn" id="onbNext">${isLast?"Начать! 🚀":"Далее →"}</button>
       </div>
     </div>`;
-    ovl.querySelector("#onbNext").onclick=()=>{if(isLast){localStorage.setItem("onboardingDone","1");ovl.remove();}else{idx++;render();}};
+    ovl.querySelector("#onbNext").onclick=()=>{if(isLast){localStorage.setItem("onboardingDone","1");ovl.remove();offerQuestionnaireAfterOnboarding();}else{idx++;render();}};
     const prev=ovl.querySelector("#onbPrev");if(prev)prev.onclick=()=>{idx--;render();};
-    const skip=ovl.querySelector("#onbSkip");if(skip)skip.onclick=()=>{localStorage.setItem("onboardingDone","1");ovl.remove();};
+    const skip=ovl.querySelector("#onbSkip");if(skip)skip.onclick=()=>{localStorage.setItem("onboardingDone","1");ovl.remove();offerQuestionnaireAfterOnboarding();};
   }
   render();
   document.body.appendChild(ovl);
+}
+
+function offerQuestionnaireAfterOnboarding(){
+  if(localStorage.getItem("questionnaireDone"))return;
+  setTimeout(function(){editQuestionnaire();},450);
 }
 
 function showLiveChat(){
@@ -568,20 +575,30 @@ function editQuestionnaire(){
   let selectedCat=p.category||"";
   const ovl=document.createElement("div");ovl.className="mo";
   ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
-  ovl.innerHTML=`<div class="mc eq-mc" style="max-width:420px">
+  ovl.innerHTML=`<div class="mc eq-mc" style="max-width:440px">
     <div class="eq-hdr">
       <div class="eq-hdr-ico">📋</div>
       <h3>Анкета получателя</h3>
-      <p>Данные помогают точнее подбирать услуги.<br>Заполнение необязательно.</p>
+      <p>Заполните один раз — данные сами подставятся<br>в заявки, записи и заказ такси.</p>
     </div>
+
+    <div class="eq-lbl">Основные данные</div>
+    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqName">ФИО</label><input class="eq-input" id="eqName" value="${(clientName||"").replace(/"/g,"&quot;")}" placeholder="Фамилия Имя Отчество"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">📱</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqPhone">Телефон</label><input class="eq-input" id="eqPhone" value="${(clientPhone||"").replace(/"/g,"&quot;")}" placeholder="+7..." inputmode="tel"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">📇</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqSnils">СНИЛС</label><input class="eq-input" id="eqSnils" value="${(clientSnils||"").replace(/"/g,"&quot;")}" placeholder="000-000-000 00" inputmode="numeric"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">🎂</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqBirth">Дата рождения</label><input type="date" class="eq-input" id="eqBirth" value="${p.birthDate||""}"></div></div>
 
     <div class="eq-lbl">Категория</div>
     <div class="eq-cat-grid" id="eqCatGrid">
       ${cats.map(([k,l,ico])=>`<button type="button" class="eq-cat-card${selectedCat===k?" sel":""}" data-cat="${k}"><span class="eq-cat-ico">${ico}</span><span>${l}</span></button>`).join("")}
     </div>
 
-    <div class="eq-field"><span class="eq-field-ico">🎂</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqBirth">Дата рождения</label><input type="date" class="eq-input" id="eqBirth" value="${p.birthDate||""}"></div></div>
+    <div class="eq-lbl">Адрес и контакты</div>
     <div class="eq-field"><span class="eq-field-ico">🏠</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqAddr">Адрес проживания</label><input class="eq-input" id="eqAddr" value="${(p.address||"").replace(/"/g,"&quot;")}" placeholder="Город, улица, дом, квартира"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">👤</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqContactName">Контактное лицо (необязательно)</label><input class="eq-input" id="eqContactName" value="${(p.contactName||"").replace(/"/g,"&quot;")}" placeholder="ФИО родственника или соседа"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">📞</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqContactPhone">Телефон контактного лица</label><input class="eq-input" id="eqContactPhone" value="${(p.contactPhone||"").replace(/"/g,"&quot;")}" placeholder="+7..." inputmode="tel"></div></div>
+
+    <div class="eq-lbl">Дополнительно</div>
     <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqNote">Особые потребности</label><textarea class="eq-input" id="eqNote" rows="2" placeholder="Пожелания, особенности...">${p.note||""}</textarea></div></div>
 
     <button class="eq-save-btn" id="eqSave">💾 Сохранить анкету</button>
@@ -598,17 +615,26 @@ function editQuestionnaire(){
   });
 
   ovl.querySelector("#eqSave").onclick=()=>{
+    const nameVal=document.getElementById("eqName").value.trim();
+    const phoneVal=document.getElementById("eqPhone").value.trim();
+    const snilsVal=document.getElementById("eqSnils").value.trim();
+    if(nameVal){clientName=nameVal;localStorage.setItem("clientName",clientName);}
+    if(phoneVal){clientPhone=phoneVal;localStorage.setItem("clientPhone",clientPhone);}
+    clientSnils=snilsVal;localStorage.setItem("clientSnils",clientSnils);
     const data={
       birthDate:document.getElementById("eqBirth").value,
       category:selectedCat,
       address:document.getElementById("eqAddr").value,
+      contactName:document.getElementById("eqContactName").value.trim(),
+      contactPhone:document.getElementById("eqContactPhone").value.trim(),
       note:document.getElementById("eqNote").value,
       filledAt:new Date().toISOString()
     };
     localStorage.setItem("userProfile",JSON.stringify(data));
     localStorage.setItem("questionnaireDone","1");
-    showToast("💾 Анкета сохранена");
+    showToast("💾 Анкета сохранена — данные подставятся автоматически");
     ovl.remove();
     if(typeof renderProfilePanel==="function"&&document.getElementById("profBody"))renderProfilePanel();
+    const gaName=document.querySelector(".ga-name");if(gaName)gaName.textContent=clientName;
   };
 }

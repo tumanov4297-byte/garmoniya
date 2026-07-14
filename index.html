@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body>
 <div class="bloom bloom-1" aria-hidden="true"></div>
@@ -99,6 +101,7 @@
       <button class="of-btn active" data-f="all" onclick="ordFilter('all',this)" id="ordFilterAll">Все</button>
       <button class="of-btn" data-f="orders" onclick="ordFilter('orders',this)" id="ordFilterOrders">🛒 Заявки</button>
       <button class="of-btn" data-f="bookings" onclick="ordFilter('bookings',this)" id="ordFilterBookings">📅 Записи</button>
+      <button class="of-btn" data-f="taxi" onclick="ordFilter('taxi',this)" id="ordFilterTaxi">🚕 Такси</button>
     </div>
     <div class="ord-body" id="ordBody"></div>
     <div class="panel-close-bar"><button class="panel-close-btn" onclick="closeOrdersPanel()"><span class="pcb-arrow">←</span> <span id="ordersCloseLbl">Закрыть и вернуться</span></button></div>
