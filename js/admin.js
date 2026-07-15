@@ -557,7 +557,6 @@
       ["cancelBooking","Отмена записи",["ticket"]],
       ["feedback","Отзыв о работе центра",["name"]],
       ["callback","Обратный звонок",["name"]],
-      ["homeWorker","Вызов соцработника на дом",["name"]],
       ["event","Запись на мероприятие",["title"]]
     ];
     let html='<div class="adm-section-title">Шаблоны текстов заявок</div>';
@@ -592,7 +591,6 @@
       emailTemplates.cancelBooking={subject:"Отмена записи {ticket}",intro:"ОТМЕНА ЗАПИСИ"};
       emailTemplates.feedback={subject:"Отзыв от {name}",intro:"ОТЗЫВ О РАБОТЕ ЦЕНТРА"};
       emailTemplates.callback={subject:"Обратный звонок: {name}",intro:"ЗАЯВКА НА ОБРАТНЫЙ ЗВОНОК"};
-      emailTemplates.homeWorker={subject:"Соцработник на дом: {name}",intro:"ВЫЗОВ СОЦИАЛЬНОГО РАБОТНИКА НА ДОМ"};
       emailTemplates.event={subject:"Запись на мероприятие: {title}",intro:"ЗАПИСЬ НА МЕРОПРИЯТИЕ"};
       saveOverrides();showToast("↺ Тексты восстановлены");renderTemplates(body);
     };

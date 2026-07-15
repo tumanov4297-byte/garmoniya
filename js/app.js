@@ -667,106 +667,30 @@ function showCategory(catId,highlightUid){
 let taxiState={tariffIdx:null,from:"",to:"",date:"",time:"",comment:""};
 
 let taxiShowMor=hasMoroshka;
+let taxiSelectedIdx=null,taxiSelectedIsFree=false;
 function showTaxi(){
   clearActions();setNav(true);
   chatEl.innerHTML="";
-  const w=document.createElement("div");w.className="taxi-page";
+  const w=document.createElement("div");w.className="taxi-page taxi-page-v2";
   const tariffs=getTaxiTariffs();
   taxiShowMor=hasMoroshka;
-  let html='';
+  taxiSelectedIdx=null;taxiSelectedIsFree=false;
+  taxiState={tariffIdx:null,isFree:false,from:"",to:"",date:"",time:"",comment:"",moroshkaView:taxiShowMor};
+  taxiCoords.from=null;taxiCoords.to=null;
 
   if(!tariffs.items.length){
-    html+='<div class="ev-empty">'+emptyIllustration()+'<div class="empty-title">Такси недоступно в этом филиале</div><div class="empty-sub">Уточните возможность перевозки по телефону центра</div></div>';
-    w.innerHTML=html;chatEl.appendChild(w);
+    w.innerHTML='<div class="ev-empty">'+emptyIllustration()+'<div class="empty-title">Такси недоступно в этом филиале</div><div class="empty-sub">Уточните возможность перевозки по телефону центра</div></div>';
+    chatEl.appendChild(w);
     actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
     return;
   }
 
-  html+='<button type="button" class="taxi-mor-toggle taxi-mor-toggle-main '+(taxiShowMor?"on":"")+'" id="taxiMorToggleMain" aria-pressed="'+taxiShowMor+'"><img src="img/moroshka-logo.jpg" alt=""><span>Показывать цены по карте «Морошка»</span></button>';
-
+  const today=new Date().toISOString().split("T")[0];
   const quota=getFreeTaxiQuota();
   const eligibility=checkFreeTaxiEligibility();
   const freeDisabled=!eligibility.eligible||quota.remaining<=0;
-  html+='<button type="button" class="taxi-tariff-card taxi-free-card" id="taxiFreeCard" data-disabled="'+freeDisabled+'">'
-    +'<div class="taxi-tariff-top"><span class="taxi-tariff-badge free">🎁 Бесплатно</span><span class="taxi-tariff-arr">›</span></div>'
-    +'<div class="taxi-tariff-name">Социальное такси — льготная поездка</div>';
-  if(!eligibility.eligible){
-    html+='<div class="taxi-free-eligibility not-ok"><span>🔒</span> '+eligibility.message+'</div>';
-  }else{
-    html+='<div class="taxi-free-eligibility ok"><span>✅</span> Право подтверждено по СНИЛС</div>';
-    html+='<div class="taxi-free-quota"><div class="taxi-free-quota-bar"><div class="taxi-free-quota-fill" style="width:'+(quota.remaining/quota.limit*100)+'%"></div></div>'
-      +'<span>'+(quota.remaining>0?"Осталось "+quota.remaining+" из "+quota.limit+" поездок в этом году":"Лимит "+quota.limit+" поездок в этом году исчерпан")+'</span></div>';
-  }
-  html+='</button>';
 
-  html+='<div class="taxi-tariff-list" id="taxiTariffList">';
-  tariffs.items.forEach(function(t){
-    html+=taxiTariffCardHtml(t);
-  });
-  html+='</div>';
-
-
-  w.innerHTML=html;
-  chatEl.appendChild(w);
-  w.querySelectorAll(".taxi-tariff-card:not(.taxi-free-card)").forEach(function(btn){
-    btn.onclick=function(){taxiOpenBookingForm(+btn.dataset.tidx);};
-  });
-  const freeCard=document.getElementById("taxiFreeCard");
-  if(freeCard)freeCard.onclick=function(){
-    if(freeCard.dataset.disabled==="true"){
-      const elig=checkFreeTaxiEligibility();
-      showToast(elig.eligible?"⚠️ Лимит бесплатных поездок на этот год исчерпан":"⚠️ "+elig.message);
-      return;
-    }
-    taxiOpenBookingForm(null,true);
-  };
-  const morBtn=document.getElementById("taxiMorToggleMain");
-  if(morBtn)morBtn.onclick=function(){
-    taxiShowMor=!taxiShowMor;
-    morBtn.classList.toggle("on",taxiShowMor);
-    morBtn.setAttribute("aria-pressed",String(taxiShowMor));
-    document.getElementById("taxiTariffList").innerHTML=tariffs.items.map(taxiTariffCardHtml).join("");
-    document.querySelectorAll(".taxi-tariff-card:not(.taxi-free-card)").forEach(function(btn){
-      btn.onclick=function(){taxiOpenBookingForm(+btn.dataset.tidx);};
-    });
-  };
-  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
-}
-function taxiTariffCardHtml(t){
-  const badgeClass=t.label.indexOf("сопровожд")>=0?"gold":t.label.indexOf("городу")>=0?"green":"teal";
-  const showMor=taxiShowMor&&t.moroshka!=null;
-  return '<button type="button" class="taxi-tariff-card" data-tidx="'+t.idx+'">'
-    +'<div class="taxi-tariff-top"><span class="taxi-tariff-badge '+badgeClass+'">'+t.duration+' мин</span><span class="taxi-tariff-arr">›</span></div>'
-    +'<div class="taxi-tariff-name">'+t.label+'</div>'
-    +'<div class="taxi-tariff-price"><span class="ttp-main">'+(showMor?t.moroshka:t.base)+' ₽</span>'
-    +(showMor?'<span class="ttp-old">'+t.base+' ₽</span><img src="img/moroshka-logo.jpg" class="ttp-mor-ico" alt="">':t.moroshka!=null?'<span class="ttp-hint">Со скидкой «Морошка»: '+t.moroshka+' ₽</span>':'')
-    +'</div></button>';
-}
-
-function taxiOpenBookingForm(tariffIdx,isFree){
-  let t;
-  if(isFree){
-    t={idx:null,label:"Социальное такси — льготная поездка",duration:"30",base:0,moroshka:null};
-  }else{
-    const tariffs=getTaxiTariffs();
-    t=tariffs.items.find(function(x){return x.idx===tariffIdx;});
-    if(!t)return;
-  }
-  taxiState={tariffIdx:tariffIdx,isFree:!!isFree,from:"",to:"",date:"",time:"",comment:"",moroshkaView:taxiShowMor};
-  taxiCoords.from=null;taxiCoords.to=null;
-  clearActions();setNav(true);
-  chatEl.innerHTML="";
-  const w=document.createElement("div");w.className="taxi-page";
-  const today=new Date().toISOString().split("T")[0];
-  w.innerHTML=`
-    <button class="pl-back" onclick="showTaxi()">← Все тарифы</button>
-    <div class="taxi-selected-card ${isFree?"taxi-selected-free":""}">
-      <div class="taxi-selected-lbl">${t.label}</div>
-      <div class="taxi-selected-price-row">
-        <div class="taxi-selected-price" id="taxiSelPrice">${isFree?"Бесплатно 🎁":(taxiState.moroshkaView?t.moroshka:t.base)+" ₽"} <span>· ${t.duration} мин</span></div>
-        ${(!isFree&&t.moroshka!=null)?`<button type="button" class="taxi-mor-toggle ${taxiState.moroshkaView?"on":""}" id="taxiMorToggle" aria-pressed="${taxiState.moroshkaView}"><img src="img/moroshka-logo.jpg" alt=""><span>Морошка</span></button>`:""}
-      </div>
-    </div>
+  let html=`
     <div class="taxi-route-visual">
       <div class="taxi-route-line">
         <span class="taxi-dot taxi-dot-from"></span>
@@ -786,17 +710,16 @@ function taxiOpenBookingForm(tariffIdx,isFree){
       </div>
     </div>
     <div class="taxi-quick-dest">
-      <span class="taxi-quick-dest-lbl">Часто ищут:</span>
       <div class="taxi-quick-dest-chips" id="taxiQuickDest">
         <button type="button" class="taxi-chip" data-q="Больница">🏥 Больница</button>
         <button type="button" class="taxi-chip" data-q="Поликлиника">🩺 Поликлиника</button>
         <button type="button" class="taxi-chip" data-q="Аптека">💊 Аптека</button>
         <button type="button" class="taxi-chip" data-q="МФЦ">📄 МФЦ</button>
         <button type="button" class="taxi-chip" data-q="Пенсионный фонд">💰 Пенсионный фонд</button>
-        <button type="button" class="taxi-chip" data-q="Сбербанк">🏦 Сбербанк</button>
         <button type="button" class="taxi-chip" data-cson="1">🏢 ЦСОН «Гармония»</button>
       </div>
     </div>
+
     <div class="taxi-dt-section">
       <div class="eq-lbl">📅 Когда подать машину</div>
       <div class="taxi-date-scroll" id="taxiDateScroll"></div>
@@ -804,6 +727,21 @@ function taxiOpenBookingForm(tariffIdx,isFree){
       <input type="hidden" id="taxiDate" value="${today}">
       <input type="hidden" id="taxiTime" value="">
     </div>
+
+    <div class="eq-lbl">🚕 Выберите тариф</div>
+    <div class="taxi-select-list" id="taxiSelectList">
+      <button type="button" class="taxi-tariff-card taxi-free-card taxi-selectable" data-tidx="free" data-disabled="${freeDisabled}">
+        <div class="taxi-tariff-ico free">🎁</div>
+        <div class="taxi-tariff-body">
+          <div class="taxi-tariff-top"><span class="taxi-tariff-name">Льготная поездка</span><span class="taxi-sel-check">✓</span></div>
+          <div class="taxi-tariff-price"><span class="ttp-main free-price">Бесплатно</span></div>
+          ${!eligibility.eligible?`<div class="taxi-free-eligibility not-ok"><span>🔒</span> ${eligibility.message}</div>`
+            :`<div class="taxi-free-eligibility ok"><span>✅</span> ${quota.remaining>0?"Осталось "+quota.remaining+" из "+quota.limit+" поездок":"Лимит на этот год исчерпан"}</div>`}
+        </div>
+      </button>
+      ${tariffs.items.map(t=>taxiTariffCardHtml(t)).join("")}
+    </div>
+
     <div class="eq-field"><span class="eq-field-ico">👥</span><div class="eq-field-body"><label class="eq-field-lbl">Количество пассажиров</label>
       <div class="taxi-pax-stepper">
         <button type="button" class="taxi-pax-btn" id="taxiPaxMinus">−</button>
@@ -816,10 +754,14 @@ function taxiOpenBookingForm(tariffIdx,isFree){
     <div class="eq-field gone" id="taxiPax2Field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 2</label><input class="eq-input" id="taxiPax2Name" placeholder="ФИО второго пассажира"></div></div>
     <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl">Комментарий (необязательно)</label><textarea class="eq-input" id="taxiComment" rows="2" placeholder="Особые пожелания..."></textarea></div></div>
     <input type="hidden" id="taxiPax" value="1">
-    <button class="eq-save-btn" id="taxiSubmit">🚕 Заказать такси</button>
+    <div class="taxi-morrow-toggle-wrap">
+      <button type="button" class="taxi-mor-toggle taxi-mor-toggle-main ${taxiShowMor?"on":""}" id="taxiMorToggleMain" aria-pressed="${taxiShowMor}"><img src="img/moroshka-logo.jpg" alt=""><span>Показывать цены по карте «Морошка»</span></button>
+    </div>
+    <div style="height:90px"></div>
   `;
+  w.innerHTML=html;
   chatEl.appendChild(w);
-  w.querySelector("#taxiSubmit").onclick=function(){taxiConfirmBooking(tariffIdx,isFree);};
+
   attachAddressAutocomplete(document.getElementById("taxiFrom"),document.getElementById("taxiFromSuggest"));
   attachAddressAutocomplete(document.getElementById("taxiTo"),document.getElementById("taxiToSuggest"));
   document.querySelectorAll("#taxiQuickDest .taxi-chip").forEach(function(chip){
@@ -838,13 +780,9 @@ function taxiOpenBookingForm(tariffIdx,isFree){
   });
   const geoBtn=document.getElementById("taxiGeoBtn");
   if(geoBtn)geoBtn.onclick=function(){taxiUseMyLocation(document.getElementById("taxiFrom"));};
-  const morToggle=document.getElementById("taxiMorToggle");
-  if(morToggle)morToggle.onclick=function(){
-    taxiState.moroshkaView=!taxiState.moroshkaView;
-    morToggle.classList.toggle("on",taxiState.moroshkaView);
-    morToggle.setAttribute("aria-pressed",String(taxiState.moroshkaView));
-    document.getElementById("taxiSelPrice").innerHTML=(taxiState.moroshkaView?t.moroshka:t.base)+" ₽ <span>· "+t.duration+" мин</span>";
-  };
+
+  taxiRenderDateTimePicker();
+
   function updatePax(delta){
     const paxVal=document.getElementById("taxiPaxVal");
     let n=parseInt(paxVal.textContent)+delta;
@@ -855,9 +793,85 @@ function taxiOpenBookingForm(tariffIdx,isFree){
   }
   document.getElementById("taxiPaxMinus").onclick=function(){updatePax(-1);};
   document.getElementById("taxiPaxPlus").onclick=function(){updatePax(1);};
-  taxiRenderDateTimePicker();
-  w.scrollIntoView({behavior:"smooth",block:"start"});
-  actionsEl.innerHTML="";
+
+  function selectTariff(idx,isFree,btn){
+    if(btn.dataset.disabled==="true"){
+      const elig=checkFreeTaxiEligibility();
+      showToast(elig.eligible?"⚠️ Лимит бесплатных поездок на этот год исчерпан":"⚠️ "+elig.message);
+      return;
+    }
+    taxiSelectedIdx=isFree?null:idx;taxiSelectedIsFree=isFree;
+    document.querySelectorAll(".taxi-tariff-card").forEach(c=>c.classList.remove("selected"));
+    btn.classList.add("selected");
+    updateOrderBar();
+  }
+  document.querySelectorAll(".taxi-select-list .taxi-tariff-card").forEach(function(btn){
+    btn.onclick=function(){
+      const isFree=btn.dataset.tidx==="free";
+      selectTariff(isFree?null:+btn.dataset.tidx,isFree,btn);
+    };
+  });
+
+  const morBtn=document.getElementById("taxiMorToggleMain");
+  if(morBtn)morBtn.onclick=function(){
+    taxiShowMor=!taxiShowMor;
+    morBtn.classList.toggle("on",taxiShowMor);
+    morBtn.setAttribute("aria-pressed",String(taxiShowMor));
+    const selList=document.getElementById("taxiSelectList");
+    const freeCardHtml=selList.querySelector(".taxi-free-card").outerHTML;
+    selList.innerHTML=freeCardHtml+tariffs.items.map(t=>taxiTariffCardHtml(t)).join("");
+    document.querySelectorAll(".taxi-select-list .taxi-tariff-card").forEach(function(btn){
+      btn.onclick=function(){
+        const isFree=btn.dataset.tidx==="free";
+        selectTariff(isFree?null:+btn.dataset.tidx,isFree,btn);
+      };
+    });
+    if(taxiSelectedIdx!=null||taxiSelectedIsFree){
+      const sel=selList.querySelector(taxiSelectedIsFree?'[data-tidx="free"]':'[data-tidx="'+taxiSelectedIdx+'"]');
+      if(sel)sel.classList.add("selected");
+    }
+    updateOrderBar();
+  };
+
+  function updateOrderBar(){
+    const bar=document.getElementById("taxiOrderBar");
+    if(taxiSelectedIdx==null&&!taxiSelectedIsFree){bar.classList.add("gone");return;}
+    bar.classList.remove("gone");
+    let priceText;
+    if(taxiSelectedIsFree){priceText="Бесплатно 🎁";}
+    else{
+      const t=tariffs.items.find(x=>x.idx===taxiSelectedIdx);
+      const useMor=taxiShowMor&&t.moroshka!=null;
+      priceText=(useMor?t.moroshka:t.base)+" ₽";
+    }
+    document.getElementById("taxiOrderBarPrice").textContent=priceText;
+  }
+
+  actionsEl.innerHTML=`
+    <div class="taxi-order-bar gone" id="taxiOrderBar">
+      <span class="taxi-order-bar-price" id="taxiOrderBarPrice"></span>
+      <button type="button" class="taxi-order-bar-btn" id="taxiSubmit">Заказать такси →</button>
+    </div>
+    <button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>
+  `;
+  document.getElementById("taxiSubmit").onclick=function(){
+    taxiConfirmBooking(taxiSelectedIdx,taxiSelectedIsFree);
+  };
+}
+function taxiTariffCardHtml(t){
+  const isEscort=t.label.indexOf("сопровожд")>=0&&t.label.toLowerCase().indexOf("без")!==0;
+  const isLocal=t.label.indexOf("городу")>=0;
+  const badgeClass=isEscort?"gold":isLocal?"green":"teal";
+  const icon=isEscort?"🚗":isLocal?"🏙️":"🚕";
+  const showMor=taxiShowMor&&t.moroshka!=null;
+  return '<button type="button" class="taxi-tariff-card taxi-selectable" data-tidx="'+t.idx+'">'
+    +'<div class="taxi-tariff-ico '+badgeClass+'">'+icon+'</div>'
+    +'<div class="taxi-tariff-body">'
+    +'<div class="taxi-tariff-top"><span class="taxi-tariff-name">'+t.label+'</span><span class="taxi-sel-check">✓</span></div>'
+    +'<div class="taxi-tariff-meta"><span class="taxi-tariff-dur">⏱ '+t.duration+' мин</span></div>'
+    +'<div class="taxi-tariff-price"><span class="ttp-main">'+(showMor?t.moroshka:t.base)+' ₽</span>'
+    +(showMor?'<span class="ttp-old">'+t.base+' ₽</span><img src="img/moroshka-logo.jpg" class="ttp-mor-ico" alt="">':t.moroshka!=null?'<span class="ttp-hint">Со скидкой «Морошка»: '+t.moroshka+' ₽</span>':'')
+    +'</div></div></button>';
 }
 function taxiRenderDateTimePicker(){
   const cd=cityData[currentCity]||cityData.gubkin;
@@ -1254,27 +1268,35 @@ function taxiInitRouteMap(from,to){
 }
 function showBooking(){
   clearActions();setNav(true);
+  const bookableStaff=staffData.filter(s=>/директор/i.test(s.pos));
   if(!staffData.length){showCityPlaceholder("записи");return;}
+  if(!bookableStaff.length){
+    chatEl.innerHTML="";
+    const w0=document.createElement("div");w0.className="booking-page";
+    w0.innerHTML='<h2>📝 Запись на приём</h2><div class="ev-empty">'+emptyIllustration()+'<div class="empty-title">Нет доступных сотрудников для записи</div><div class="empty-sub">Свяжитесь с центром по телефону</div></div>';
+    chatEl.appendChild(w0);
+    actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+    return;
+  }
   chatEl.innerHTML="";
   const w=document.createElement("div");w.className="booking-page";
-  const depts=[...new Set(staffData.map(s=>s.dept))];
-  let selDept="",selSpec="",selDate="",selTime="";
+  let selSpec="",selDate="",selTime="";
 
   w.innerHTML=`
-    <h2>📝 Запись к специалисту</h2>
+    <h2>📝 Запись на приём</h2>
     <div class="bk-progress"><div class="bk-progress-fill" id="bkProgressFill"></div></div>
-    <div class="bk-step-lbl">1. Выберите отделение</div>
-    <div class="bk-dept-list" id="bkDeptList">
-      ${depts.map(d=>`<button class="bk-dept-card" data-dept="${d.replace(/"/g,"&quot;")}">${d}</button>`).join("")}
+    <div class="bk-step-lbl">1. Выберите руководителя</div>
+    <div class="bk-spec-list" id="bkSpecList">
+      ${bookableStaff.map(s=>{
+        const ini=s.name.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase();
+        return `<button class="bk-spec-card" data-spec="${s.name.replace(/"/g,"&quot;")}"><span class="bk-spec-ava">${ini}</span><span class="bk-spec-txt"><b>${s.name}</b><span>${s.pos}</span></span></button>`;
+      }).join("")}
     </div>
 
-    <div class="bk-step-lbl bk-step-2 gone" id="bkStep2">2. Выберите специалиста</div>
-    <div class="bk-spec-list gone" id="bkSpecList"></div>
-
-    <div class="bk-step-lbl bk-step-3 gone" id="bkStep3">3. Выберите дату</div>
+    <div class="bk-step-lbl bk-step-3 gone" id="bkStep3">2. Выберите дату</div>
     <div class="bk-days-scroll gone" id="bkDays"></div>
 
-    <div class="bk-step-lbl bk-step-4 gone" id="bkStep4">4. Выберите время</div>
+    <div class="bk-step-lbl bk-step-4 gone" id="bkStep4">3. Выберите время</div>
     <div class="bk-time-wrap gone" id="bkTimeWrap"></div>
 
     <div class="bk-comment-wrap gone" id="bkCommentWrap">
@@ -1286,24 +1308,22 @@ function showBooking(){
   `;
   chatEl.appendChild(w);
   const progressFillEl=w.querySelector("#bkProgressFill");
-  function updateProgress(step){progressFillEl.style.width=(step*25)+"%";}
+  function updateProgress(step){progressFillEl.style.width=(step*33.3)+"%";}
   updateProgress(0);
 
-  const deptListEl=w.querySelector("#bkDeptList");
-  const step2El=w.querySelector("#bkStep2"),specListEl=w.querySelector("#bkSpecList");
+  const specListEl=w.querySelector("#bkSpecList");
   const step3El=w.querySelector("#bkStep3"),daysEl=w.querySelector("#bkDays");
   const step4El=w.querySelector("#bkStep4"),timeWrapEl=w.querySelector("#bkTimeWrap");
   const commentWrapEl=w.querySelector("#bkCommentWrap");
   const summaryEl=w.querySelector("#bkSummary");
 
   function updateSummary(){
-    if(selDept&&selSpec&&selDate&&selTime){
+    if(selSpec&&selDate&&selTime){
       const dObj=new Date(selDate);
       const dateStr=dObj.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
       summaryEl.innerHTML=`
         <div class="bk-sum-title">✅ Проверьте данные записи</div>
-        <div class="bk-sum-row"><span>Отделение</span><b>${selDept}</b></div>
-        <div class="bk-sum-row"><span>Специалист</span><b>${selSpec}</b></div>
+        <div class="bk-sum-row"><span>Руководитель</span><b>${selSpec}</b></div>
         <div class="bk-sum-row"><span>Дата и время</span><b>${dateStr}, ${selTime}</b></div>
         <button class="book-send" id="bkSendBtn">📧 Подтвердить запись</button>
       `;
@@ -1315,37 +1335,18 @@ function showBooking(){
     }
   }
 
-  deptListEl.querySelectorAll(".bk-dept-card").forEach(btn=>{
-    btn.onclick=()=>{
-      selDept=btn.dataset.dept;selSpec="";selDate="";selTime="";
-      deptListEl.querySelectorAll(".bk-dept-card").forEach(b=>b.classList.remove("sel"));
-      btn.classList.add("sel");
-      const list=staffData.filter(s=>s.dept===selDept);
-      specListEl.innerHTML=list.map(s=>{
-        const ini=s.name.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase();
-        return `<button class="bk-spec-card" data-spec="${s.name.replace(/"/g,"&quot;")}"><span class="bk-spec-ava">${ini}</span><span class="bk-spec-txt"><b>${s.name}</b><span>${s.pos}</span></span></button>`;
-      }).join("");
-      specListEl.querySelectorAll(".bk-spec-card").forEach(sbtn=>{
-        sbtn.onclick=()=>{
-          selSpec=sbtn.dataset.spec;selDate="";selTime="";
-          specListEl.querySelectorAll(".bk-spec-card").forEach(b=>b.classList.remove("sel"));
-          sbtn.classList.add("sel");
-          renderDays();
-          step3El.classList.remove("gone");daysEl.classList.remove("gone");
-          step4El.classList.add("gone");timeWrapEl.classList.add("gone");timeWrapEl.innerHTML="";
-          commentWrapEl.classList.add("gone");
-          updateProgress(2);
-          updateSummary();
-          step3El.scrollIntoView({behavior:"smooth",block:"start"});
-        };
-      });
-      step2El.classList.remove("gone");specListEl.classList.remove("gone");
-      step3El.classList.add("gone");daysEl.classList.add("gone");
-      step4El.classList.add("gone");timeWrapEl.classList.add("gone");
+  specListEl.querySelectorAll(".bk-spec-card").forEach(sbtn=>{
+    sbtn.onclick=()=>{
+      selSpec=sbtn.dataset.spec;selDate="";selTime="";
+      specListEl.querySelectorAll(".bk-spec-card").forEach(b=>b.classList.remove("sel"));
+      sbtn.classList.add("sel");
+      renderDays();
+      step3El.classList.remove("gone");daysEl.classList.remove("gone");
+      step4El.classList.add("gone");timeWrapEl.classList.add("gone");timeWrapEl.innerHTML="";
       commentWrapEl.classList.add("gone");
       updateProgress(1);
       updateSummary();
-      step2El.scrollIntoView({behavior:"smooth",block:"start"});
+      step3El.scrollIntoView({behavior:"smooth",block:"start"});
     };
   });
 
@@ -1372,7 +1373,7 @@ function showBooking(){
         renderTimeSlots();
         step4El.classList.remove("gone");timeWrapEl.classList.remove("gone");
         commentWrapEl.classList.add("gone");
-        updateProgress(3);
+        updateProgress(2);
         updateSummary();
         step4El.scrollIntoView({behavior:"smooth",block:"start"});
       };
@@ -1393,32 +1394,32 @@ function showBooking(){
         btn.classList.add("sel");btn.setAttribute("aria-pressed","true");
         selTime=btn.dataset.time;
         commentWrapEl.classList.remove("gone");
-        updateProgress(4);
+        updateProgress(3);
         updateSummary();
       };
     });
   }
 
   function doSendBooking(){
-    if(!selDept||!selSpec||!selDate||!selTime){showToast("⚠️ Заполните все поля");return;}
+    if(!selSpec||!selDate||!selTime){showToast("⚠️ Заполните все поля");return;}
     ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
     const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
     const commentVal=(document.getElementById("bkComment")||{}).value||"";
     const cd2=cityData[currentCity]||cityData.gubkin;
-    const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nДата: ${selDate}, Время: ${selTime}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nОТДЕЛЕНИЕ: ${selDept}\nСПЕЦИАЛИСТ: ${selSpec}\nКОММЕНТАРИЙ: ${commentVal||"—"}`;
+    const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nДата: ${selDate}, Время: ${selTime}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nРУКОВОДИТЕЛЬ: ${selSpec}\nКОММЕНТАРИЙ: ${commentVal||"—"}`;
     window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:clientName,date:selDate,time:selTime,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
     bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
     bookingsHistory.unshift({
       num:ticketNum,
       date:new Date().toLocaleString("ru-RU"),
       visitDate:selDate,visitTime:selTime,
-      dept:selDept,spec:selSpec,
+      spec:selSpec,
       comment:commentVal
     });
     localStorage.setItem("bookingsHistory",JSON.stringify(bookingsHistory));
     window.GarmoniyaDB?.saveBooking({
       num:ticketNum, clientName, clientPhone, cityName:currentCityName,
-      dept:selDept, spec:selSpec, visitDate:selDate, visitTime:selTime,
+      spec:selSpec, visitDate:selDate, visitTime:selTime,
       comment:commentVal
     });
     chatEl.innerHTML="";
@@ -1429,7 +1430,7 @@ function showBooking(){
     const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
     calBtn.style.width="100%";
     calBtn.textContent="📅 Добавить в календарь";
-    calBtn.onclick=()=>exportToCalendar({num:ticketNum,spec:selSpec,dept:selDept,visitDate:selDate,visitTime:selTime});
+    calBtn.onclick=()=>exportToCalendar({num:ticketNum,spec:selSpec,visitDate:selDate,visitTime:selTime});
     actionsEl.appendChild(calBtn);
   }
 
@@ -1741,7 +1742,7 @@ function renderOrdersPanel(filter){
       </div>
       <div class="ord-card-body">
         <div class="ord-card-spec">👤 ${b.spec}</div>
-        <div class="ord-card-detail">🕒 ${b.visitDate} в ${b.visitTime}<br>📍 ${b.dept}</div>
+        <div class="ord-card-detail">🕒 ${b.visitDate} в ${b.visitTime}${b.dept?"<br>📍 "+b.dept:""}</div>
       </div>
       <div class="ord-card-actions">
         <button class="ord-act" onclick="exportToCalendar(JSON.parse(localStorage.getItem('bookingsHistory'))[${i}])">📆 В календарь</button>
@@ -2142,7 +2143,7 @@ function showAuth(){
     </select>
     <div class="cb-row">
       <input type="checkbox" id="aCb" aria-required="true">
-      <label for="aCb">Даю согласие на обработку персональных данных (ФЗ-152)</label>
+      <label for="aCb">Даю согласие на обработку персональных данных (ФЗ-152) — <a href="https://dszn.yanao.ru/documents/active/45015/" target="_blank" rel="noopener" onclick="event.stopPropagation()">политика обработки</a></label>
     </div>
     <button class="auth-btn" id="aBtn" disabled aria-label="Войти в систему">Войти →</button>
     <button class="auth-esia" type="button" onclick="esiaLogin()" aria-label="Войти через Госуслуги">
@@ -2272,7 +2273,6 @@ function showMenuPage(){
     '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-tablet.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-more">Услуги и информация</div>'+
     '<div class="sp-grid">'+
-    '<div class="sp-g" data-a="homeWorker"><span class="sp-g-i" style="background:linear-gradient(135deg,#ef4444,#dc2626)">🏠</span><b>На дом</b></div>'+
     '<div class="sp-g" data-a="callback"><span class="sp-g-i" style="background:linear-gradient(135deg,#1B8585,#14b8a6)">📞</span><b>Звонок</b></div>'+
     '<div class="sp-g" data-a="events"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🎟️</span><b>События</b></div>'+
     '<div class="sp-g" data-a="news"><span class="sp-g-i" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">📰</span><b>Новости</b></div>'+
@@ -2283,7 +2283,7 @@ function showMenuPage(){
     '<div class="sp-g" data-a="feedback"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">⭐</span><b>Отзыв</b></div>'+
     '</div>';
   chatEl.appendChild(w);
-  var acts={services:showServices,booking:showBooking,taxi:showTaxi,staff:showStaff,assistant:showAssistant,homeWorker:showHomeWorker,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,faq:showFAQ,moroshka:showMoroshkaInfo,feedback:showFeedback,gallery:showGallery};
+  var acts={services:showServices,booking:showBooking,taxi:showTaxi,staff:showStaff,assistant:showAssistant,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,faq:showFAQ,moroshka:showMoroshkaInfo,feedback:showFeedback,gallery:showGallery};
   w.querySelectorAll("[data-a]").forEach(function(el){
     var a=el.dataset.a;
     if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};

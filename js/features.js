@@ -94,9 +94,6 @@ const ASST_INTENTS=[
   {kw:["оператор","живой","человек","написать","связат","чат с","позвонить","макс","max","мессенджер","max.ru"],
    answer:"Связаться с оператором можно через мессенджер Макс (max.ru), по телефону или email.",
    actions:[{label:"💬 Написать оператору",fn:"showLiveChat",cl:"blue"}]},
-  {kw:["на дом","соцработ","соц работ","социальн работ","выезд специалист","вызвать на дом","прийти домой","надомн"],
-   answer:"Можно вызвать социального работника на дом — оформим заявку.",
-   actions:[{label:"🏠 Соцработник на дом",fn:"showHomeWorker",cl:"teal"}]},
   {kw:["меропри","афиша","концерт","записаться на событ","мастер класс","мастер-класс","событие"],
    answer:"Вот афиша ближайших мероприятий — на любое можно записаться.",
    actions:[{label:"🎟️ Мероприятия",fn:"showEvents",cl:"teal"}]},
@@ -116,11 +113,11 @@ const ASST_INTENTS=[
    answer:"Мелкий ремонт малогабаритной мебели есть в прейскуранте.",
    hint:["малогабаритной мебели"]},
   {kw:["готовить","приготовить","обед сварить","еду сготов","приготовление пищ"],
-   answer:"Приготовление пищи на дому — отдельная услуга.",
-   hint:["приготовлению пищевых"]},
+   answer:"Приготовление пищи есть в разделе услуг по питанию.",
+   hint:["предоставлению питания"]},
   {kw:["гигиен","помыться","душ принять","ванн","подстричь","стрижк"],
-   answer:"Гигиенические процедуры — отдельный раздел прейскуранта.",
-   hint:["гигиенические процедуры"]},
+   answer:"Такая услуга сейчас не входит в прейскурант центра. Уточните возможность по телефону или закажите обратный звонок.",
+   actions:[{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"}]},
   {kw:["юрист","юридическ","консультац юрист","составить иск","исковое"],
    answer:"Правовые услуги — консультации юриста, составление документов.",
    hint:["правовые услуги"]},
@@ -158,12 +155,12 @@ const ASST_INTENTS=[
    actions:[{label:"👥 Сотрудники",fn:"showStaff",cl:"teal"},{label:"📍 Контакты",fn:"showContacts",cl:"outline"}]},
   {kw:["инвалид 1 групп","инвалид первой групп","инвалид 2 групп","инвалид второй групп","инвалид 3 групп","инвалидность с детств","колясочник"],
    answer:"Для получателей с инвалидностью центр предоставляет широкий спектр услуг: от сопровождения и ухода до реабилитационных занятий. Обратитесь к специалисту по социальной работе для подбора индивидуальной программы.",
-   actions:[{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"},{label:"🏠 Соцработник на дом",fn:"showHomeWorker",cl:"teal"}]},
+   actions:[{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"}]},
   {kw:["одинокий пожилой","живу один","некому помочь","нет родственников","доживаю один"],
-   answer:"Служба социального обслуживания на дому регулярно навещает одиноких пожилых граждан: помогает с бытом, покупками, сопровождением к врачу. Оформите заявку — специалист свяжется с вами.",
-   actions:[{label:"🏠 Соцработник на дом",fn:"showHomeWorker",cl:"teal"},{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"}]},
+   answer:"Рекомендуем связаться с центром напрямую — специалист подскажет, какая поддержка доступна.",
+   actions:[{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"}]},
   {kw:["выписался из больниц","после операции","восстановлен после болезн","реабилитация после"],
-   answer:"После выписки из больницы можно оформить временный уход на дому, доставку продуктов и лекарств, сопровождение к врачу. Подходящие услуги — в разделе «Дополнительные социальные услуги».",
+   answer:"После выписки из больницы доступны услуги доставки продуктов, лекарств и сопровождения к врачу — уточните детали по телефону центра.",
    hint:["дополнительные социальные"]},
   {kw:["потерял документы","восстановить паспорт","восстановить снилс","утерян паспорт","потерял паспорт","потеряла паспорт","посеял паспорт"],
    answer:"По вопросам восстановления документов проконсультирует специалист по социальной работе или юрист центра.",
@@ -478,6 +475,13 @@ function smartAsk(query){
 
   const st=smallTalk(q);if(st)return st;
 
+  const orientKw=["какие услуги","какая помощь","что вы предлага","что у вас есть","чем можете помочь","список категорий","что есть в центре","какие есть услуги","весь прейскурант","список услуг","все услуги","каталог услуг"];
+  if(orientKw.some(k=>q.includes(asstNorm(k)))&&typeof servicesData!=="undefined"&&servicesData.length){
+    const catList=servicesData.map(c=>c.icon+" "+c.name).join("\n");
+    return{answer:`Вот основные направления в филиале «${currentCityName}»:\n\n${catList}\n\nОткрыть полный прейскурант с ценами?`,
+      actions:[{label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"}]};
+  }
+
   let best=null,bestScore=0;
   ASST_INTENTS.forEach(it=>{
     let score=0;
@@ -699,36 +703,6 @@ function showCallback(){
       showToast("✅ Звонок заказан");
     };
     [["Телефон",phone],["Удобное время",time],["Тема",topic]].forEach(([lbl,el])=>{
-      const fld=document.createElement("div");fld.className="book-field";
-      const l=document.createElement("label");l.className="book-lbl";l.textContent=lbl;
-      fld.appendChild(l);fld.appendChild(el);f.appendChild(fld);
-    });
-    f.appendChild(send);actionsEl.appendChild(f);
-  },200);
-}
-
-function showHomeWorker(){
-  clearActions();setNav(true);
-  document.getElementById("searchBar").classList.add("gone");
-  addMsg("🏠 Вызов социального работника на дом. Опишите, какая помощь нужна.",true);
-  setTimeout(()=>{
-    const f=document.createElement("div");f.className="book-form";
-    const addr=document.createElement("input");addr.type="text";addr.className="book-inp";
-    addr.placeholder="Адрес (улица, дом, квартира)";addr.setAttribute("aria-label","Адрес");
-    const need=document.createElement("textarea");need.className="fb-inp";need.style.minHeight="80px";
-    need.placeholder="Что требуется: покупка продуктов, уборка, сопровождение…";need.setAttribute("aria-label","Какая помощь нужна");
-    const date=document.createElement("input");date.type="date";date.className="book-inp";date.setAttribute("aria-label","Желаемая дата");
-    const tm=new Date();tm.setDate(tm.getDate()+1);date.min=tm.toISOString().split("T")[0];
-    const send=document.createElement("button");send.type="button";send.className="book-send";send.textContent="🏠 Отправить заявку";
-    send.onclick=()=>{
-      if(!addr.value.trim()||!need.value.trim()){showToast("⚠️ Заполните адрес и описание");return;}
-      const body=`${emailTemplates.homeWorker.intro}\nИмя: ${clientName}\nТелефон: ${clientPhone}\nАдрес: ${addr.value}\nЖелаемая дата: ${date.value||"по согласованию"}\nЧто требуется: ${need.value}\nФилиал: г. ${currentCityName}`;
-      window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.homeWorker.subject,{name:clientName}))}&body=${encodeURIComponent(body)}`;
-      window.GarmoniyaDB?.saveOrder?.({clientName,clientPhone,cityName:currentCityName,total:0,items:[{name:"Соцработник на дом: "+need.value.slice(0,60),qty:1,price:0}]});
-      addMsg("✅ Заявка на соцработника отправлена! С вами свяжутся для уточнения.",true);
-      showToast("✅ Заявка отправлена");
-    };
-    [["Адрес",addr],["Желаемая дата",date],["Какая помощь нужна",need]].forEach(([lbl,el])=>{
       const fld=document.createElement("div");fld.className="book-field";
       const l=document.createElement("label");l.className="book-lbl";l.textContent=lbl;
       fld.appendChild(l);fld.appendChild(el);f.appendChild(fld);

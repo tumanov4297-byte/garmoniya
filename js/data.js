@@ -20,7 +20,6 @@ let emailTemplates={
   cancelBooking:{subject:"Отмена записи {ticket}",intro:"ОТМЕНА ЗАПИСИ"},
   feedback:{subject:"Отзыв от {name}",intro:"ОТЗЫВ О РАБОТЕ ЦЕНТРА"},
   callback:{subject:"Обратный звонок: {name}",intro:"ЗАЯВКА НА ОБРАТНЫЙ ЗВОНОК"},
-  homeWorker:{subject:"Соцработник на дом: {name}",intro:"ВЫЗОВ СОЦИАЛЬНОГО РАБОТНИКА НА ДОМ"},
   event:{subject:"Запись на мероприятие: {title}",intro:"ЗАПИСЬ НА МЕРОПРИЯТИЕ"}
 };
 

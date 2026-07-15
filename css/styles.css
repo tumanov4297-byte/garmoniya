@@ -1799,18 +1799,24 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .taxi-hero p{font-size:12px;opacity:.85;line-height:1.5;max-width:320px;margin:0 auto;}
 
 .taxi-tariff-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
-.taxi-tariff-card{width:100%;box-sizing:border-box;text-align:left;background:#fff;border:1.5px solid rgba(0,0,0,.05);border-radius:16px;padding:14px;cursor:pointer;font-family:inherit;transition:.2s;box-shadow:0 2px 8px rgba(0,0,0,.04);animation:pcardIn .35s cubic-bezier(.16,1,.3,1) both;}
-.taxi-tariff-card:hover{border-color:var(--teal);box-shadow:0 4px 16px var(--teal-glow);transform:translateY(-1px);}
-.taxi-tariff-card:active{transform:scale(.98);}
-.taxi-tariff-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.taxi-tariff-badge{font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:8px;color:#fff;}
-.taxi-tariff-badge.gold{background:linear-gradient(135deg,#f2a63c,#d97706);}
-.taxi-tariff-badge.green{background:linear-gradient(135deg,#22c55e,#16a34a);}
-.taxi-tariff-badge.teal{background:linear-gradient(135deg,var(--teal),var(--teal-mid));}
-.taxi-tariff-arr{color:var(--text-tertiary);font-size:16px;}
-.taxi-tariff-name{font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:8px;}
+.taxi-tariff-card{width:100%;box-sizing:border-box;display:flex;align-items:flex-start;gap:13px;text-align:left;background:#fff;border:1.5px solid rgba(0,0,0,.05);border-radius:18px;padding:14px;cursor:pointer;font-family:inherit;transition:.2s;box-shadow:0 2px 10px rgba(0,0,0,.05);animation:pcardIn .35s cubic-bezier(.16,1,.3,1) both;}
+.taxi-tariff-card:hover{border-color:var(--teal);box-shadow:0 6px 20px var(--teal-glow);transform:translateY(-2px);}
+.taxi-tariff-card:active{transform:scale(.98) translateY(0);}
+.taxi-tariff-ico{width:48px;height:48px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 10px rgba(0,0,0,.1);}
+.taxi-tariff-ico.gold{background:linear-gradient(135deg,#f2a63c,#d97706);}
+.taxi-tariff-ico.green{background:linear-gradient(135deg,#22c55e,#16a34a);}
+.taxi-tariff-ico.teal{background:linear-gradient(135deg,var(--teal),var(--teal-mid));}
+.taxi-tariff-ico.free{background:linear-gradient(135deg,#fbbf24,#f59e0b);}
+.taxi-tariff-body{flex:1;min-width:0;}
+.taxi-tariff-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.taxi-tariff-arr{color:var(--text-tertiary);font-size:17px;flex-shrink:0;transition:transform .2s;}
+.taxi-tariff-card:hover .taxi-tariff-arr{transform:translateX(2px);color:var(--teal);}
+.taxi-tariff-name{font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.35;}
+.taxi-tariff-meta{margin:4px 0 8px;}
+.taxi-tariff-dur{font-size:11px;font-weight:700;color:var(--text-tertiary);background:rgba(0,0,0,.04);padding:2px 8px;border-radius:7px;}
 .taxi-tariff-price{display:flex;align-items:center;gap:8px;}
 .ttp-main{font-size:19px;font-weight:800;color:var(--teal-dark);}
+.ttp-main.free-price{color:#d97706;}
 .ttp-old{font-size:13px;color:var(--text-tertiary);text-decoration:line-through;}
 .ttp-hint{font-size:11px;color:var(--text-tertiary);}
 .ttp-mor-ico{width:16px;height:16px;object-fit:contain;}
@@ -1823,7 +1829,7 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .taxi-selected-price{font-size:22px;font-weight:800;}
 .taxi-selected-price span{font-size:13px;font-weight:600;opacity:.75;}
 
-.taxi-route-visual{display:flex;gap:12px;margin-bottom:14px;}
+.taxi-route-visual{display:flex;gap:12px;margin-bottom:14px;background:#fff;border-radius:16px;padding:14px 14px 14px 16px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1.5px solid rgba(0,0,0,.04);}
 .taxi-route-line{display:flex;flex-direction:column;align-items:center;padding-top:14px;}
 .taxi-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .taxi-dot-from{background:var(--teal);}
@@ -1999,3 +2005,32 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .dark .taxi-eta-val{color:#4db8b8;}
 .dark .taxi-route-map-note{background:rgba(255,255,255,.03);color:#8899bb;}
 .dark .taxi-route-map{border-color:rgba(255,255,255,.08);}
+
+/* ═══════════════════════════════════════
+   ТАКСИ v2 — единый экран, выбор тарифа кликом (не переход)
+═══════════════════════════════════════ */
+.taxi-page-v2{padding-bottom:4px;}
+.taxi-select-list{display:flex;flex-direction:column;gap:9px;margin-bottom:16px;}
+.taxi-select-list .taxi-tariff-card{border-width:2px;}
+.taxi-select-list .taxi-tariff-card.selected{border-color:var(--teal)!important;background:linear-gradient(135deg,var(--teal-xlight),#fff);box-shadow:0 4px 16px var(--teal-glow);}
+.taxi-select-list .taxi-tariff-card.selected .taxi-tariff-name{color:var(--teal-dark);}
+.taxi-sel-check{width:22px;height:22px;border-radius:50%;border:2px solid rgba(0,0,0,.12);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:.2s;}
+.taxi-tariff-card.selected .taxi-sel-check{background:var(--teal);border-color:var(--teal);color:#fff;}
+.taxi-select-list .taxi-free-card.selected{border-color:#f2a63c!important;background:linear-gradient(135deg,#fff9ec,#fff);}
+.taxi-select-list .taxi-free-card.selected .taxi-sel-check{background:#f2a63c;border-color:#f2a63c;}
+
+.taxi-quick-dest-chips{margin-top:8px;}
+.taxi-morrow-toggle-wrap{margin:4px 0 14px;}
+
+/* Прилипающая нижняя панель заказа — появляется после выбора тарифа */
+.taxi-order-bar{position:fixed;left:0;right:0;bottom:64px;max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid rgba(0,0,0,.06);box-shadow:0 -6px 24px rgba(0,0,0,.1);z-index:50;animation:taxiBarIn .3s cubic-bezier(.16,1,.3,1) both;}
+@keyframes taxiBarIn{0%{opacity:0;transform:translate3d(0,16px,0);}100%{opacity:1;transform:translate3d(0,0,0);}}
+.taxi-order-bar.gone{display:none;}
+.taxi-order-bar-price{font-size:19px;font-weight:800;color:var(--teal-dark);flex-shrink:0;}
+.taxi-order-bar-btn{flex:1;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--teal-mid));color:#fff;font-size:14.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px var(--teal-glow);transition:.2s;}
+.taxi-order-bar-btn:hover{transform:translateY(-1px);}
+.taxi-order-bar-btn:active{transform:scale(.97);}
+
+.dark .taxi-order-bar{background:#1a2035;border-color:rgba(255,255,255,.08);}
+.dark .taxi-select-list .taxi-tariff-card.selected{background:linear-gradient(135deg,rgba(27,133,133,.15),rgba(255,255,255,.02));}
+.dark .taxi-sel-check{border-color:rgba(255,255,255,.15);}
