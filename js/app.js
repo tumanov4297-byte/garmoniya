@@ -117,6 +117,21 @@ function flyToCart(sourceEl){
 function setNav(showBack){document.getElementById("backBtn").classList.toggle("gone",!showBack);}
 function pushNav(fn){navHistory.push(fn);}
 function goBack(){if(navHistory.length>0){const fn=navHistory.pop();fn();}}
+function exitAssistantFullscreenMode(){
+  document.getElementById("shell").classList.remove("assistant-mode");
+  document.getElementById("asstFsHdr").classList.add("gone");
+}
+function openAssistantFullscreen(){
+  navHistory=[];
+  document.getElementById("shell").classList.add("assistant-mode");
+  document.getElementById("asstFsHdr").classList.remove("gone");
+  document.getElementById("chat").innerHTML="";
+  showAssistant();
+}
+function closeAssistantFullscreen(){
+  exitAssistantFullscreenMode();
+  showMainMenu();
+}
 
 function updateHoursBanner(){
   const b=document.getElementById("hoursBanner");
@@ -211,6 +226,7 @@ function addToCart(id,name,price,btn,base,mor){
   if(cartBtn){cartBtn.classList.add("cart-pulse");setTimeout(function(){cartBtn.classList.remove("cart-pulse");},600);}
 }
 function chgQty(id,d){
+  id=typeof id==="string"?parseInt(id):id;
   const it=cart.find(i=>i.id===id);if(!it)return;
   it.qty=Math.max(0,it.qty+d);
   if(it.qty===0)cart=cart.filter(i=>i.id!==id);
@@ -334,9 +350,9 @@ function renderCart(){
       <div class="ci-name">${it.name}</div>
       <div class="ci-price">${(it.price*it.qty).toLocaleString()} ₽</div>
       <div class="qty-row" role="group" aria-label="Количество">
-        <button class="qty-btn" onclick="chgQty('${it.id}',-1)" aria-label="Уменьшить">−</button>
+        <button class="qty-btn" onclick="chgQty(${it.id},-1)" aria-label="Уменьшить">−</button>
         <span class="qty-val" aria-live="polite">${it.qty}</span>
-        <button class="qty-btn" onclick="chgQty('${it.id}',1)" aria-label="Увеличить">+</button>
+        <button class="qty-btn" onclick="chgQty(${it.id},1)" aria-label="Увеличить">+</button>
       </div>
     </div>`).join("");
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
@@ -518,7 +534,7 @@ function showMainMenu(){
   w.innerHTML=html;
   chatEl.appendChild(w);
   w.querySelectorAll("[data-act]").forEach(function(btn){
-    if(btn.dataset.act==="assistant")btn.onclick=function(){pushNav(showMainMenu);showTyping(showAssistant);};
+    if(btn.dataset.act==="assistant")btn.onclick=function(){openAssistantFullscreen();};
   });
   document.querySelectorAll(".bt").forEach(function(t){t.classList.remove("active");});
   var ht=document.getElementById("bt_home");if(ht)ht.classList.add("active");
@@ -526,12 +542,12 @@ function showMainMenu(){
 }
 
 const CAT_GRADIENTS=[
-  "linear-gradient(135deg,#6366f1,#4f46e5)","linear-gradient(135deg,#f59e0b,#d97706)",
-  "linear-gradient(135deg,#10b981,#059669)","linear-gradient(135deg,#ec4899,#db2777)",
-  "linear-gradient(135deg,#06b6d4,#0891b2)","linear-gradient(135deg,#8b5cf6,#7c3aed)",
+  "linear-gradient(135deg,#1B8585,#2A9D9D)","linear-gradient(135deg,#f59e0b,#d97706)",
+  "linear-gradient(135deg,#10b981,#059669)","linear-gradient(135deg,#0F6060,#1B8585)",
+  "linear-gradient(135deg,#2A9D9D,#166565)","linear-gradient(135deg,#B07A00,#D4920A)",
   "linear-gradient(135deg,#f43f5e,#e11d48)","linear-gradient(135deg,#14b8a6,#0d9488)",
-  "linear-gradient(135deg,#eab308,#ca8a04)","linear-gradient(135deg,#3b82f6,#2563eb)",
-  "linear-gradient(135deg,#a855f7,#9333ea)","linear-gradient(135deg,#22c55e,#16a34a)"
+  "linear-gradient(135deg,#E8A020,#D4920A)","linear-gradient(135deg,#D4920A,#E8A020)",
+  "linear-gradient(135deg,#D4920A,#B07A00)","linear-gradient(135deg,#22c55e,#16a34a)"
 ];
 function catColor(id){return CAT_GRADIENTS[id%CAT_GRADIENTS.length];}
 
@@ -575,6 +591,12 @@ function plRenderRow(cat,it,ii){
   var nameEsc=it.n.replace(/'/g,"\\'").replace(/"/g,"&quot;");
   return '<div class="pl-row" data-row-uid="'+uid+'"><div class="pl-name">'+it.n+'</div><div class="pl-right"><div class="pl-price">'+p+' ₽</div>'+sv+'</div><button class="pl-add" data-uid="'+uid+'" data-name="'+nameEsc+'" data-base="'+it.p+'" data-mor="'+(it.m!=null?it.m:"")+'" onclick="plAddToCart(this)" aria-label="Добавить '+nameEsc+' в корзину">+</button></div>';
 }
+const SERVICE_BOOKING_MAP=[
+  {match:"психологические",pos:"психолог"},
+  {match:"педагогические",pos:"педагог"},
+  {match:"правовые",pos:"юрис"},
+  {match:"занятия в залах лфк",pos:"физкультур"}
+];
 function plOpenCat(id,highlightUid){
   var cat=servicesData.find(function(c){return c.id===id;});if(!cat)return;
   document.getElementById("plCatList").classList.add("gone");
@@ -593,6 +615,16 @@ function plOpenCat(id,highlightUid){
     return;
   }
   html+='<div class="pl-sec-t">'+cat.icon+' '+cat.name+'</div>';
+  var catNameLower=cat.name.toLowerCase();
+  var bookingMatch=SERVICE_BOOKING_MAP.find(function(m){return catNameLower.indexOf(m.match)>=0;});
+  var matchedStaff=bookingMatch?(staffData||[]).filter(function(s){return s.pos.toLowerCase().indexOf(bookingMatch.pos)>=0;}):[];
+  if(bookingMatch&&matchedStaff.length&&highlightUid===undefined){
+    html+='<button class="svc-book-btn" onclick="showServiceBookingItem('+cat.id+')"><span class="svc-book-ico">📅</span><span class="svc-book-txt"><b>Записаться на приём</b><span>Выбор услуги, специалиста, даты и времени</span></span><span class="svc-book-arr">›</span></button>';
+    det.innerHTML=html;
+    det.classList.remove("gone");
+    det.scrollIntoView({behavior:"smooth",block:"start"});
+    return;
+  }
   cat.items.forEach(function(it,ii){html+=plRenderRow(cat,it,ii);});
   det.innerHTML=html;
   det.classList.remove("gone");
@@ -668,15 +700,17 @@ let taxiState={tariffIdx:null,from:"",to:"",date:"",time:"",comment:""};
 
 let taxiShowMor=hasMoroshka;
 let taxiSelectedIdx=null,taxiSelectedIsFree=false;
-function showTaxi(){
+function showTaxi(keepState,prefillTo){
   clearActions();setNav(true);
   chatEl.innerHTML="";
   const w=document.createElement("div");w.className="taxi-page taxi-page-v2";
   const tariffs=getTaxiTariffs();
-  taxiShowMor=hasMoroshka;
-  taxiSelectedIdx=null;taxiSelectedIsFree=false;
-  taxiState={tariffIdx:null,isFree:false,from:"",to:"",date:"",time:"",comment:"",moroshkaView:taxiShowMor};
-  taxiCoords.from=null;taxiCoords.to=null;
+  if(!keepState){
+    taxiShowMor=hasMoroshka;
+    taxiSelectedIdx=null;taxiSelectedIsFree=false;
+    taxiState={tariffIdx:null,isFree:false,from:"",to:prefillTo||"",date:"",time:"",comment:"",moroshkaView:taxiShowMor};
+    taxiCoords.from=null;taxiCoords.to=null;
+  }
 
   if(!tariffs.items.length){
     w.innerHTML='<div class="ev-empty">'+emptyIllustration()+'<div class="empty-title">Такси недоступно в этом филиале</div><div class="empty-sub">Уточните возможность перевозки по телефону центра</div></div>';
@@ -685,12 +719,9 @@ function showTaxi(){
     return;
   }
 
-  const today=new Date().toISOString().split("T")[0];
-  const quota=getFreeTaxiQuota();
-  const eligibility=checkFreeTaxiEligibility();
-  const freeDisabled=!eligibility.eligible||quota.remaining<=0;
-
-  let html=`
+  w.innerHTML=`
+    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:0%"></div></div>
+    <div class="taxi-step-lbl"><span class="taxi-step-num">1</span>Маршрут</div>
     <div class="taxi-route-visual">
       <div class="taxi-route-line">
         <span class="taxi-dot taxi-dot-from"></span>
@@ -699,12 +730,12 @@ function showTaxi(){
       </div>
       <div class="taxi-route-inputs">
         <div class="taxi-addr-wrap">
-          <input class="eq-input" id="taxiFrom" placeholder="Откуда забрать (адрес)" autocomplete="off">
+          <input class="eq-input" id="taxiFrom" placeholder="Откуда забрать (адрес)" autocomplete="off" value="${(taxiState.from||"").replace(/"/g,"&quot;")}">
           <button type="button" class="taxi-geo-btn" id="taxiGeoBtn" title="Использовать моё местоположение">📍</button>
           <div class="taxi-addr-suggest gone" id="taxiFromSuggest"></div>
         </div>
         <div class="taxi-addr-wrap">
-          <input class="eq-input" id="taxiTo" placeholder="Куда везти (адрес)" autocomplete="off">
+          <input class="eq-input" id="taxiTo" placeholder="Куда везти (адрес)" autocomplete="off" value="${(taxiState.to||"").replace(/"/g,"&quot;")}">
           <div class="taxi-addr-suggest gone" id="taxiToSuggest"></div>
         </div>
       </div>
@@ -719,50 +750,11 @@ function showTaxi(){
         <button type="button" class="taxi-chip" data-cson="1">🏢 ЦСОН «Гармония»</button>
       </div>
     </div>
-
-    <div class="taxi-dt-section">
-      <div class="eq-lbl">📅 Когда подать машину</div>
-      <div class="taxi-date-scroll" id="taxiDateScroll"></div>
-      <div class="taxi-time-grid" id="taxiTimeGrid"></div>
-      <input type="hidden" id="taxiDate" value="${today}">
-      <input type="hidden" id="taxiTime" value="">
-    </div>
-
-    <div class="eq-lbl">🚕 Выберите тариф</div>
-    <div class="taxi-select-list" id="taxiSelectList">
-      <button type="button" class="taxi-tariff-card taxi-free-card taxi-selectable" data-tidx="free" data-disabled="${freeDisabled}">
-        <div class="taxi-tariff-ico free">🎁</div>
-        <div class="taxi-tariff-body">
-          <div class="taxi-tariff-top"><span class="taxi-tariff-name">Льготная поездка</span><span class="taxi-sel-check">✓</span></div>
-          <div class="taxi-tariff-price"><span class="ttp-main free-price">Бесплатно</span></div>
-          ${!eligibility.eligible?`<div class="taxi-free-eligibility not-ok"><span>🔒</span> ${eligibility.message}</div>`
-            :`<div class="taxi-free-eligibility ok"><span>✅</span> ${quota.remaining>0?"Осталось "+quota.remaining+" из "+quota.limit+" поездок":"Лимит на этот год исчерпан"}</div>`}
-        </div>
-      </button>
-      ${tariffs.items.map(t=>taxiTariffCardHtml(t)).join("")}
-    </div>
-
-    <div class="eq-field"><span class="eq-field-ico">👥</span><div class="eq-field-body"><label class="eq-field-lbl">Количество пассажиров</label>
-      <div class="taxi-pax-stepper">
-        <button type="button" class="taxi-pax-btn" id="taxiPaxMinus">−</button>
-        <span class="taxi-pax-val" id="taxiPaxVal">1</span>
-        <button type="button" class="taxi-pax-btn" id="taxiPaxPlus">+</button>
-        <span class="taxi-pax-hint">макс. 2 места</span>
-      </div>
-    </div></div>
-    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 1</label><input class="eq-input" id="taxiPax1Name" value="${(clientName||"").replace(/"/g,"&quot;")}" placeholder="ФИО пассажира"></div></div>
-    <div class="eq-field gone" id="taxiPax2Field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 2</label><input class="eq-input" id="taxiPax2Name" placeholder="ФИО второго пассажира"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl">Комментарий (необязательно)</label><textarea class="eq-input" id="taxiComment" rows="2" placeholder="Особые пожелания..."></textarea></div></div>
-    <input type="hidden" id="taxiPax" value="1">
-    <div class="taxi-morrow-toggle-wrap">
-      <button type="button" class="taxi-mor-toggle taxi-mor-toggle-main ${taxiShowMor?"on":""}" id="taxiMorToggleMain" aria-pressed="${taxiShowMor}"><img src="img/moroshka-logo.jpg" alt=""><span>Показывать цены по карте «Морошка»</span></button>
-    </div>
-    <div style="height:90px"></div>
   `;
-  w.innerHTML=html;
   chatEl.appendChild(w);
 
   attachAddressAutocomplete(document.getElementById("taxiFrom"),document.getElementById("taxiFromSuggest"));
+  if(!keepState&&prefillTo)showToast("📍 Адрес назначения подставлен из чата — проверьте и уточните при необходимости");
   attachAddressAutocomplete(document.getElementById("taxiTo"),document.getElementById("taxiToSuggest"));
   document.querySelectorAll("#taxiQuickDest .taxi-chip").forEach(function(chip){
     chip.onclick=function(){
@@ -781,18 +773,52 @@ function showTaxi(){
   const geoBtn=document.getElementById("taxiGeoBtn");
   if(geoBtn)geoBtn.onclick=function(){taxiUseMyLocation(document.getElementById("taxiFrom"));};
 
-  taxiRenderDateTimePicker();
+  actionsEl.innerHTML=`
+    <div class="taxi-order-bar" id="taxiOrderBar">
+      <button type="button" class="taxi-order-bar-btn" id="taxiNextBtn">Далее →</button>
+    </div>
+    <button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>
+  `;
+  document.getElementById("taxiNextBtn").onclick=function(){
+    const from=document.getElementById("taxiFrom").value.trim();
+    const to=document.getElementById("taxiTo").value.trim();
+    if(!from||!to){showToast("⚠️ Укажите адрес отправления и назначения");return;}
+    taxiState.from=from;taxiState.to=to;
+    showTaxiTariff(tariffs);
+  };
+}
 
-  function updatePax(delta){
-    const paxVal=document.getElementById("taxiPaxVal");
-    let n=parseInt(paxVal.textContent)+delta;
-    n=Math.max(1,Math.min(2,n));
-    paxVal.textContent=n;
-    document.getElementById("taxiPax").value=n;
-    document.getElementById("taxiPax2Field").classList.toggle("gone",n<2);
+function showTaxiTariff(tariffs){
+  clearActions();setNav(true);
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="taxi-page taxi-page-v2";
+  const quota=getFreeTaxiQuota();
+  const eligibility=checkFreeTaxiEligibility();
+  const freeDisabled=!eligibility.eligible||quota.remaining<=0;
+
+  w.innerHTML=`
+    <button class="pl-back" onclick="showTaxi(true)">← Назад к маршруту</button>
+    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:33.3%"></div></div>
+    <div class="taxi-step-lbl"><span class="taxi-step-num">2</span>Выберите тариф</div>
+    <button type="button" class="taxi-mor-toggle taxi-mor-toggle-main ${taxiShowMor?"on":""}" id="taxiMorToggleMain" aria-pressed="${taxiShowMor}"><img src="img/moroshka-logo.jpg" alt=""><span>Показывать цены по карте «Морошка»</span></button>
+    <div class="taxi-select-list" id="taxiSelectList">
+      <button type="button" class="taxi-tariff-card taxi-free-card taxi-selectable" data-tidx="free" data-disabled="${freeDisabled}">
+        <div class="taxi-tariff-ico free">🎁</div>
+        <div class="taxi-tariff-body">
+          <div class="taxi-tariff-top"><span class="taxi-tariff-name">Льготная поездка</span><span class="taxi-sel-check">✓</span></div>
+          <div class="taxi-tariff-price"><span class="ttp-main free-price">Бесплатно</span></div>
+          ${!eligibility.eligible?`<div class="taxi-free-eligibility not-ok"><span>🔒</span> ${eligibility.message}</div>`
+            :`<div class="taxi-free-eligibility ok"><span>✅</span> ${quota.remaining>0?"Осталось "+quota.remaining+" из "+quota.limit+" поездок":"Лимит на этот год исчерпан"}</div>`}
+        </div>
+      </button>
+      ${tariffs.items.map(t=>taxiTariffCardHtml(t)).join("")}
+    </div>
+  `;
+  chatEl.appendChild(w);
+  if(taxiSelectedIdx!=null||taxiSelectedIsFree){
+    const sel=w.querySelector(taxiSelectedIsFree?'[data-tidx="free"]':'[data-tidx="'+taxiSelectedIdx+'"]');
+    if(sel)sel.classList.add("selected");
   }
-  document.getElementById("taxiPaxMinus").onclick=function(){updatePax(-1);};
-  document.getElementById("taxiPaxPlus").onclick=function(){updatePax(1);};
 
   function selectTariff(idx,isFree,btn){
     if(btn.dataset.disabled==="true"){
@@ -803,7 +829,7 @@ function showTaxi(){
     taxiSelectedIdx=isFree?null:idx;taxiSelectedIsFree=isFree;
     document.querySelectorAll(".taxi-tariff-card").forEach(c=>c.classList.remove("selected"));
     btn.classList.add("selected");
-    updateOrderBar();
+    setTimeout(function(){showTaxiDateTime(tariffs);},280);
   }
   document.querySelectorAll(".taxi-select-list .taxi-tariff-card").forEach(function(btn){
     btn.onclick=function(){
@@ -826,17 +852,56 @@ function showTaxi(){
         selectTariff(isFree?null:+btn.dataset.tidx,isFree,btn);
       };
     });
-    if(taxiSelectedIdx!=null||taxiSelectedIsFree){
-      const sel=selList.querySelector(taxiSelectedIsFree?'[data-tidx="free"]':'[data-tidx="'+taxiSelectedIdx+'"]');
-      if(sel)sel.classList.add("selected");
-    }
-    updateOrderBar();
   };
+
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
+
+function showTaxiDateTime(tariffs){
+  clearActions();setNav(true);
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="taxi-page taxi-page-v2";
+  const today=new Date().toISOString().split("T")[0];
+
+  w.innerHTML=`
+    <button class="pl-back" onclick="showTaxiTariff(getTaxiTariffs())">← Назад к тарифу</button>
+    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:66.6%"></div></div>
+    <div class="taxi-step-lbl"><span class="taxi-step-num">3</span>Когда подать машину</div>
+    <div class="taxi-dt-section">
+      <div class="taxi-date-scroll" id="taxiDateScroll"></div>
+      <div class="taxi-time-grid" id="taxiTimeGrid"></div>
+      <input type="hidden" id="taxiDate" value="${today}">
+      <input type="hidden" id="taxiTime" value="">
+    </div>
+    <div class="eq-field"><span class="eq-field-ico">👥</span><div class="eq-field-body"><label class="eq-field-lbl">Количество пассажиров</label>
+      <div class="taxi-pax-stepper">
+        <button type="button" class="taxi-pax-btn" id="taxiPaxMinus">−</button>
+        <span class="taxi-pax-val" id="taxiPaxVal">1</span>
+        <button type="button" class="taxi-pax-btn" id="taxiPaxPlus">+</button>
+        <span class="taxi-pax-hint">макс. 2 места</span>
+      </div>
+    </div></div>
+    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 1</label><input class="eq-input" id="taxiPax1Name" value="${(clientName||"").replace(/"/g,"&quot;")}" placeholder="ФИО пассажира"></div></div>
+    <div class="eq-field gone" id="taxiPax2Field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 2</label><input class="eq-input" id="taxiPax2Name" placeholder="ФИО второго пассажира"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl">Комментарий (необязательно)</label><textarea class="eq-input" id="taxiComment" rows="2" placeholder="Особые пожелания..."></textarea></div></div>
+    <input type="hidden" id="taxiPax" value="1">
+  `;
+  chatEl.appendChild(w);
+  taxiRenderDateTimePicker();
+
+  function updatePax(delta){
+    const paxVal=document.getElementById("taxiPaxVal");
+    let n=parseInt(paxVal.textContent)+delta;
+    n=Math.max(1,Math.min(2,n));
+    paxVal.textContent=n;
+    document.getElementById("taxiPax").value=n;
+    document.getElementById("taxiPax2Field").classList.toggle("gone",n<2);
+  }
+  document.getElementById("taxiPaxMinus").onclick=function(){updatePax(-1);};
+  document.getElementById("taxiPaxPlus").onclick=function(){updatePax(1);};
 
   function updateOrderBar(){
     const bar=document.getElementById("taxiOrderBar");
-    if(taxiSelectedIdx==null&&!taxiSelectedIsFree){bar.classList.add("gone");return;}
-    bar.classList.remove("gone");
     let priceText;
     if(taxiSelectedIsFree){priceText="Бесплатно 🎁";}
     else{
@@ -844,16 +909,17 @@ function showTaxi(){
       const useMor=taxiShowMor&&t.moroshka!=null;
       priceText=(useMor?t.moroshka:t.base)+" ₽";
     }
-    document.getElementById("taxiOrderBarPrice").textContent=priceText;
+    bar.querySelector("#taxiOrderBarPrice").textContent=priceText;
   }
 
   actionsEl.innerHTML=`
-    <div class="taxi-order-bar gone" id="taxiOrderBar">
+    <div class="taxi-order-bar" id="taxiOrderBar">
       <span class="taxi-order-bar-price" id="taxiOrderBarPrice"></span>
       <button type="button" class="taxi-order-bar-btn" id="taxiSubmit">Заказать такси →</button>
     </div>
     <button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>
   `;
+  updateOrderBar();
   document.getElementById("taxiSubmit").onclick=function(){
     taxiConfirmBooking(taxiSelectedIdx,taxiSelectedIsFree);
   };
@@ -916,17 +982,16 @@ function taxiRenderDateTimePicker(){
       timeHidden.value="";
       return;
     }
-    timeGrid.innerHTML=(isToday?'<button type="button" class="taxi-time-chip taxi-time-asap" data-time="'+slots[0]+'">⚡ Как можно скорее</button>':"")
-      +slots.map(function(s,i){return '<button type="button" class="taxi-time-chip'+(i===0&&!isToday?" sel":"")+'" data-time="'+s+'">'+s+'</button>';}).join("");
+    timeGrid.innerHTML=slots.map(function(s,i){return '<button type="button" class="taxi-time-chip'+(i===0?" sel":"")+'" data-time="'+s+'">'+s+'</button>';}).join("");
     timeHidden.value=slots[0];
     timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(btn){
       btn.onclick=function(){
         timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(b){b.classList.remove("sel");});
         btn.classList.add("sel");
         timeHidden.value=btn.dataset.time;
+        if(typeof window.taxiProgressHook==="function")window.taxiProgressHook();
       };
     });
-    if(isToday){var asap=timeGrid.querySelector(".taxi-time-asap");if(asap)asap.classList.add("sel");}
   }
   renderTimeGrid(dateHidden.value);
 
@@ -1159,8 +1224,8 @@ function taxiConfirmBooking(tariffIdx,isFree){
     t=tariffs.items.find(function(x){return x.idx===tariffIdx;});
     if(!t)return;
   }
-  const from=cleanAddressLabel(document.getElementById("taxiFrom").value.trim());
-  const to=cleanAddressLabel(document.getElementById("taxiTo").value.trim());
+  const from=cleanAddressLabel(taxiState.from);
+  const to=cleanAddressLabel(taxiState.to);
   const date=document.getElementById("taxiDate").value;
   const time=document.getElementById("taxiTime").value;
   const comment=document.getElementById("taxiComment").value.trim();
@@ -1266,6 +1331,8 @@ function taxiInitRouteMap(from,to){
     map.fitBounds([[from.lat,from.lon],[to.lat,to.lon]],{padding:[24,24]});
   }catch(e){/* карта не критична — молча пропускаем, если Leaflet недоступен офлайн */}
 }
+let bkState={catKey:null,catName:null,serviceItem:null,spec:null,date:null,time:null,comment:"",flow:"director"};
+
 function showBooking(){
   clearActions();setNav(true);
   const bookableStaff=staffData.filter(s=>/директор/i.test(s.pos));
@@ -1278,163 +1345,193 @@ function showBooking(){
     actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
     return;
   }
+  bkState={catKey:"director",catName:"Приём у директора",serviceItem:null,spec:null,date:null,time:null,comment:"",flow:"director",specialists:[]};
+  showBookingSpecialist(bookableStaff);
+}
+
+function showServiceBookingItem(catId){
+  const cat=servicesData.find(c=>c.id===catId);if(!cat)return;
+  const catNameLower=cat.name.toLowerCase();
+  const bookingMatch=SERVICE_BOOKING_MAP.find(m=>catNameLower.indexOf(m.match)>=0);
+  if(!bookingMatch)return;
+  const specialists=staffData.filter(s=>s.pos.toLowerCase().indexOf(bookingMatch.pos)>=0);
+  if(!specialists.length){showToast("⚠️ Специалисты этого профиля сейчас недоступны");return;}
+
+  clearActions();setNav(true);
+  bkState={catKey:cat.id,catId:cat.id,catName:cat.name,serviceItem:null,spec:null,date:null,time:null,comment:"",flow:"service",specialists:specialists};
   chatEl.innerHTML="";
   const w=document.createElement("div");w.className="booking-page";
-  let selSpec="",selDate="",selTime="";
-
   w.innerHTML=`
-    <h2>📝 Запись на приём</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" id="bkProgressFill"></div></div>
-    <div class="bk-step-lbl">1. Выберите руководителя</div>
+    <button class="pl-back" onclick="showServices();setTimeout(function(){plOpenCat(${cat.id});},220);">← Назад к услугам</button>
+    <h2>📝 ${cat.icon} ${cat.name}</h2>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:0%"></div></div>
+    <div class="bk-step-lbl"><span class="taxi-step-num">1</span>Выберите услугу</div>
+    <div class="bk-spec-list" id="bkItemList">
+      ${cat.items.map((it,idx)=>`<button class="bk-spec-card bk-item-card" data-idx="${idx}"><span class="bk-spec-ava bk-item-ava">📄</span><span class="bk-spec-txt"><b>${it.n}</b><span>${it.p} ₽</span></span></button>`).join("")}
+    </div>
+  `;
+  chatEl.appendChild(w);
+  w.querySelectorAll(".bk-item-card").forEach(btn=>{
+    btn.onclick=()=>{
+      const item=cat.items[+btn.dataset.idx];
+      bkState.serviceItem=item.n;
+      showBookingSpecialist(specialists);
+    };
+  });
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
+
+function showBookingSpecialist(specialists){
+  clearActions();setNav(true);
+  bkState.specialists=specialists;
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="booking-page";
+  const backFn=bkState.flow==="service"?`showServiceBookingItem(${bkState.catId})`:"showBooking()";
+  const backLabel=bkState.flow==="service"?"← Назад к услуге":"← Все руководители";
+  w.innerHTML=`
+    <button class="pl-back" onclick="${backFn}">${backLabel}</button>
+    <h2>📝 ${bkState.catName}</h2>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:${bkState.flow==="service"?25:0}%"></div></div>
+    <div class="bk-step-lbl"><span class="taxi-step-num">${bkState.flow==="service"?2:1}</span>Выберите специалиста</div>
     <div class="bk-spec-list" id="bkSpecList">
-      ${bookableStaff.map(s=>{
+      ${specialists.map(s=>{
         const ini=s.name.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase();
         return `<button class="bk-spec-card" data-spec="${s.name.replace(/"/g,"&quot;")}"><span class="bk-spec-ava">${ini}</span><span class="bk-spec-txt"><b>${s.name}</b><span>${s.pos}</span></span></button>`;
       }).join("")}
     </div>
+  `;
+  chatEl.appendChild(w);
+  w.querySelectorAll(".bk-spec-card").forEach(btn=>{
+    btn.onclick=()=>{
+      bkState.spec=btn.dataset.spec;
+      showBookingDate();
+    };
+  });
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
 
-    <div class="bk-step-lbl bk-step-3 gone" id="bkStep3">2. Выберите дату</div>
-    <div class="bk-days-scroll gone" id="bkDays"></div>
+function showBookingDate(){
+  clearActions();setNav(true);
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="booking-page";
+  const days=[];
+  let d=new Date();d.setDate(d.getDate()+1);
+  while(days.length<14){
+    const dow=d.getDay();
+    if(dow!==0&&dow!==6)days.push(new Date(d));
+    d.setDate(d.getDate()+1);
+  }
+  const isService=bkState.flow==="service";
+  w.innerHTML=`
+    <button class="pl-back" onclick="showBookingSpecialist(bkState.specialists)">← Назад к специалисту</button>
+    <h2>📝 ${bkState.spec}</h2>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?50:33.3}%"></div></div>
+    <div class="bk-step-lbl"><span class="taxi-step-num">${isService?3:2}</span>Выберите дату</div>
+    <div class="bk-days-scroll" id="bkDays">
+      ${days.map(dt=>{
+        const iso=dt.toISOString().split("T")[0];
+        const dayName=dt.toLocaleDateString("ru-RU",{weekday:"short"});
+        const dayNum=dt.getDate();
+        const monShort=dt.toLocaleDateString("ru-RU",{month:"short"});
+        return `<button class="bk-day-chip" data-date="${iso}"><span class="bk-day-name">${dayName}</span><span class="bk-day-num">${dayNum}</span><span class="bk-day-mon">${monShort}</span></button>`;
+      }).join("")}
+    </div>
+  `;
+  chatEl.appendChild(w);
+  w.querySelectorAll(".bk-day-chip").forEach(chip=>{
+    chip.onclick=()=>{
+      bkState.date=chip.dataset.date;
+      showBookingTime();
+    };
+  });
+  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
 
-    <div class="bk-step-lbl bk-step-4 gone" id="bkStep4">3. Выберите время</div>
-    <div class="bk-time-wrap gone" id="bkTimeWrap"></div>
-
+function showBookingTime(){
+  clearActions();setNav(true);
+  chatEl.innerHTML="";
+  const w=document.createElement("div");w.className="booking-page";
+  const dObj=new Date(bkState.date);
+  const dateStr=dObj.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
+  const slots=["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
+  const lunchIdxs=new Set([6,7,8]);
+  const isService=bkState.flow==="service";
+  w.innerHTML=`
+    <button class="pl-back" onclick="showBookingDate()">← Назад к дате</button>
+    <h2>📝 ${dateStr}</h2>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?75:66.6}%"></div></div>
+    <div class="bk-step-lbl"><span class="taxi-step-num">${isService?4:3}</span>Выберите время</div>
+    <div class="bk-time-wrap" id="bkTimeWrap">
+      <div class="time-grid" role="group" aria-label="Выберите время приёма">
+        ${slots.map((sl,idx)=>{
+          const busy=lunchIdxs.has(idx);
+          return `<button type="button" class="time-slot${busy?" busy":""}" ${busy?"disabled":""} data-time="${sl}" aria-label="Время ${sl}${busy?" — обед":""}">${sl}</button>`;
+        }).join("")}
+      </div>
+    </div>
     <div class="bk-comment-wrap gone" id="bkCommentWrap">
       <div class="bk-step-lbl">Комментарий (необязательно)</div>
       <textarea class="fb-inp" id="bkComment" placeholder="Цель визита, особые потребности…" style="min-height:70px"></textarea>
     </div>
-
     <div class="bk-summary gone" id="bkSummary"></div>
   `;
   chatEl.appendChild(w);
-  const progressFillEl=w.querySelector("#bkProgressFill");
-  function updateProgress(step){progressFillEl.style.width=(step*33.3)+"%";}
-  updateProgress(0);
-
-  const specListEl=w.querySelector("#bkSpecList");
-  const step3El=w.querySelector("#bkStep3"),daysEl=w.querySelector("#bkDays");
-  const step4El=w.querySelector("#bkStep4"),timeWrapEl=w.querySelector("#bkTimeWrap");
   const commentWrapEl=w.querySelector("#bkCommentWrap");
   const summaryEl=w.querySelector("#bkSummary");
-
-  function updateSummary(){
-    if(selSpec&&selDate&&selTime){
-      const dObj=new Date(selDate);
-      const dateStr=dObj.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
+  w.querySelectorAll(".time-slot:not(.busy)").forEach(btn=>{
+    btn.onclick=()=>{
+      w.querySelectorAll(".time-slot").forEach(b=>{b.classList.remove("sel");b.setAttribute("aria-pressed","false");});
+      btn.classList.add("sel");btn.setAttribute("aria-pressed","true");
+      bkState.time=btn.dataset.time;
+      commentWrapEl.classList.remove("gone");
       summaryEl.innerHTML=`
         <div class="bk-sum-title">✅ Проверьте данные записи</div>
-        <div class="bk-sum-row"><span>Руководитель</span><b>${selSpec}</b></div>
-        <div class="bk-sum-row"><span>Дата и время</span><b>${dateStr}, ${selTime}</b></div>
+        <div class="bk-sum-row"><span>Направление</span><b>${bkState.catName}</b></div>
+        ${bkState.serviceItem?`<div class="bk-sum-row"><span>Услуга</span><b>${bkState.serviceItem}</b></div>`:""}
+        <div class="bk-sum-row"><span>Специалист</span><b>${bkState.spec}</b></div>
+        <div class="bk-sum-row"><span>Дата и время</span><b>${dateStr}, ${bkState.time}</b></div>
         <button class="book-send" id="bkSendBtn">📧 Подтвердить запись</button>
       `;
       summaryEl.classList.remove("gone");
       summaryEl.scrollIntoView({behavior:"smooth",block:"end"});
       summaryEl.querySelector("#bkSendBtn").onclick=doSendBooking;
-    }else{
-      summaryEl.classList.add("gone");summaryEl.innerHTML="";
-    }
-  }
-
-  specListEl.querySelectorAll(".bk-spec-card").forEach(sbtn=>{
-    sbtn.onclick=()=>{
-      selSpec=sbtn.dataset.spec;selDate="";selTime="";
-      specListEl.querySelectorAll(".bk-spec-card").forEach(b=>b.classList.remove("sel"));
-      sbtn.classList.add("sel");
-      renderDays();
-      step3El.classList.remove("gone");daysEl.classList.remove("gone");
-      step4El.classList.add("gone");timeWrapEl.classList.add("gone");timeWrapEl.innerHTML="";
-      commentWrapEl.classList.add("gone");
-      updateProgress(1);
-      updateSummary();
-      step3El.scrollIntoView({behavior:"smooth",block:"start"});
     };
   });
-
-  function renderDays(){
-    const days=[];
-    let d=new Date();d.setDate(d.getDate()+1);
-    while(days.length<14){
-      const dow=d.getDay();
-      if(dow!==0&&dow!==6)days.push(new Date(d));
-      d.setDate(d.getDate()+1);
-    }
-    daysEl.innerHTML=days.map(dt=>{
-      const iso=dt.toISOString().split("T")[0];
-      const dayName=dt.toLocaleDateString("ru-RU",{weekday:"short"});
-      const dayNum=dt.getDate();
-      const monShort=dt.toLocaleDateString("ru-RU",{month:"short"});
-      return `<button class="bk-day-chip" data-date="${iso}"><span class="bk-day-name">${dayName}</span><span class="bk-day-num">${dayNum}</span><span class="bk-day-mon">${monShort}</span></button>`;
-    }).join("");
-    daysEl.querySelectorAll(".bk-day-chip").forEach(chip=>{
-      chip.onclick=()=>{
-        selDate=chip.dataset.date;selTime="";
-        daysEl.querySelectorAll(".bk-day-chip").forEach(c=>c.classList.remove("sel"));
-        chip.classList.add("sel");
-        renderTimeSlots();
-        step4El.classList.remove("gone");timeWrapEl.classList.remove("gone");
-        commentWrapEl.classList.add("gone");
-        updateProgress(2);
-        updateSummary();
-        step4El.scrollIntoView({behavior:"smooth",block:"start"});
-      };
-    });
-  }
-
-  function renderTimeSlots(){
-    const slots=["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
-    const lunchIdxs=new Set([6,7,8]);
-    timeWrapEl.innerHTML=`<div class="time-grid" role="group" aria-label="Выберите время приёма">`+
-      slots.map((sl,idx)=>{
-        const busy=lunchIdxs.has(idx);
-        return `<button type="button" class="time-slot${busy?" busy":""}" ${busy?"disabled":""} data-time="${sl}" aria-label="Время ${sl}${busy?" — обед":""}">${sl}</button>`;
-      }).join("")+`</div>`;
-    timeWrapEl.querySelectorAll(".time-slot:not(.busy)").forEach(btn=>{
-      btn.onclick=()=>{
-        timeWrapEl.querySelectorAll(".time-slot").forEach(b=>{b.classList.remove("sel");b.setAttribute("aria-pressed","false");});
-        btn.classList.add("sel");btn.setAttribute("aria-pressed","true");
-        selTime=btn.dataset.time;
-        commentWrapEl.classList.remove("gone");
-        updateProgress(3);
-        updateSummary();
-      };
-    });
-  }
-
-  function doSendBooking(){
-    if(!selSpec||!selDate||!selTime){showToast("⚠️ Заполните все поля");return;}
-    ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-    const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
-    const commentVal=(document.getElementById("bkComment")||{}).value||"";
-    const cd2=cityData[currentCity]||cityData.gubkin;
-    const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nДата: ${selDate}, Время: ${selTime}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nРУКОВОДИТЕЛЬ: ${selSpec}\nКОММЕНТАРИЙ: ${commentVal||"—"}`;
-    window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:clientName,date:selDate,time:selTime,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
-    bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
-    bookingsHistory.unshift({
-      num:ticketNum,
-      date:new Date().toLocaleString("ru-RU"),
-      visitDate:selDate,visitTime:selTime,
-      spec:selSpec,
-      comment:commentVal
-    });
-    localStorage.setItem("bookingsHistory",JSON.stringify(bookingsHistory));
-    window.GarmoniyaDB?.saveBooking({
-      num:ticketNum, clientName, clientPhone, cityName:currentCityName,
-      spec:selSpec, visitDate:selDate, visitTime:selTime,
-      comment:commentVal
-    });
-    chatEl.innerHTML="";
-    showSuccessAnim("Запись оформлена!");
-    addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${selDate}</b> в <b>${selTime}</b><br>👤 ${selSpec}`,true);
-    showToast("✅ Талон "+ticketNum+" сохранён!");
-    clearActions();
-    const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
-    calBtn.style.width="100%";
-    calBtn.textContent="📅 Добавить в календарь";
-    calBtn.onclick=()=>exportToCalendar({num:ticketNum,spec:selSpec,visitDate:selDate,visitTime:selTime});
-    actionsEl.appendChild(calBtn);
-  }
-
   actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
+}
+
+function doSendBooking(){
+  bkState.comment=(document.getElementById("bkComment")||{}).value||"";
+  if(!bkState.spec||!bkState.date||!bkState.time){showToast("⚠️ Заполните все поля");return;}
+  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
+  const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
+  const cd2=cityData[currentCity]||cityData.gubkin;
+  const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nНаправление: ${bkState.catName}${bkState.serviceItem?"\nУслуга: "+bkState.serviceItem:""}\nДата: ${bkState.date}, Время: ${bkState.time}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nСПЕЦИАЛИСТ: ${bkState.spec}\nКОММЕНТАРИЙ: ${bkState.comment||"—"}`;
+  window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:clientName,date:bkState.date,time:bkState.time,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
+  bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+  bookingsHistory.unshift({
+    num:ticketNum,
+    date:new Date().toLocaleString("ru-RU"),
+    visitDate:bkState.date,visitTime:bkState.time,
+    dept:bkState.catName,spec:bkState.spec,
+    comment:bkState.comment
+  });
+  localStorage.setItem("bookingsHistory",JSON.stringify(bookingsHistory));
+  window.GarmoniyaDB?.saveBooking({
+    num:ticketNum, clientName, clientPhone, cityName:currentCityName,
+    dept:bkState.catName, spec:bkState.spec, visitDate:bkState.date, visitTime:bkState.time,
+    comment:bkState.comment
+  });
+  chatEl.innerHTML="";
+  showSuccessAnim("Запись оформлена!");
+  addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${bkState.date}</b> в <b>${bkState.time}</b><br>👤 ${bkState.spec}<br>🏷️ ${bkState.catName}`,true);
+  showToast("✅ Талон "+ticketNum+" сохранён!");
+  clearActions();
+  const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
+  calBtn.style.width="100%";
+  calBtn.textContent="📅 Добавить в календарь";
+  calBtn.onclick=()=>exportToCalendar({num:ticketNum,spec:bkState.spec,dept:bkState.catName,visitDate:bkState.date,visitTime:bkState.time});
+  actionsEl.appendChild(calBtn);
 }
 
 function showStaff(){
@@ -1492,43 +1589,10 @@ function showContacts(){
   html+='<div class="pinfo-row"><span class="pinfo-ico">🕒</span><span class="pinfo-txt"><span class="pinfo-lbl">Режим работы</span><span class="pinfo-val">'+cd.hours+'</span></span></div>';
   html+='</div>';
   html+='<div class="pquick-grid contacts-actions"><button class="pquick-btn" onclick="location.href=\'tel:+'+cd.phoneRaw+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#10b981,#059669)">📞</span><span>Позвонить</span></button>'
-      +'<button class="pquick-btn" onclick="location.href=\'mailto:'+cd.email+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">✉️</span><span>Написать</span></button></div>';
+      +'<button class="pquick-btn" onclick="location.href=\'mailto:'+cd.email+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#1B8585,#2A9D9D)">✉️</span><span>Написать</span></button></div>';
   w.innerHTML=html;
   chatEl.appendChild(w);
   actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
-}
-
-function showFAQ(){
-  clearActions();setNav(true);
-  chatEl.innerHTML="";
-  const w=document.createElement("div");w.className="faq-page";
-  let html='<h2>❓ Часто задаваемые вопросы</h2>';
-  html+='<div class="faq-search-wrap"><input type="text" id="faqSearchInp" placeholder="Поиск по вопросам..." oninput="faqFilterList(this.value)" aria-label="Поиск по вопросам"></div>';
-  html+='<div id="faqList" class="faq-list">';
-  faqData.forEach(function(item,i){
-    html+='<div class="faq-card" data-faq-idx="'+i+'">'
-        +'<button class="faq-card-q" onclick="this.parentElement.classList.toggle(\'open\')" aria-expanded="false">'
-        +'<span class="faq-q-text">'+item.q+'</span><span class="faq-arr">▾</span></button>'
-        +'<div class="faq-card-a">'+item.a+'</div></div>';
-  });
-  html+='</div>';
-  html+='<div id="faqEmpty" class="faq-empty gone">'+emptyIllustration()+'<div class="empty-title">Ничего не найдено</div><div class="empty-sub">Попробуйте другой запрос или спросите помощника напрямую</div></div>';
-  w.innerHTML=html;
-  chatEl.appendChild(w);
-  actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
-}
-function faqFilterList(q){
-  q=q.trim().toLowerCase();
-  const cards=document.querySelectorAll("#faqList .faq-card");
-  let visible=0;
-  cards.forEach(function(c){
-    const idx=+c.dataset.faqIdx;
-    const item=faqData[idx];
-    const match=!q||item.q.toLowerCase().includes(q)||item.a.toLowerCase().includes(q);
-    c.style.display=match?"":"none";
-    if(match)visible++;
-  });
-  document.getElementById("faqEmpty").classList.toggle("gone",visible>0);
 }
 
 function showEmergency(){
@@ -1548,7 +1612,7 @@ function showEmergency(){
     psychologists.forEach(function(p,i){
       const ini=p.name.split(" ").slice(0,2).map(function(x){return x[0];}).join("").toUpperCase();
       const ph=p.ext?cd.phone+" доб. "+p.ext:cd.phone;
-      html+='<div class="pinfo-row"'+(i===0?' style="padding-top:0"':'')+'><span class="pinfo-ico" style="background:linear-gradient(135deg,#ec4899,#db2777);color:#fff">'+ini+'</span><span class="pinfo-txt"><span class="pinfo-val">'+p.name+'</span><span class="pinfo-lbl">'+p.pos+' · 📞 '+ph+(p.email?' · ✉️ '+p.email:'')+'</span></span></div>';
+      html+='<div class="pinfo-row"'+(i===0?' style="padding-top:0"':'')+'><span class="pinfo-ico" style="background:linear-gradient(135deg,#0F6060,#1B8585);color:#fff">'+ini+'</span><span class="pinfo-txt"><span class="pinfo-val">'+p.name+'</span><span class="pinfo-lbl">'+p.pos+' · 📞 '+ph+(p.email?' · ✉️ '+p.email:'')+'</span></span></div>';
     });
     html+='</div>';
   }else{
@@ -1618,7 +1682,7 @@ function showFeedback(){
   fbRating=0;fbTags=[];
   const w=document.createElement("div");w.className="feedback-page";
   const starEmoji=["😞","😕","😐","😊","😍"];
-  const tagList=["Вежливый персонал","Быстрое обслуживание","Удобный бот","Большой выбор услуг","Доступные цены","Хорошее расположение","Удобно для инвалидов"];
+  const tagList=["Вежливый персонал","Быстрое обслуживание","Удобный бот","Большой выбор услуг","Доступные цены","Хорошее расположение"];
 
   w.innerHTML=`
     <h2>💬 Обратная связь</h2>
@@ -1903,11 +1967,11 @@ function renderProfilePanel(){
     <div class="prof-nav-list">
       <button class="prof-nav-row" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showServices);">
         <span class="prof-nav-ico" style="background:linear-gradient(135deg,#10b981,#059669)">🛍️</span>
-        <span class="prof-nav-txt"><b>Прейскурант</b><span>Все услуги центра</span></span>
+        <span class="prof-nav-txt"><b>Записаться на услуги</b><span>Все услуги центра</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('personal')">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🧑‍💼</span>
+        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#1B8585,#2A9D9D)">🧑‍💼</span>
         <span class="prof-nav-txt"><b>Личные данные и анкета</b><span>${anketaDone?"Заполнена":"Не заполнена"}</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
@@ -1917,22 +1981,22 @@ function renderProfilePanel(){
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="openProfileSwitcher()">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#ec4899,#db2777)">👨‍👩‍👦</span>
+        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#0F6060,#1B8585)">👨‍👩‍👦</span>
         <span class="prof-nav-txt"><b>Профили</b><span>Переключение между пользователями</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="showCartStats()">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">📊</span>
+        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#2A9D9D,#166565)">📊</span>
         <span class="prof-nav-txt"><b>Статистика</b><span>Ваша активность в приложении</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showFeedback);">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">💬</span>
+        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#B07A00,#D4920A)">💬</span>
         <span class="prof-nav-txt"><b>Оставить отзыв</b><span>Оценка работы центра</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('settings')">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#64748b,#475569)">⚙️</span>
+        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#3d6b6b,#2d5252)">⚙️</span>
         <span class="prof-nav-txt"><b>Настройки</b><span>Тема, шрифт, данные</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
@@ -1966,11 +2030,11 @@ function showProfileSection(section){
 
   if(section==="documents"){
     const docsHtml=`<div class="pcard-doclist">
-      <button class="pcard-doc" onclick="downloadDoc('application')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">📄</span><span class="pcard-doc-txt"><b>Заявление на обслуживание</b><span>Заявление на получение социальных услуг</span></span><span class="pcard-doc-dl">⬇</span></button>
+      <button class="pcard-doc" onclick="downloadDoc('application')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#1B8585,#2A9D9D)">📄</span><span class="pcard-doc-txt"><b>Заявление на обслуживание</b><span>Заявление на получение социальных услуг</span></span><span class="pcard-doc-dl">⬇</span></button>
       <button class="pcard-doc" onclick="downloadDoc('consent')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🔒</span><span class="pcard-doc-txt"><b>Согласие на обработку данных</b><span>Персональные данные (ФЗ-152)</span></span><span class="pcard-doc-dl">⬇</span></button>
       <button class="pcard-doc" onclick="downloadDoc('moroshka')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#10b981,#059669)"><img src="img/moroshka-logo.jpg" class="pcard-doc-img" alt=""></span><span class="pcard-doc-txt"><b>Памятка «Морошка»</b><span>Как оформить и использовать карту</span></span><span class="pcard-doc-dl">⬇</span></button>
-      <button class="pcard-doc" onclick="downloadDoc('rights')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">📋</span><span class="pcard-doc-txt"><b>Права получателя услуг</b><span>Перечень прав получателя соц. услуг</span></span><span class="pcard-doc-dl">⬇</span></button>
-      <button class="pcard-doc" onclick="downloadDoc('complaint')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#ec4899,#db2777)">📝</span><span class="pcard-doc-txt"><b>Бланк жалобы / предложения</b><span>Обращение в администрацию центра</span></span><span class="pcard-doc-dl">⬇</span></button>
+      <button class="pcard-doc" onclick="downloadDoc('rights')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#2A9D9D,#166565)">📋</span><span class="pcard-doc-txt"><b>Права получателя услуг</b><span>Перечень прав получателя соц. услуг</span></span><span class="pcard-doc-dl">⬇</span></button>
+      <button class="pcard-doc" onclick="downloadDoc('complaint')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#0F6060,#1B8585)">📝</span><span class="pcard-doc-txt"><b>Бланк жалобы / предложения</b><span>Обращение в администрацию центра</span></span><span class="pcard-doc-dl">⬇</span></button>
     </div>`;
     body.innerHTML=back+`<h2 class="prof-sec-title">📁 Документы</h2><div class="pcard">${docsHtml}</div>`;
     return;
@@ -2266,27 +2330,27 @@ function showMenuPage(){
   var w=document.createElement("div");w.className="svc-page";
   w.innerHTML=
     '<h2>Все разделы</h2>'+
-    '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#1B8585,#0d6b6b)">📋</span><div class="sp-txt"><b>Прейскурант</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#1B8585,#0d6b6b)">📋</span><div class="sp-txt"><b>Записаться на услуги</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="booking"><span class="sp-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📅</span><div class="sp-txt"><b>Записаться</b><span>К специалисту</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item sp-item-taxi" data-a="taxi"><span class="sp-ico sp-ico-taxi" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🚕</span><div class="sp-txt"><b>Такси</b><span>Заказать поездку</span></div><span class="sp-taxi-badge">Новое</span><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="staff"><span class="sp-ico" style="background:linear-gradient(135deg,#10b981,#059669)">👥</span><div class="sp-txt"><b>Сотрудники</b><span>Справочник</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-tablet.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-more">Услуги и информация</div>'+
     '<div class="sp-grid">'+
-    '<div class="sp-g" data-a="callback"><span class="sp-g-i" style="background:linear-gradient(135deg,#1B8585,#14b8a6)">📞</span><b>Звонок</b></div>'+
+    '<div class="sp-g" data-a="callback"><span class="sp-g-i" style="background:linear-gradient(135deg,#1B8585,#14b8a6)">📞</span><b>Обратная связь</b></div>'+
     '<div class="sp-g" data-a="events"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🎟️</span><b>События</b></div>'+
-    '<div class="sp-g" data-a="news"><span class="sp-g-i" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">📰</span><b>Новости</b></div>'+
-    '<div class="sp-g" data-a="contacts"><span class="sp-g-i" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">📍</span><b>Контакты</b></div>'+
-    '<div class="sp-g" data-a="faq"><span class="sp-g-i" style="background:linear-gradient(135deg,#ec4899,#db2777)">❓</span><b>FAQ</b></div>'+
+    '<div class="sp-g" data-a="news"><span class="sp-g-i" style="background:linear-gradient(135deg,#D4920A,#E8A020)">📰</span><b>Новости</b></div>'+
+    '<div class="sp-g" data-a="contacts"><span class="sp-g-i" style="background:linear-gradient(135deg,#B07A00,#D4920A)">📍</span><b>Контакты</b></div>'+
     '<div class="sp-g" data-a="moroshka"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><img src="img/moroshka-logo.jpg" style="width:22px;height:22px;object-fit:contain"></span><b>Морошка</b></div>'+
-    '<div class="sp-g" data-a="gallery"><span class="sp-g-i" style="background:linear-gradient(135deg,#0891b2,#0e7490)">🖼️</span><b>Фотогалерея</b></div>'+
+    '<div class="sp-g" data-a="gallery"><span class="sp-g-i" style="background:linear-gradient(135deg,#166565,#0F6060)">🖼️</span><b>Фотогалерея</b></div>'+
     '<div class="sp-g" data-a="feedback"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">⭐</span><b>Отзыв</b></div>'+
     '</div>';
   chatEl.appendChild(w);
-  var acts={services:showServices,booking:showBooking,taxi:showTaxi,staff:showStaff,assistant:showAssistant,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,faq:showFAQ,moroshka:showMoroshkaInfo,feedback:showFeedback,gallery:showGallery};
+  var acts={services:showServices,booking:showBooking,taxi:showTaxi,staff:showStaff,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,moroshka:showMoroshkaInfo,feedback:showFeedback,gallery:showGallery};
   w.querySelectorAll("[data-a]").forEach(function(el){
     var a=el.dataset.a;
-    if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};
+    if(a==="assistant"){el.onclick=function(){openAssistantFullscreen();};}
+    else if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};
   });
 }
 

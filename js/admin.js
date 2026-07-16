@@ -404,6 +404,7 @@
 
     html+='<div class="adm-subsection-title">📰 Новости</div>';
     newsData.forEach((n,i)=>{
+      const imgs=(n.images&&n.images.length)?n.images:(n.image?[n.image]:[]);
       html+=`<div class="adm-news-card">
         <div class="adm-news-row">
           <select class="admin-inp" data-ni="${i}" data-f="tag" style="flex:1">${TAGS.map(t=>`<option ${n.tag===t?"selected":""}>${t}</option>`).join("")}</select>
@@ -412,11 +413,11 @@
         </div>
         <input class="admin-inp" data-ni="${i}" data-f="title" value="${esc(n.title)}" placeholder="Заголовок новости">
         <textarea class="admin-inp" data-ni="${i}" data-f="text" rows="2" placeholder="Текст новости">${esc(n.text)}</textarea>
-        <div class="adm-news-img-row">
-          ${n.image?`<img src="${n.image}" class="adm-news-thumb">`:""}
-          <button class="admin-btn small ghost" data-imgnews="${i}">${n.image?"🖼️ Заменить фото":"🖼️ Прикрепить фото"}</button>
-          ${n.image?`<button class="adm-del" data-delimgnews="${i}" aria-label="Удалить фото">✕</button>`:""}
+        <div class="adm-news-gallery">
+          ${imgs.map((src,ii)=>`<div class="adm-news-thumb-wrap"><img src="${src}" class="adm-news-thumb"><button class="adm-thumb-del" data-delimgnews="${i}" data-imgidx="${ii}" aria-label="Удалить фото">✕</button></div>`).join("")}
+          <button class="admin-btn small ghost" data-imgnews="${i}">🖼️ ${imgs.length?"Добавить ещё фото":"Прикрепить фото"}</button>
         </div>
+        ${imgs.length>1?`<div class="adm-hint" style="margin-top:4px">📸 ${imgs.length} фото — в приложении покажутся каруселью, которую можно листать</div>`:""}
       </div>`;
     });
     if(!newsData.length)html+='<div class="adm-empty-state">Новостей пока нет. Добавьте первую.</div>';
@@ -483,14 +484,17 @@
       const i=+b.dataset.imgnews;
       pickAndResizeImage(dataUrl=>{
         collectNews();collectEvents();
-        newsData[i].image=dataUrl;
+        if(!newsData[i].images)newsData[i].images=newsData[i].image?[newsData[i].image]:[];
+        delete newsData[i].image;
+        newsData[i].images.push(dataUrl);
         saveOverrides();renderNews(body);
       });
     });
     body.querySelectorAll("[data-delimgnews]").forEach(b=>b.onclick=()=>{
-      const i=+b.dataset.delimgnews;
+      const i=+b.dataset.delimgnews,ii=+b.dataset.imgidx;
       collectNews();collectEvents();
-      delete newsData[i].image;
+      if(newsData[i].images)newsData[i].images.splice(ii,1);
+      else delete newsData[i].image;
       saveOverrides();renderNews(body);
     });
     body.querySelectorAll("[data-imgevt]").forEach(b=>b.onclick=()=>{

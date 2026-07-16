@@ -225,7 +225,7 @@ function showCartStats(){
 const I18N={
   ru:{
     greeting_morning:"☀️ Доброе утро",greeting_day:"🌤 Добрый день",greeting_evening:"🌙 Добрый вечер",
-    menu_services:"Прейскурант",menu_services_sub:"Услуги и цены",
+    menu_services:"Записаться на услуги",menu_services_sub:"Услуги и цены",
     menu_booking:"Записаться",menu_booking_sub:"Запись к специалисту",
     menu_calc:"Льготы",menu_calc_sub:"Калькулятор льгот",
     menu_home_worker:"Соцработник на дом",menu_home_worker_sub:"Вызвать на дом",
@@ -234,7 +234,6 @@ const I18N={
     menu_news:"Новости",menu_news_sub:"Анонсы и события",
     menu_staff:"Сотрудники",menu_staff_sub:"Контакты отделений",
     menu_contacts:"Контакты",menu_contacts_sub:"Адрес, телефон, email",
-    menu_faq:"Вопросы",menu_faq_sub:"Частые вопросы",
     menu_emergency:"Экстренная помощь",menu_emergency_sub:"Психологическая помощь",
     menu_cart:"Корзина",menu_feedback:"Обратная связь",menu_feedback_sub:"Оценить качество",
     menu_moroshka:"Карта Морошка",menu_moroshka_sub:"Льготы и скидки",
@@ -256,7 +255,7 @@ const I18N={
     orders_title:"📋 Мои заявки",orders_filter_all:"Все",orders_filter_orders:"🛒 Заявки",orders_filter_bookings:"📅 Записи",orders_filter_taxi:"🚕 Такси",
     orders_empty_title:"Пока нет заявок и записей",orders_empty_orders:"Нет заявок на услуги",orders_empty_bookings:"Нет записей к специалистам",
     close_and_return:"Закрыть и вернуться",
-    services_title:"Прейскурант услуг",services_search_ph:"Поиск услуги по названию...",
+    services_title:"Записаться на услуги",services_search_ph:"Поиск услуги по названию...",
     staff_title:"Сотрудники",staff_search_ph:"Поиск по ФИО или должности...",
     booking_title:"📝 Запись к специалисту",
     booking_step1:"Выберите отделение",booking_step2:"Выберите специалиста",
@@ -271,7 +270,7 @@ const I18N={
     settings_font:"Размер шрифта",settings_theme:"Тёмная тема",
     settings_export:"Экспорт моих данных",settings_reset:"Очистить все данные",
     logout_btn:"🚪 Выйти / Сменить пользователя",
-    edit_data:"✏️ Изменить данные",quick_orders:"Мои заявки",quick_services:"Прейскурант",
+    edit_data:"✏️ Изменить данные",quick_orders:"Мои заявки",quick_services:"Записаться на услуги",
     quick_booking:"Записаться",quick_feedback:"Отзыв"
   },
   en:{
@@ -285,7 +284,6 @@ const I18N={
     menu_news:"News",menu_news_sub:"Announcements",
     menu_staff:"Staff",menu_staff_sub:"Department contacts",
     menu_contacts:"Contacts",menu_contacts_sub:"Address, phone, email",
-    menu_faq:"FAQ",menu_faq_sub:"Frequently asked questions",
     menu_emergency:"Emergency",menu_emergency_sub:"Psychological help",
     menu_cart:"Cart",menu_feedback:"Feedback",menu_feedback_sub:"Rate our service",
     menu_moroshka:"Moroshka card",menu_moroshka_sub:"Discounts",
@@ -307,7 +305,7 @@ const I18N={
     orders_title:"📋 My requests",orders_filter_all:"All",orders_filter_orders:"🛒 Requests",orders_filter_bookings:"📅 Bookings",orders_filter_taxi:"🚕 Taxi",
     orders_empty_title:"No requests or bookings yet",orders_empty_orders:"No service requests",orders_empty_bookings:"No appointments booked",
     close_and_return:"Close and return",
-    services_title:"Price list",services_search_ph:"Search services by name...",
+    services_title:"Book services",services_search_ph:"Search services by name...",
     staff_title:"Staff",staff_search_ph:"Search by name or position...",
     booking_title:"📝 Book an appointment",
     booking_step1:"Choose department",booking_step2:"Choose specialist",
@@ -476,9 +474,6 @@ function getSeasonalGreeting(){
   if(m===10&&d>=1&&d<=2)
     return{emoji:"🤍",text:"С Днём пожилого человека! Спасибо за мудрость и доброту. Здоровья и долгих лет! 🌿"};
 
-  if(m===12&&d>=2&&d<=4)
-    return{emoji:"💙",text:"С Международным днём людей с инвалидностью. Каждый человек достоин уважения и поддержки. 🤝"};
-
   if(m===6&&d>=7&&d<=9)
     return{emoji:"❤️",text:"С Днём социального работника! Спасибо за ваш труд и заботу о людях! 🌟"};
   return null;
@@ -501,7 +496,7 @@ function showOnboarding(){
   const steps=[
     {emoji:"👋",title:"Добро пожаловать!",text:"Я — виртуальный помощник центра «Гармония». Помогу с услугами, записью, такси и вопросами."},
     {emoji:"📋",title:"Анкета получателя",text:"Заполните анкету один раз в личном кабинете — ФИО, СНИЛС и данные сами подставятся в заявки."},
-    {emoji:"📖",title:"Прейскурант",text:"В разделе «Прейскурант» — все услуги с ценами. Нажмите ★, чтобы добавить в избранное."},
+    {emoji:"📖",title:"Запись на услуги",text:"В разделе «Записаться на услуги» — все услуги с ценами. Нажмите ★, чтобы добавить в избранное."},
     {emoji:"🤖",title:"Помощник",text:"Нажмите «Спросить помощника» и задайте вопрос своими словами — подскажу нужный раздел."},
     {emoji:"🚕",title:"Такси",text:"Закажите поездку с сопровождением или без. Есть бесплатный тариф для льготных категорий."},
     {emoji:"🛒",title:"Корзина",text:"Добавляйте услуги в корзину кнопкой «+» и отправляйте заявку одним нажатием."},

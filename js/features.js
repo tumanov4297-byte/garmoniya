@@ -2,13 +2,21 @@
 function asstNorm(s){
   return (s||"").toLowerCase().replace(/ё/g,"е").replace(/[^a-zа-я0-9 ]/gi," ").replace(/\s+/g," ").trim();
 }
+function extractAddressFromQuery(q){
+  const m=q.match(/(?:по адресу|адрес|до|на|в|к)\s+([а-яa-z0-9][а-яa-z0-9 ]*\d[а-яa-z0-9 ]*)/i);
+  if(m&&m[1]){
+    const candidate=m[1].trim();
+    if(candidate.length>=3&&candidate.length<=60)return candidate;
+  }
+  return null;
+}
 
 const ASST_INTENTS=[
   // ═══ Прямые команды открытия разделов ═══
   {kw:["открой главн","на главную","домой","в меню","главное меню","вернись на главн"],
    answer:"Открываю главную страницу.",actions:[{label:"🏠 Главная",fn:"showMainMenu",cl:"teal"}]},
   {kw:["открой прейскурант","покажи прейскурант","открой услуги","покажи услуги","весь прейскурант","список услуг","все услуги","каталог услуг"],
-   answer:"Открываю полный прейскурант услуг.",actions:[{label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"}]},
+   answer:"Открываю раздел записи на услуги.",actions:[{label:"📋 Записаться на услуги",fn:"showServices",cl:"teal"}]},
   {kw:["открой запись","хочу записаться","запиши меня","открой форму записи","запись к специалисту"],
    answer:"Открываю форму записи к специалисту.",actions:[{label:"📝 Записаться",fn:"showBooking",cl:"gold"}]},
   {kw:["открой сотрудник","покажи сотрудник","список сотрудник","кто работает в центре","весь персонал"],
@@ -27,8 +35,6 @@ const ASST_INTENTS=[
    answer:"Открываю фотогалерею центра.",actions:[{label:"🖼️ Фотогалерея",fn:"showGallery",cl:"teal"}]},
   {kw:["открой контакт","адрес центра","как до вас добраться","где вы находитесь","где находится центр"],
    answer:"Открываю контакты филиала.",actions:[{label:"📍 Контакты",fn:"showContacts",cl:"teal"}]},
-  {kw:["открой вопросы","частые вопросы","открой faq"],
-   answer:"Открываю частые вопросы и ответы.",actions:[{label:"❓ Вопросы и ответы",fn:"showFAQ",cl:"outline"}]},
 
   // ═══ Тематические намерения (категории — динамический поиск по названию) ═══
   {kw:["записа","запис","талон","прием","приём","к специалист","к врач","на прием"],
@@ -60,7 +66,7 @@ const ASST_INTENTS=[
    hint:["стирке","химической чистке"]},
   {kw:["цена","стоит","стоимость","прайс","прейскур","сколько","тариф"],
    answer:"Все услуги и цены собраны в прейскуранте. Можно листать категории или искать по названию.",
-   actions:[{label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"}]},
+   actions:[{label:"📋 Записаться на услуги",fn:"showServices",cl:"teal"}]},
   {kw:["бесплат","льгот","положено","имею право","субсид","малоимущ"],
    answer:"У нас пока нет отдельного калькулятора льгот — но специалист по социальной работе подробно расскажет о ваших правах на приёме или по телефону.",
    actions:[{label:"📍 Контакты центра",fn:"showContacts",cl:"teal"},{label:"👥 Сотрудники",fn:"showStaff",cl:"outline"}]},
@@ -112,9 +118,9 @@ const ASST_INTENTS=[
   {kw:["ремонт мебел","почин мебел","стул","табурет","табуретк"],
    answer:"Мелкий ремонт малогабаритной мебели есть в прейскуранте.",
    hint:["малогабаритной мебели"]},
-  {kw:["готовить","приготовить","обед сварить","еду сготов","приготовление пищ"],
-   answer:"Приготовление пищи есть в разделе услуг по питанию.",
-   hint:["предоставлению питания"]},
+  {kw:["готовить","приготовить","обед сварить","еду сготов","приготовление пищ","полуфабрикат","заморозк еды","салат","питание готовое","доставка питания"],
+   answer:"Такая услуга сейчас не входит в прейскурант центра. Уточните возможность по телефону или закажите обратный звонок.",
+   actions:[{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"}]},
   {kw:["гигиен","помыться","душ принять","ванн","подстричь","стрижк"],
    answer:"Такая услуга сейчас не входит в прейскурант центра. Уточните возможность по телефону или закажите обратный звонок.",
    actions:[{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"}]},
@@ -130,12 +136,6 @@ const ASST_INTENTS=[
   {kw:["гостиниц","переночевать","временное проживан","краткосрочн проживан"],
    answer:"Гостиничные услуги (краткосрочное проживание) доступны в некоторых филиалах.",
    hint:["гостиничные услуги"]},
-  {kw:["полуфабрикат","заморозк еды"],
-   answer:"Изготовление полуфабрикатов есть в некоторых филиалах.",
-   hint:["изготовление полуфабрикатов"]},
-  {kw:["салат","питание готовое","доставка питания"],
-   answer:"Услуги по предоставлению питания и салаты доступны в некоторых филиалах.",
-   hint:["предоставлению питания","салаты"]},
   {kw:["карниз","штор","портьер","утеплить окна","перестановка мебели","счетчик воды","счётчик воды","показания счетчик"],
    answer:"Мелкий бытовой ремонт и содержание жилья: установка карнизов, снятие штор, утепление окон, перестановка мебели, передача показаний счётчиков — отдельный раздел прейскуранта.",
    hint:["текущему содержанию"]},
@@ -147,21 +147,6 @@ const ASST_INTENTS=[
    hint:["медицины (прочие)"]},
 
   // ═══ Жизненные ситуации и категории получателей ═══
-  {kw:["многодетн","мать одиночк","мать-одиночк","отец одиночк","статус малоимущ","малообеспечен"],
-   answer:"Для многодетных и малообеспеченных семей доступны консультации специалиста по социальной работе о положенных мерах поддержки, а также услуги отделения по работе с семьями.",
-   actions:[{label:"👥 Сотрудники",fn:"showStaff",cl:"teal"},{label:"📝 Записаться на консультацию",fn:"showBooking",cl:"gold"}]},
-  {kw:["ветеран труд","ветеран боевых действ","участник сво","участник специальной военной","семьи участников сво","инвалид войны"],
-   answer:"В некоторых филиалах работает отделение социального сопровождения участников СВО и их семей. Уточните у сотрудников вашего филиала.",
-   actions:[{label:"👥 Сотрудники",fn:"showStaff",cl:"teal"},{label:"📍 Контакты",fn:"showContacts",cl:"outline"}]},
-  {kw:["инвалид 1 групп","инвалид первой групп","инвалид 2 групп","инвалид второй групп","инвалид 3 групп","инвалидность с детств","колясочник"],
-   answer:"Для получателей с инвалидностью центр предоставляет широкий спектр услуг: от сопровождения и ухода до реабилитационных занятий. Обратитесь к специалисту по социальной работе для подбора индивидуальной программы.",
-   actions:[{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"}]},
-  {kw:["одинокий пожилой","живу один","некому помочь","нет родственников","доживаю один"],
-   answer:"Рекомендуем связаться с центром напрямую — специалист подскажет, какая поддержка доступна.",
-   actions:[{label:"📞 Обратный звонок",fn:"showCallback",cl:"gold"}]},
-  {kw:["выписался из больниц","после операции","восстановлен после болезн","реабилитация после"],
-   answer:"После выписки из больницы доступны услуги доставки продуктов, лекарств и сопровождения к врачу — уточните детали по телефону центра.",
-   hint:["дополнительные социальные"]},
   {kw:["потерял документы","восстановить паспорт","восстановить снилс","утерян паспорт","потерял паспорт","потеряла паспорт","посеял паспорт"],
    answer:"По вопросам восстановления документов проконсультирует специалист по социальной работе или юрист центра.",
    hint:["правовые услуги"]},
@@ -170,7 +155,7 @@ const ASST_INTENTS=[
    actions:[{label:"👥 Сотрудники",fn:"showStaff",cl:"teal"},{label:"🆘 Экстренная помощь",fn:"showEmergency",cl:"red"}]},
   {kw:["первый раз обращаюсь","никогда не пользовался","как всё это работает","с чего начать","первое обращение"],
    answer:"Начать просто: посмотрите прейскурант услуг, добавьте нужное в корзину и отправьте заявку — или сразу запишитесь к специалисту. Специалист свяжется с вами и всё объяснит на месте.",
-   actions:[{label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"},{label:"📝 Записаться",fn:"showBooking",cl:"gold"}]},
+   actions:[{label:"📋 Записаться на услуги",fn:"showServices",cl:"teal"},{label:"📝 Записаться",fn:"showBooking",cl:"gold"}]},
 
   // ═══ Технические / об использовании бота ═══
   {kw:["не приходит уведомлен","не получаю ответ","не отвечают","долго не отвечают"],
@@ -332,7 +317,7 @@ function smallTalk(q){
     return{answer:`Всего доброго${hi}! Берегите себя 🌿`,actions:[]};
   if(/(кто ты|что ты умеешь|что умеешь|ты бот|ты человек|чем поможешь|что ты можешь|расскажи о себе|твои возможности)/.test(q))
     return{answer:`Я — виртуальный помощник центра «Гармония». Подскажу услуги и цены, помогу записаться к специалисту, найти сотрудника, расскажу о мероприятиях и отвечу на частые вопросы. Просто спрашивайте своими словами!`,actions:[
-      {label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"},{label:"📝 Записаться",fn:"showBooking",cl:"gold"}]};
+      {label:"📋 Записаться на услуги",fn:"showServices",cl:"teal"},{label:"📝 Записаться",fn:"showBooking",cl:"gold"}]};
   if(/(извини|прости|сорри)/.test(q))
     return{answer:`Ничего страшного${hi}! Всё в порядке 😊 Чем могу помочь?`,actions:[]};
   if(/(люблю тебя|ты хороший|ты молодец|ты классный|ты лучший|ты умница|молодец бот)/.test(q))
@@ -340,13 +325,13 @@ function smallTalk(q){
   if(/(шутк|анекдот|рассмеши|развесели)/.test(q))
     return{answer:`Я больше по серьёзным вопросам — помогаю с услугами и записью 😊 Но обещаю, что с заявками у нас всё быстро и без бюрократии!`,actions:[]};
   if(/(не понимаешь|тупой|глупый бот|бесполезн|плохо работаешь)/.test(q))
-    return{answer:`Прошу прощения, если запутал${hi}. Попробуйте переформулировать вопрос, или загляните в раздел «Вопросы и ответы» — там собраны частые темы.`,actions:[{label:"❓ Вопросы и ответы",fn:"showFAQ",cl:"outline"}]};
+    return{answer:`Прошу прощения, если запутал${hi}. Попробуйте переформулировать вопрос, или откройте раздел услуг напрямую.`,actions:[{label:"📋 Записаться на услуги",fn:"showServices",cl:"outline"}]};
   if(/(устал|устала|уставш|нет сил|тяжело на душе|плохое настроение|грустно|тоскливо)/.test(q))
     return{answer:`Понимаю${hi}, бывают такие дни 💛 Если нужна поддержка — есть раздел «Экстренная помощь». А если просто нужно решить бытовой вопрос — я рядом, не спеша разберёмся.`,actions:[{label:"🆘 Экстренная помощь",fn:"showEmergency",cl:"red"}]};
   if(/(скучно|скучаю|одиноко|не с кем поговорить|некому позвонить)/.test(q))
     return{answer:`Слышу вас${hi} 🌿 В центре регулярно проходят мероприятия и встречи — это хороший повод пообщаться вживую. Загляните в афишу.`,actions:[{label:"🎟️ Мероприятия",fn:"showEvents",cl:"teal"}]};
   if(/(не знаю с чего начать|запуталась|запутался|сложно разобраться|ничего не понимаю)/.test(q))
-    return{answer:`Ничего страшного${hi}, давайте по шагам 🌿 Самое простое — открыть прейскурант и посмотреть, какие услуги есть, либо сразу записаться к специалисту, который всё объяснит на месте.`,actions:[{label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"},{label:"📝 Записаться",fn:"showBooking",cl:"gold"}]};
+    return{answer:`Ничего страшного${hi}, давайте по шагам 🌿 Самое простое — открыть раздел записи на услуги и посмотреть, какие услуги есть, либо сразу записаться к специалисту, который всё объяснит на месте.`,actions:[{label:"📋 Записаться на услуги",fn:"showServices",cl:"teal"},{label:"📝 Записаться",fn:"showBooking",cl:"gold"}]};
   if(/(ты настоящий|ты живой|ты робот|искусственный интеллект|нейросеть|ты ии\b)/.test(q))
     return{answer:`Я виртуальный помощник — программа, которая помогает быстро находить нужную информацию о центре${hi}. За настоящей живой помощью всегда можно обратиться к сотрудникам центра лично.`,actions:[{label:"👥 Сотрудники",fn:"showStaff",cl:"teal"}]};
   if(/(сколько тебе лет|когда тебя создали|кто тебя сделал|кто тебя разработал)/.test(q))
@@ -387,18 +372,6 @@ function smallTalk(q){
   return null;
 }
 
-function faqAnswer(q){
-  if(typeof faqData==="undefined")return null;
-  let best=null,bestScore=0;
-  faqData.forEach(f=>{
-    const words=asstNorm(f.q).split(" ").filter(w=>w.length>3);
-    let score=0;words.forEach(w=>{if(q.includes(w))score++;});
-    if(score>bestScore){bestScore=score;best=f;}
-  });
-  if(best&&bestScore>=2)return{answer:best.a,actions:[{label:"❓ Другие частые вопросы",fn:"showFAQ",cl:"outline"}]};
-  return null;
-}
-
 function findCatAcrossBranches(hints){
   if(typeof branchContent==="undefined")return null;
   for(var ci=0;ci<hints.length;ci++){
@@ -432,6 +405,15 @@ function findItemInCategory(cat,q){
 }
 
 function resolveIntentResult(it,q){
+  // Такси — пытаемся вытащить адрес назначения прямо из фразы
+  if(it.actions&&it.actions.some(a=>a.fn==="showTaxi")){
+    const addr=extractAddressFromQuery(q);
+    if(addr){
+      const addrEsc=addr.replace(/'/g,"\\'");
+      return{answer:it.answer+` Подставил адрес «${addr}» в поле назначения — уточните его при необходимости.`,
+        actions:[{label:"🚕 Заказать такси",fn:"showTaxi",arg:"undefined",arg2:"'"+addrEsc+"'",cl:"teal"}]};
+    }
+  }
   // Спец-маркеры в ответе
   if(it.answer==="__DATETIME__"){
     const now=new Date();
@@ -465,7 +447,7 @@ function resolveIntentResult(it,q){
     if(cross)return{answer:it.answer+` В филиале «${currentCityName}» этой услуги нет, но она есть в филиале <b>${cross.cityName}</b>. Переключиться?`,
       actions:[{label:"🏢 Перейти в "+cross.cityName,fn:"switchBranchByKey",arg:"'"+cross.city+"'",cl:"teal"}]};
     return{answer:it.answer+" В вашем филиале эта категория сейчас недоступна — полный список в прейскуранте.",
-      actions:[{label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"}]};
+      actions:[{label:"📋 Записаться на услуги",fn:"showServices",cl:"teal"}]};
   }
   return{answer:it.answer,actions:it.actions||[]};
 }
@@ -479,7 +461,7 @@ function smartAsk(query){
   if(orientKw.some(k=>q.includes(asstNorm(k)))&&typeof servicesData!=="undefined"&&servicesData.length){
     const catList=servicesData.map(c=>c.icon+" "+c.name).join("\n");
     return{answer:`Вот основные направления в филиале «${currentCityName}»:\n\n${catList}\n\nОткрыть полный прейскурант с ценами?`,
-      actions:[{label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"}]};
+      actions:[{label:"📋 Записаться на услуги",fn:"showServices",cl:"teal"}]};
   }
 
   let best=null,bestScore=0;
@@ -504,7 +486,6 @@ function smartAsk(query){
 
   if(best&&bestScore>0)return resolveIntentResult(best,q);
 
-  const fq=faqAnswer(q);if(fq)return fq;
 
   // Честный кросс-филиальный поиск — если не нашли в текущем филиале
   const crossSvc=findServiceAcrossBranches(q);
@@ -522,7 +503,7 @@ function smartAsk(query){
   const nm=asstName();
   return{answer:`Не уверен, что верно понял вопрос${nm?(", "+nm):""} 🙈 Вот основные разделы — выберите ближайший, или позвоните нам: <b>${typeof MAIN_PHONE!=="undefined"?MAIN_PHONE:""}</b>`,
     actions:[
-      {label:"📋 Прейскурант услуг",fn:"showServices",cl:"teal"},
+      {label:"📋 Записаться на услуги",fn:"showServices",cl:"teal"},
       {label:"📝 Записаться",fn:"showBooking",cl:"gold"},
       {label:"📍 Контакты",fn:"showContacts",cl:"outline"}
     ]};
@@ -535,7 +516,8 @@ function switchBranchByKey(cityKey){
 
 function asstGo(fnName,arg,arg2){
   if(typeof window[fnName]==="function"){
-    pushNav(showAssistant);
+    exitAssistantFullscreenMode();
+    pushNav(function(){openAssistantFullscreen();});
     showTyping(()=>{
       if(arg2!==undefined)window[fnName](arg,arg2);
       else if(arg!==undefined)window[fnName](arg);
@@ -547,9 +529,8 @@ function asstGo(fnName,arg,arg2){
 const ASST_SUGGESTED=[
   "Как записаться к психологу?",
   "Сколько стоит уборка квартиры?",
-  "Кому положено бесплатное обслуживание?",
   "Как заказать социальное такси?",
-  "Прокат инвалидной коляски",
+  "Какие услуги есть в центре?",
   "Контакты и режим работы"
 ];
 
@@ -601,78 +582,44 @@ function showNews(){
     if(!items.length){
       addMsg("Пока новостей нет. Загляните позже!",true);return;
     }
-    items.forEach(n=>{
+    items.forEach((n,ni)=>{
       const c=document.createElement("div");c.className="news-card";
-      c.innerHTML=(n.image?`<img src="${n.image}" class="news-img" alt="">`:"")+
+      const imgs=(n.images&&n.images.length)?n.images:(n.image?[n.image]:[]);
+      let mediaHtml="";
+      if(imgs.length===1){
+        mediaHtml=`<img src="${imgs[0]}" class="news-img" alt="">`;
+      }else if(imgs.length>1){
+        mediaHtml=`<div class="news-carousel" id="newsCarousel${ni}">
+          <div class="news-carousel-track" id="newsTrack${ni}">
+            ${imgs.map(src=>`<img src="${src}" class="news-carousel-img" alt="">`).join("")}
+          </div>
+          <button type="button" class="news-carousel-arr prev" onclick="newsCarouselNav(${ni},-1)" aria-label="Предыдущее фото">‹</button>
+          <button type="button" class="news-carousel-arr next" onclick="newsCarouselNav(${ni},1)" aria-label="Следующее фото">›</button>
+          <div class="news-carousel-dots">${imgs.map((_,di)=>`<span class="news-dot${di===0?" active":""}" data-di="${di}"></span>`).join("")}</div>
+        </div>`;
+      }
+      c.innerHTML=mediaHtml+
         `<div class="news-top"><span class="news-tag">${n.tag||"Анонс"}</span><span class="news-date">${n.date||""}</span></div>`+
         `<div class="news-ttl">${n.title}</div><div class="news-text">${n.text}</div>`;
       list.appendChild(c);
+      if(imgs.length>1){
+        setTimeout(()=>{
+          const track=document.getElementById("newsTrack"+ni);
+          if(!track)return;
+          track.addEventListener("scroll",()=>{
+            const idx=Math.round(track.scrollLeft/track.clientWidth);
+            document.querySelectorAll("#newsCarousel"+ni+" .news-dot").forEach((d,di)=>d.classList.toggle("active",di===idx));
+          });
+        },50);
+      }
     });
     actionsEl.appendChild(list);
   },200);
 }
-
-function showEligibility(){
-  clearActions();setNav(true);
-  document.getElementById("searchBar").classList.add("gone");
-  addMsg("🧮 Проверим, положено ли вам бесплатное социальное обслуживание. Ответьте на несколько вопросов.<br><span class=\"note\">Это предварительная оценка — окончательное решение принимает специалист центра.</span>",true);
-
-  const ask=(text,options)=>{
-    showTyping(()=>{
-      addMsg(text,true);
-      clearActions();
-      const g=document.createElement("div");g.className="elig-opts";
-      options.forEach(o=>{
-        const b=document.createElement("button");b.type="button";b.className="elig-btn";b.textContent=o.label;
-        b.onclick=()=>{addMsg(o.label,false);clearActions();o.next();};
-        g.appendChild(b);
-      });
-      actionsEl.appendChild(g);
-    });
-  };
-
-  const verdict=(free,reason)=>{
-    showTyping(()=>{
-      clearActions();
-      if(free){
-        addMsg(`✅ <b>Скорее всего, вам положено бесплатное обслуживание.</b><br>${reason}<br><span class="note">Точное решение примет специалист после проверки документов.</span>`,true);
-      }else{
-        addMsg(`ℹ️ <b>Бесплатное обслуживание, вероятно, не предусмотрено.</b> Но вы можете пользоваться услугами на платной основе — со скидкой по карте «Морошка».<br>${reason}`,true);
-      }
-      const g=document.createElement("div");g.className="elig-opts";
-      const b1=document.createElement("button");b1.type="button";b1.className="act-btn teal";b1.textContent="📝 Записаться к специалисту";
-      b1.onclick=()=>{pushNav(showMainMenu);showTyping(showBooking);};
-      const b2=document.createElement("button");b2.type="button";b2.className="act-btn outline";b2.textContent="📋 Посмотреть услуги";
-      b2.onclick=()=>{pushNav(showMainMenu);showTyping(showServices);};
-      g.appendChild(b1);g.appendChild(b2);actionsEl.appendChild(g);
-    });
-  };
-
-  const askIncome=(reasonIfYes)=>{
-    ask("Ваш среднедушевой доход ниже 1,5 прожиточного минимума по ЯНАО?",[
-      {label:"Да, ниже",next:()=>verdict(true,reasonIfYes||"При доходе ниже 1,5 прожиточного минимума обслуживание предоставляется бесплатно.")},
-      {label:"Нет / не знаю",next:()=>verdict(false,"При доходе выше 1,5 прожиточного минимума обслуживание обычно платное. Точные цифры подскажет специалист.")}
-    ]);
-  };
-  const askAlone=()=>{
-    ask("Вы проживаете одиноко (нет родственников, обязанных оказывать помощь)?",[
-      {label:"Да, проживаю один(одна)",next:()=>askIncome("Одиноко проживающим пенсионерам с невысоким доходом обслуживание предоставляется бесплатно.")},
-      {label:"Нет, есть близкие родственники",next:()=>askIncome()}
-    ]);
-  };
-  const askAge=()=>{
-    ask("Вам 65 лет или больше?",[
-      {label:"Да, 65 и старше",next:()=>askAlone()},
-      {label:"Нет, младше 65",next:()=>verdict(false,"Льгота для пенсионеров по возрасту обычно действует с 65 лет.")}
-    ]);
-  };
-
-  ask("К какой категории вы относитесь?",[
-    {label:"Ветеран Великой Отечественной войны",next:()=>verdict(true,"Ветеранам ВОВ социальное обслуживание предоставляется бесплатно.")},
-    {label:"Инвалид I или II группы",next:()=>askIncome("Инвалидам I и II группы с доходом ниже 1,5 прожиточного минимума обслуживание бесплатное.")},
-    {label:"Пенсионер по возрасту",next:()=>askAge()},
-    {label:"Другое / не уверен(а)",next:()=>verdict(false,"Ваша ситуация не подходит под типовые льготы, но возможны индивидуальные основания — уточните у специалиста.")}
-  ]);
+function newsCarouselNav(ni,dir){
+  const track=document.getElementById("newsTrack"+ni);
+  if(!track)return;
+  track.scrollBy({left:track.clientWidth*dir,behavior:"smooth"});
 }
 
 function esiaLogin(){
