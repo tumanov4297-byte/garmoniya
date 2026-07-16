@@ -524,12 +524,24 @@ function showMainMenu(){
   html+='<div class="news-sec-title">Новости и обновления центра</div>';
   html+='<div class="news-feed">';
   if(newsData.length){
-    newsData.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");}).forEach(function(n){
+    newsData.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");}).forEach(function(n,ni){
       var d=new Date(n.date);
       var dateStr=d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
-      var thumbImg=n.image||((n.images&&n.images.length)?n.images[0]:null);
-      var multiBadge=(n.images&&n.images.length>1)?'<span class="news-multi-badge">📷 '+n.images.length+'</span>':"";
-      html+='<div class="news-card">'+(thumbImg?'<img src="'+thumbImg+'" class="news-img" alt="">'+multiBadge:'')+'<div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
+      var imgs=(n.images&&n.images.length)?n.images:(n.image?[n.image]:[]);
+      var mediaHtml="";
+      if(imgs.length===1){
+        mediaHtml='<img src="'+imgs[0]+'" class="news-img" alt="">';
+      }else if(imgs.length>1){
+        mediaHtml='<div class="news-carousel" id="homeNewsCarousel'+ni+'">'
+          +'<div class="news-carousel-track" id="homeNewsTrack'+ni+'">'
+          +imgs.map(function(src){return '<img src="'+src+'" class="news-carousel-img" alt="" draggable="false">';}).join("")
+          +'</div>'
+          +'<button type="button" class="news-carousel-arr prev" onclick="newsCarouselNavById(\'homeNewsTrack'+ni+'\',-1)" aria-label="Предыдущее фото">‹</button>'
+          +'<button type="button" class="news-carousel-arr next" onclick="newsCarouselNavById(\'homeNewsTrack'+ni+'\',1)" aria-label="Следующее фото">›</button>'
+          +'<div class="news-carousel-dots">'+imgs.map(function(_,di){return '<span class="news-dot'+(di===0?" active":"")+'"></span>';}).join("")+'</div>'
+          +'</div>';
+      }
+      html+='<div class="news-card">'+mediaHtml+'<div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
     });
   }else{
     html+='<div class="news-empty"><div class="ne-ico">📰</div><b>Новостей пока нет</b><span>Здесь появятся новости и обновления центра</span></div>';
@@ -537,6 +549,15 @@ function showMainMenu(){
   html+='</div>';
   w.innerHTML=html;
   chatEl.appendChild(w);
+  w.querySelectorAll(".news-carousel").forEach(function(carousel){
+    var track=carousel.querySelector(".news-carousel-track");
+    if(!track)return;
+    track.addEventListener("scroll",function(){
+      var idx=Math.round(track.scrollLeft/track.clientWidth);
+      carousel.querySelectorAll(".news-dot").forEach(function(d,di){d.classList.toggle("active",di===idx);});
+    });
+    if(typeof attachCarouselDrag==="function")attachCarouselDrag(track);
+  });
   w.querySelectorAll("[data-act]").forEach(function(btn){
     if(btn.dataset.act==="assistant")btn.onclick=function(){openAssistantFullscreen();};
   });

@@ -593,7 +593,7 @@ function showNews(){
       }else if(imgs.length>1){
         mediaHtml=`<div class="news-carousel" id="newsCarousel${ni}">
           <div class="news-carousel-track" id="newsTrack${ni}">
-            ${imgs.map(src=>`<img src="${src}" class="news-carousel-img" alt="">`).join("")}
+            ${imgs.map(src=>`<img src="${src}" class="news-carousel-img" alt="" draggable="false">`).join("")}
           </div>
           <button type="button" class="news-carousel-arr prev" onclick="newsCarouselNav(${ni},-1)" aria-label="Предыдущее фото">‹</button>
           <button type="button" class="news-carousel-arr next" onclick="newsCarouselNav(${ni},1)" aria-label="Следующее фото">›</button>
@@ -612,14 +612,49 @@ function showNews(){
             const idx=Math.round(track.scrollLeft/track.clientWidth);
             document.querySelectorAll("#newsCarousel"+ni+" .news-dot").forEach((d,di)=>d.classList.toggle("active",di===idx));
           });
+          attachCarouselDrag(track);
         },50);
       }
     });
     actionsEl.appendChild(list);
   },200);
 }
+function attachCarouselDrag(track){
+  let dragging=false,startX=0,startScroll=0,moved=false,axisLocked=null,startY=0;
+  track.addEventListener("pointerdown",e=>{
+    dragging=true;moved=false;axisLocked=null;
+    startX=e.clientX;startY=e.clientY;startScroll=track.scrollLeft;
+  });
+  track.addEventListener("pointermove",e=>{
+    if(!dragging)return;
+    const dx=e.clientX-startX,dy=e.clientY-startY;
+    if(axisLocked===null&&(Math.abs(dx)>4||Math.abs(dy)>4)){
+      axisLocked=Math.abs(dx)>Math.abs(dy)?"x":"y";
+      if(axisLocked==="x")track.setPointerCapture(e.pointerId);
+    }
+    if(axisLocked==="x"){
+      moved=true;
+      track.scrollLeft=startScroll-dx;
+      e.preventDefault();
+    }
+  });
+  function endDrag(){
+    if(!dragging)return;
+    dragging=false;
+    if(moved&&axisLocked==="x"){
+      const idx=Math.round(track.scrollLeft/track.clientWidth);
+      track.scrollTo({left:idx*track.clientWidth,behavior:"smooth"});
+    }
+  }
+  track.addEventListener("pointerup",endDrag);
+  track.addEventListener("pointercancel",endDrag);
+  track.addEventListener("pointerleave",()=>{if(dragging)endDrag();});
+}
 function newsCarouselNav(ni,dir){
-  const track=document.getElementById("newsTrack"+ni);
+  newsCarouselNavById("newsTrack"+ni,dir);
+}
+function newsCarouselNavById(trackId,dir){
+  const track=document.getElementById(trackId);
   if(!track)return;
   track.scrollBy({left:track.clientWidth*dir,behavior:"smooth"});
 }
