@@ -3,7 +3,7 @@
   "use strict";
 
   const ADMIN={email:"iatumanov@yanao.ru",pass:"300897"};
-  const CITY_NAMES={gubkin:"Губкинский",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"Уренгой"};
+  const CITY_NAMES={gubkin:"Губкинский",purpe:"мкр. Пурпе",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"Уренгой"};
   const CONTACT_FIELDS=[["address","Адрес"],["phone","Телефон (для показа)"],["phoneRaw","Телефон (цифры, для звонка)"],["email","Email"],["orderEmail","Email для приёма заявок (куда улетают заявки)"],["hours","Часы работы"]];
 
   let editCity="gubkin", editTab="overview";
@@ -41,7 +41,14 @@
     if(typeof eventsData!=="undefined")ov.eventsData=eventsData;
     if(typeof emailTemplates!=="undefined")ov.emailTemplates=emailTemplates;
     if(typeof galleryData!=="undefined")ov.galleryData=galleryData;
-    localStorage.setItem("adminOverrides",JSON.stringify(ov));
+    try{
+      localStorage.setItem("adminOverrides",JSON.stringify(ov));
+      return true;
+    }catch(e){
+      showToast("⚠️ Не удалось сохранить — слишком много данных (например, тяжёлые фото). Уменьшите количество или размер фото в новостях и попробуйте снова.");
+      console.error("saveOverrides failed:",e);
+      return false;
+    }
   }
 
   function isAuthed(){return sessionStorage.getItem("adminAuthed")==="1";}
@@ -475,7 +482,7 @@
         eventsData.push(obj);
       });
     };
-    body.querySelector("#saveNews").onclick=()=>{collectNews();collectEvents();saveOverrides();showToast("💾 Новости и мероприятия сохранены");};
+    body.querySelector("#saveNews").onclick=()=>{collectNews();collectEvents();if(saveOverrides())showToast("💾 Новости и мероприятия сохранены");};
     body.querySelector("#addNews").onclick=()=>{collectNews();collectEvents();newsData.push({date:new Date().toISOString().split("T")[0],tag:"Новость",title:"",text:""});saveOverrides();renderNews(body);};
     body.querySelector("#addEvt").onclick=()=>{collectNews();collectEvents();eventsData.push({id:"ev"+(eventsData.length+1),date:new Date().toISOString().split("T")[0],title:"",place:"",desc:"",seats:0});saveOverrides();renderNews(body);};
     body.querySelectorAll("[data-delnews]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();newsData.splice(+b.dataset.delnews,1);saveOverrides();renderNews(body);});
@@ -487,8 +494,10 @@
         if(!newsData[i].images)newsData[i].images=newsData[i].image?[newsData[i].image]:[];
         delete newsData[i].image;
         newsData[i].images.push(dataUrl);
-        saveOverrides();renderNews(body);
-      });
+        const ok=saveOverrides();
+        if(ok)showToast("💾 Фото добавлено и сохранено");
+        renderNews(body);
+      },480);
     });
     body.querySelectorAll("[data-delimgnews]").forEach(b=>b.onclick=()=>{
       const i=+b.dataset.delimgnews,ii=+b.dataset.imgidx;

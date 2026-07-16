@@ -3,6 +3,7 @@ const ORDER_EMAIL="aidavydenko@yanao.ru",ORG_EMAIL="cson-gub@yanao.ru",MAIN_PHON
 
 const cityData={
   gubkin:{address:"629830, ЯНАО, г. Губкинский, 3-й мкрн, д. 42",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
+  purpe:{address:"ЯНАО, мкр. Пурпе (уточните точный адрес здания в админ-панели)",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
   muravlenko:{address:"629605, ЯНАО, г. Муравленко, ул. Нефтяников, д. 12",phone:"8(34938)5-18-00",phoneRaw:"73493851800",email:"cson-mur@yanao.ru",orderEmail:"cson-mur@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
   noyabrsk:{address:"629806, ЯНАО, г. Ноябрьск, ул. Советская, д. 24",phone:"8(34963)3-40-80",phoneRaw:"73496334080",email:"cson-noy@yanao.ru",orderEmail:"cson-noy@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:true,hasServices:false},
   tarko:{address:"629850, ЯНАО, г. Тарко-Сале, ул. Геологов, д. 8",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-tarko@yanao.ru",orderEmail:"cson-tarko@yanao.ru",hours:"Пн–Пт: 08:00–18:30",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true},
@@ -593,6 +594,7 @@ const PUROVSKY_STAFF=[
 
 const branchContent={
   gubkin:    {services:GUBKIN_SERVICES, staff:GUBKIN_STAFF},
+  purpe:     {services:JSON.parse(JSON.stringify(GUBKIN_SERVICES)), staff:JSON.parse(JSON.stringify(GUBKIN_STAFF))},
   muravlenko:{services:[], staff:[]},
   noyabrsk:  {services:NOYABRSK_SERVICES, staff:NOYABRSK_STAFF},
   tarko:     {services:JSON.parse(JSON.stringify(PUROVSKY_SERVICES)), staff:JSON.parse(JSON.stringify(PUROVSKY_STAFF))},
@@ -666,6 +668,13 @@ const newsData=[
     title:"Добро пожаловать! Мы запустили виртуального помощника «Гармония» 🎉",
     text:"Теперь узнать о наших услугах, записаться к специалисту или оформить заявку можно прямо здесь, без звонков и очередей. Помощник работает круглосуточно и всегда готов подсказать нужный раздел — просто напишите вопрос своими словами. Мы рады встрече с вами и надеемся, что новый бот сделает получение социальных услуг проще и удобнее!",
     image:"img/news-launch.jpg"
+  },
+  {
+    date:"2026-07-16",
+    tag:"Важно",
+    title:"Безопасный интернет: лайфхаки от специалиста для родителей 🛡️",
+    text:"Ребёнок остаётся дома один с телефоном или планшетом — как уберечь его от лишнего? Собрали в карточках простые пошаговые настройки: бесплатный родительский контроль на iPhone и Android, безопасный поиск и видео, единый DNS-фильтр для всех устройств дома сразу, а главное — что делать, если настроек недостаточно. Пролистайте карточки до конца: там простые правила безопасности, о которых стоит поговорить с ребёнком уже сегодня. Остались вопросы — специалисты центра «Гармония» всегда готовы помочь с настройкой.",
+    images:["img/card_1_oblozhka.jpg","img/card_2_iphone.jpg","img/card_3_android.jpg","img/card_4_poisk.jpg","img/card_5_dns.jpg","img/card_6_doverie.jpg","img/card_7_final.jpg"]
   }
 ];
 

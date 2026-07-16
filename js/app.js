@@ -36,7 +36,8 @@ async function apiRequest(path,options){
 // ═══════════════════════════════════════════════════════════
 const YANDEX_MAPS_API_KEY="";
 
-const BRANCH_DISPLAY_NAMES={gubkin:"Губкинский",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"пгт. Уренгой"};
+const BRANCH_DISPLAY_NAMES={gubkin:"Губкинский",purpe:"мкр. Пурпе",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"пгт. Уренгой"};
+function cityPrefixed(name){return /^(г\.|пгт\.|мкр\.)/i.test(name)?name:"г. "+name;}
 let currentCity="gubkin",currentCityName="Губкинский",hasMoroshka=null;
 let navHistory=[],cart=JSON.parse(localStorage.getItem("cart")||"[]");
 let clientName="",clientPhone="",clientSnils="",ordersHistory=[],bookingsHistory=[];
@@ -178,6 +179,7 @@ function bindRatings(){
 
 function updateMToggle(){
   const t=document.getElementById("mToggle");
+  if(!t)return;
   if(hasMoroshka===null){t.classList.add("gone");return;}
   t.classList.remove("gone");t.classList.toggle("on",hasMoroshka);
   t.setAttribute("aria-checked",String(hasMoroshka));
@@ -1581,7 +1583,7 @@ function showContacts(){
   chatEl.innerHTML="";
   var cd=cityData[currentCity]||cityData.gubkin;
   const w=document.createElement("div");w.className="contacts-page";
-  let html='<h2>📍 Контакты — г. '+currentCityName+'</h2>';
+  let html='<h2>📍 Контакты — '+cityPrefixed(currentCityName)+'</h2>';
   html+='<div class="pcard">';
   html+='<div class="pinfo-row"><span class="pinfo-ico">🏢</span><span class="pinfo-txt"><span class="pinfo-lbl">Адрес</span><span class="pinfo-val">'+cd.address+'</span></span></div>';
   html+='<div class="pinfo-row"><span class="pinfo-ico">📞</span><span class="pinfo-txt"><span class="pinfo-lbl">Приёмная</span><span class="pinfo-val"><a href="tel:+'+cd.phoneRaw+'">'+cd.phone+'</a></span></span></div>';
@@ -1738,7 +1740,7 @@ function showFeedback(){
 function showCityPlaceholder(section){
   const cd=cityData[currentCity]||cityData.gubkin;
   const ph=document.createElement("div");ph.className="city-ph";ph.setAttribute("role","status");
-  ph.innerHTML=`<div class="city-ph-ico" aria-hidden="true">🏢</div><h4>г. ${currentCityName}</h4><p>База данных ${section} этого филиала заполняется.</p>`;
+  ph.innerHTML=`<div class="city-ph-ico" aria-hidden="true">🏢</div><h4>${cityPrefixed(currentCityName)}</h4><p>База данных ${section} этого филиала заполняется.</p>`;
   [{ico:"📞",lbl:"ТЕЛЕФОН",val:`<a href="tel:+${cd.phoneRaw}">${cd.phone}</a>`},{ico:"✉️",lbl:"EMAIL",val:`<a href="mailto:${cd.email}">${cd.email}</a>`}].forEach(r=>{
     ph.innerHTML+=`<div class="contact-row" style="margin-bottom:8px;"><div class="c-ico" aria-hidden="true">${r.ico}</div><div><div class="c-lbl">${r.lbl}</div><div class="c-val">${r.val}</div></div></div>`;
   });
@@ -1951,7 +1953,7 @@ function renderProfilePanel(){
           ${photo?'<button class="prof-ava-remove" onclick="event.stopPropagation();removePhoto()" aria-label="Удалить фото">✕</button>':""}
         </div>
         <div class="prof-name">${clientName}</div>
-        <div class="prof-phone">${clientPhone} · г. ${currentCityName}</div>
+        <div class="prof-phone">${clientPhone} · ${cityPrefixed(currentCityName)}</div>
       </div>
     </div>
 
@@ -2200,6 +2202,7 @@ function showAuth(){
     <label for="aCity" style="position:absolute;opacity:0;pointer-events:none">Филиал</label>
     <select id="aCity" class="auth-inp auth-city-sel" aria-label="Ваш филиал">
       <option value="gubkin">🏢 г. Губкинский</option>
+      <option value="purpe">🏢 мкр. Пурпе</option>
       <option value="muravlenko">🏢 г. Муравленко</option>
       <option value="noyabrsk">🏢 г. Ноябрьск</option>
       <option value="tarko">🏢 г. Тарко-Сале</option>
@@ -2363,12 +2366,12 @@ function selectCity(cityKey,silent){
   servicesData=branchContent[currentCity].services;
   staffData=branchContent[currentCity].staff;
   const sel=document.getElementById("citySel");if(sel)sel.value=cityKey;
-  const cd=document.getElementById("cityDisplay");if(cd)cd.textContent="г. "+currentCityName;
+  const cd=document.getElementById("cityDisplay");if(cd)cd.textContent=cityPrefixed(currentCityName);
   updateHoursBanner();
   if(!silent&&!wasSame){
     navHistory=[];currentCatId=null;currentSvcList=null;
     document.getElementById("searchBar").classList.add("gone");
-    addMsg(`📍 Переключено на: <b>г. ${currentCityName}</b>`,true);
+    addMsg(`📍 Переключено на: <b>${cityPrefixed(currentCityName)}</b>`,true);
     showMainMenu();
   }
 }

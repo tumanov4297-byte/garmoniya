@@ -67,21 +67,13 @@ body{font-family:'Inter',sans-serif;font-size:var(--fz-base);background:linear-g
 @keyframes badgePop{0%{transform:scale(0);}60%{transform:scale(1.2);}100%{transform:scale(1);}}
 
 /* HOURS BANNER — компактная плашка-статус, не занимает лишнего места */
-.hours-banner{flex-shrink:0;margin:8px 14px 0;padding:0;display:inline-flex;align-self:flex-start;align-items:center;gap:6px;border-radius:20px;padding:5px 11px;transition:all 0.3s;animation:hbSlideIn .35s cubic-bezier(.16,1,.3,1) both;backdrop-filter:blur(12px) saturate(1.5);-webkit-backdrop-filter:blur(12px) saturate(1.5);box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.hours-banner{flex-shrink:0;margin:0;display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:6px 12px;transition:all 0.3s;animation:hbSlideIn .35s cubic-bezier(.16,1,.3,1) both;backdrop-filter:blur(12px) saturate(1.5);-webkit-backdrop-filter:blur(12px) saturate(1.5);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);}
 @keyframes hbSlideIn{0%{opacity:0;transform:translate3d(0,-4px,0);}100%{opacity:1;transform:translate3d(0,0,0);}}
-.hours-banner.open{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.22);}
-.hours-banner.closed{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.18);}
 .hours-banner.gone{display:none;}
 .hb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .open .hb-dot{background:var(--green-mid);animation:dot-blink 2s infinite;}
 .closed .hb-dot{background:var(--red);}
-.hb-txt{font-size:11px;font-weight:700;white-space:nowrap;}
-.open .hb-txt{color:var(--green);}
-.closed .hb-txt{color:var(--red);}
-.dark .hours-banner.open{background:rgba(16,185,129,.14);border-color:rgba(16,185,129,.3);}
-.dark .hours-banner.closed{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.28);}
-.dark .open .hb-txt{color:#4ade9a;}
-.dark .closed .hb-txt{color:#f87171;}
+.hb-txt{font-size:11px;font-weight:700;white-space:nowrap;color:#fff;}
 @keyframes dot-blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
 
 /* SEARCH BAR */
