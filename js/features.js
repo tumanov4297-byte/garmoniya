@@ -575,10 +575,12 @@ function askFlow(query){
 function showNews(){
   clearActions();setNav(true);
   document.getElementById("searchBar").classList.add("gone");
+  chatEl.innerHTML="";
   addMsg("📰 Новости и анонсы центра «Гармония»:",true);
   setTimeout(()=>{
     const list=document.createElement("div");list.className="news-list";
-    const items=(typeof newsData!=="undefined")?newsData:[];
+    const rawItems=(typeof newsData!=="undefined")?newsData:[];
+    const items=rawItems.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
     if(!items.length){
       addMsg("Пока новостей нет. Загляните позже!",true);return;
     }

@@ -524,10 +524,12 @@ function showMainMenu(){
   html+='<div class="news-sec-title">Новости и обновления центра</div>';
   html+='<div class="news-feed">';
   if(newsData.length){
-    newsData.forEach(function(n){
+    newsData.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");}).forEach(function(n){
       var d=new Date(n.date);
       var dateStr=d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
-      html+='<div class="news-card">'+(n.image?'<img src="'+n.image+'" class="news-img" alt="">':'')+'<div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
+      var thumbImg=n.image||((n.images&&n.images.length)?n.images[0]:null);
+      var multiBadge=(n.images&&n.images.length>1)?'<span class="news-multi-badge">📷 '+n.images.length+'</span>':"";
+      html+='<div class="news-card">'+(thumbImg?'<img src="'+thumbImg+'" class="news-img" alt="">'+multiBadge:'')+'<div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
     });
   }else{
     html+='<div class="news-empty"><div class="ne-ico">📰</div><b>Новостей пока нет</b><span>Здесь появятся новости и обновления центра</span></div>';
