@@ -736,6 +736,15 @@ function structPriceLine(it){
   if(it.m!=null)s+=" · по «Морошке» "+it.m.toLocaleString("ru-RU")+" ₽";
   return s;
 }
+// Переход из помощника: сразу в запись направления (Губкинский/Пурпе)
+// или в соответствующую категорию прейскуранта в других филиалах.
+function structGoto(catId){
+  var dir=(typeof BOOKING_STRUCT!=="undefined")?BOOKING_STRUCT.find(function(d){return d.catId===catId;}):null;
+  if(dir&&(currentCity==="gubkin"||currentCity==="purpe")){openStructBooking(catId);return;}
+  var cat=(typeof servicesData!=="undefined"&&servicesData)?servicesData.find(function(c){return c.id===catId;}):null;
+  showServices();
+  if(cat)setTimeout(function(){plOpenCat(catId);},260);
+}
 function structResolveStaff(surnames){
   var out=[];
   (surnames||[]).forEach(function(sn){

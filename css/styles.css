@@ -2097,3 +2097,10 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .shell.assistant-mode .asst-fs-hdr{display:flex;}
 .shell.assistant-mode .actions{position:sticky;bottom:0;background:var(--teal-bg);padding-bottom:env(safe-area-inset-bottom,0);}
 .dark .shell.assistant-mode .actions{background:#0f1420;}
+
+/* ═══ Живой бот (видео-маскот) ═══ */
+.onb-bot-live{width:118px;height:118px;border-radius:50%;overflow:hidden;margin:6px auto 10px;box-shadow:0 6px 22px rgba(27,133,133,.28);border:3px solid #fff;background:#EAF5F3;}
+.onb-bot-live video{width:100%;height:100%;object-fit:cover;display:block;}
+.asst-live{width:96px;height:96px;border-radius:50%;overflow:hidden;margin:2px auto 10px;box-shadow:0 4px 16px rgba(27,133,133,.25);border:2.5px solid #fff;background:#EAF5F3;}
+.asst-live video{width:100%;height:100%;object-fit:cover;display:block;}
+.dark .onb-bot-live,.dark .asst-live{border-color:rgba(255,255,255,.18);background:#16324f;}

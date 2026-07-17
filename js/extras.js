@@ -512,7 +512,9 @@ function showOnboarding(){
     const dots=steps.map((_,i)=>`<span class="onb-dot ${i===idx?"active":i<idx?"done":""}"></span>`).join("");
     ovl.innerHTML=`<div class="onb-card">
       <div class="onb-progress"><div class="onb-progress-fill" style="width:${progress}%"></div></div>
-      <div class="onb-emoji-badge"><span class="onb-emoji">${s.emoji}</span></div>
+      ${idx===0
+        ?'<div class="onb-bot-live"><video src="img/bot-live.mp4" poster="img/bot-live-poster.jpg" autoplay muted loop playsinline disablepictureinpicture></video></div>'
+        :`<div class="onb-emoji-badge"><span class="onb-emoji">${s.emoji}</span></div>`}
       <div class="onb-title">${s.title}</div>
       <div class="onb-text">${s.text}</div>
       <div class="onb-dots">${dots}</div>
