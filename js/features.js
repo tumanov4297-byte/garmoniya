@@ -595,9 +595,8 @@ function showNews(){
           <div class="news-carousel-track" id="newsTrack${ni}">
             ${imgs.map(src=>`<img src="${src}" class="news-carousel-img" alt="" draggable="false">`).join("")}
           </div>
-          <button type="button" class="news-carousel-arr prev" onclick="newsCarouselNav(${ni},-1)" aria-label="Предыдущее фото">‹</button>
-          <button type="button" class="news-carousel-arr next" onclick="newsCarouselNav(${ni},1)" aria-label="Следующее фото">›</button>
-          <div class="news-carousel-dots">${imgs.map((_,di)=>`<span class="news-dot${di===0?" active":""}" data-di="${di}"></span>`).join("")}</div>
+          <div class="news-carousel-counter"><span class="ncc-cur">1</span>/${imgs.length}</div>
+          <div class="news-carousel-dots">${imgs.map((_,di)=>`<span class="news-dot${di===0?" active":""}" data-di="${di}" onclick="newsCarouselGoById('newsTrack${ni}',${di})"></span>`).join("")}</div>
         </div>`;
       }
       c.innerHTML=mediaHtml+
@@ -611,6 +610,7 @@ function showNews(){
           track.addEventListener("scroll",()=>{
             const idx=Math.round(track.scrollLeft/track.clientWidth);
             document.querySelectorAll("#newsCarousel"+ni+" .news-dot").forEach((d,di)=>d.classList.toggle("active",di===idx));
+            const cc=document.querySelector("#newsCarousel"+ni+" .ncc-cur");if(cc)cc.textContent=(idx+1);
           });
           attachCarouselDrag(track);
         },50);
@@ -620,8 +620,11 @@ function showNews(){
   },200);
 }
 function attachCarouselDrag(track){
+  // На сенсорных экранах листание делает сам браузер (нативный свайп + snap).
+  // JS-перетаскивание нужно только для мыши на компьютере.
   let dragging=false,startX=0,startScroll=0,moved=false,axisLocked=null,startY=0;
   track.addEventListener("pointerdown",e=>{
+    if(e.pointerType!=="mouse")return;
     dragging=true;moved=false;axisLocked=null;
     startX=e.clientX;startY=e.clientY;startScroll=track.scrollLeft;
   });
@@ -630,7 +633,10 @@ function attachCarouselDrag(track){
     const dx=e.clientX-startX,dy=e.clientY-startY;
     if(axisLocked===null&&(Math.abs(dx)>4||Math.abs(dy)>4)){
       axisLocked=Math.abs(dx)>Math.abs(dy)?"x":"y";
-      if(axisLocked==="x")track.setPointerCapture(e.pointerId);
+      if(axisLocked==="x"){
+        track.setPointerCapture(e.pointerId);
+        track.style.scrollSnapType="none"; // иначе snap возвращает кадр назад во время драга
+      }
     }
     if(axisLocked==="x"){
       moved=true;
@@ -642,8 +648,11 @@ function attachCarouselDrag(track){
     if(!dragging)return;
     dragging=false;
     if(moved&&axisLocked==="x"){
-      const idx=Math.round(track.scrollLeft/track.clientWidth);
+      const idx=Math.max(0,Math.min(Math.round(track.scrollLeft/track.clientWidth),track.children.length-1));
       track.scrollTo({left:idx*track.clientWidth,behavior:"smooth"});
+      setTimeout(()=>{track.style.scrollSnapType="";},400);
+    }else{
+      track.style.scrollSnapType="";
     }
   }
   track.addEventListener("pointerup",endDrag);
@@ -657,6 +666,11 @@ function newsCarouselNavById(trackId,dir){
   const track=document.getElementById(trackId);
   if(!track)return;
   track.scrollBy({left:track.clientWidth*dir,behavior:"smooth"});
+}
+function newsCarouselGoById(trackId,idx){
+  const track=document.getElementById(trackId);
+  if(!track)return;
+  track.scrollTo({left:track.clientWidth*idx,behavior:"smooth"});
 }
 
 function esiaLogin(){

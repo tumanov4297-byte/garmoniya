@@ -536,9 +536,8 @@ function showMainMenu(){
           +'<div class="news-carousel-track" id="homeNewsTrack'+ni+'">'
           +imgs.map(function(src){return '<img src="'+src+'" class="news-carousel-img" alt="" draggable="false">';}).join("")
           +'</div>'
-          +'<button type="button" class="news-carousel-arr prev" onclick="newsCarouselNavById(\'homeNewsTrack'+ni+'\',-1)" aria-label="Предыдущее фото">‹</button>'
-          +'<button type="button" class="news-carousel-arr next" onclick="newsCarouselNavById(\'homeNewsTrack'+ni+'\',1)" aria-label="Следующее фото">›</button>'
-          +'<div class="news-carousel-dots">'+imgs.map(function(_,di){return '<span class="news-dot'+(di===0?" active":"")+'"></span>';}).join("")+'</div>'
+          +'<div class="news-carousel-counter"><span class="ncc-cur">1</span>/'+imgs.length+'</div>'
+          +'<div class="news-carousel-dots">'+imgs.map(function(_,di){return '<span class="news-dot'+(di===0?" active":"")+'" onclick="newsCarouselGoById(\'homeNewsTrack'+ni+'\','+di+')"></span>';}).join("")+'</div>'
           +'</div>';
       }
       html+='<div class="news-card">'+mediaHtml+'<div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
@@ -555,6 +554,7 @@ function showMainMenu(){
     track.addEventListener("scroll",function(){
       var idx=Math.round(track.scrollLeft/track.clientWidth);
       carousel.querySelectorAll(".news-dot").forEach(function(d,di){d.classList.toggle("active",di===idx);});
+      var cc=carousel.querySelector(".ncc-cur");if(cc)cc.textContent=(idx+1);
     });
     if(typeof attachCarouselDrag==="function")attachCarouselDrag(track);
   });
@@ -641,6 +641,14 @@ function plOpenCat(id,highlightUid){
   }
   html+='<div class="pl-sec-t">'+cat.icon+' '+cat.name+'</div>';
   var catNameLower=cat.name.toLowerCase();
+  var structDir=(typeof BOOKING_STRUCT!=="undefined"&&(currentCity==="gubkin"||currentCity==="purpe"))?BOOKING_STRUCT.find(function(d){return d.catId===cat.id;}):null;
+  if(structDir&&highlightUid===undefined){
+    html+='<button class="svc-book-btn" onclick="openStructBooking('+cat.id+')"><span class="svc-book-ico">📅</span><span class="svc-book-txt"><b>Записаться на приём</b><span>Выбор направления, услуги, специалиста, даты и времени</span></span><span class="svc-book-arr">›</span></button>';
+    det.innerHTML=html;
+    det.classList.remove("gone");
+    det.scrollIntoView({behavior:"smooth",block:"start"});
+    return;
+  }
   var bookingMatch=SERVICE_BOOKING_MAP.find(function(m){return catNameLower.indexOf(m.match)>=0;});
   var matchedStaff=bookingMatch?(staffData||[]).filter(function(s){return s.pos.toLowerCase().indexOf(bookingMatch.pos)>=0;}):[];
   if(bookingMatch&&matchedStaff.length&&highlightUid===undefined){
@@ -1411,13 +1419,14 @@ function showBookingSpecialist(specialists){
   bkState.specialists=specialists;
   chatEl.innerHTML="";
   const w=document.createElement("div");w.className="booking-page";
-  const backFn=bkState.flow==="service"?`showServiceBookingItem(${bkState.catId})`:"showBooking()";
-  const backLabel=bkState.flow==="service"?"← Назад к услуге":"← Все руководители";
+  const backFn=bkState.flow==="struct"?`structOpenSub(${bkState.catId},${bkState.subIdx})`:(bkState.flow==="service"?`showServiceBookingItem(${bkState.catId})`:"showBooking()");
+  const backLabel=(bkState.flow==="service"||bkState.flow==="struct")?"← Назад к услуге":"← Все руководители";
+  const isSvcFlow=bkState.flow==="service"||bkState.flow==="struct";
   w.innerHTML=`
     <button class="pl-back" onclick="${backFn}">${backLabel}</button>
     <h2>📝 ${bkState.catName}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:${bkState.flow==="service"?25:0}%"></div></div>
-    <div class="bk-step-lbl"><span class="taxi-step-num">${bkState.flow==="service"?2:1}</span>Выберите специалиста</div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isSvcFlow?25:0}%"></div></div>
+    <div class="bk-step-lbl"><span class="taxi-step-num">${isSvcFlow?2:1}</span>Выберите специалиста</div>
     <div class="bk-spec-list" id="bkSpecList">
       ${specialists.map(s=>{
         const ini=s.name.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase();
@@ -1446,7 +1455,7 @@ function showBookingDate(){
     if(dow!==0&&dow!==6)days.push(new Date(d));
     d.setDate(d.getDate()+1);
   }
-  const isService=bkState.flow==="service";
+  const isService=bkState.flow==="service"||bkState.flow==="struct";
   w.innerHTML=`
     <button class="pl-back" onclick="showBookingSpecialist(bkState.specialists)">← Назад к специалисту</button>
     <h2>📝 ${bkState.spec}</h2>
@@ -1480,12 +1489,14 @@ function showBookingTime(){
   const dateStr=dObj.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
   const slots=["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
   const lunchIdxs=new Set([6,7,8]);
-  const isService=bkState.flow==="service";
+  const isService=bkState.flow==="service"||bkState.flow==="struct";
+  const groupNote=(bkState.flow==="struct"&&bkState.mode==="group")?`<div class="bk-group-note">👥 Занятие групповое${bkState.cap?" (до "+bkState.cap+" мест)":""} — время общее для всех участников. Центр подтвердит его после обработки заявки.</div>`:"";
   w.innerHTML=`
     <button class="pl-back" onclick="showBookingDate()">← Назад к дате</button>
     <h2>📝 ${dateStr}</h2>
     <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?75:66.6}%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">${isService?4:3}</span>Выберите время</div>
+    ${groupNote}
     <div class="bk-time-wrap" id="bkTimeWrap">
       <div class="time-grid" role="group" aria-label="Выберите время приёма">
         ${slots.map((sl,idx)=>{
@@ -1511,8 +1522,9 @@ function showBookingTime(){
       commentWrapEl.classList.remove("gone");
       summaryEl.innerHTML=`
         <div class="bk-sum-title">✅ Проверьте данные записи</div>
-        <div class="bk-sum-row"><span>Направление</span><b>${bkState.catName}</b></div>
+        <div class="bk-sum-row"><span>Направление</span><b>${bkState.catName}${bkState.subName?" — "+bkState.subName:""}</b></div>
         ${bkState.serviceItem?`<div class="bk-sum-row"><span>Услуга</span><b>${bkState.serviceItem}</b></div>`:""}
+        ${bkState.price!=null?`<div class="bk-sum-row"><span>Цена</span><b>${bkState.price} ₽${bkState.priceM!=null?" · по «Морошке» "+bkState.priceM+" ₽":""}</b></div>`:""}
         <div class="bk-sum-row"><span>Специалист</span><b>${bkState.spec}</b></div>
         <div class="bk-sum-row"><span>Дата и время</span><b>${dateStr}, ${bkState.time}</b></div>
         <button class="book-send" id="bkSendBtn">📧 Подтвердить запись</button>
@@ -1531,7 +1543,10 @@ function doSendBooking(){
   ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
   const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
   const cd2=cityData[currentCity]||cityData.gubkin;
-  const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nНаправление: ${bkState.catName}${bkState.serviceItem?"\nУслуга: "+bkState.serviceItem:""}\nДата: ${bkState.date}, Время: ${bkState.time}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nСПЕЦИАЛИСТ: ${bkState.spec}\nКОММЕНТАРИЙ: ${bkState.comment||"—"}`;
+  const structExtra=bkState.flow==="struct"
+    ?`${bkState.subName?"\nПодгруппа: "+bkState.subName:""}${bkState.num?"\nПункт прейскуранта: "+bkState.num:""}${bkState.price!=null?"\nЦена: "+bkState.price+" ₽"+(bkState.priceM!=null?" (по карте «Морошка»: "+bkState.priceM+" ₽)":""):""}\nФормат: ${bkState.mode==="group"?"групповое занятие, общее время"+(bkState.cap?" (до "+bkState.cap+" мест)":""):"индивидуальный приём"}${bkState.resp?"\nОтветственный: "+bkState.resp:""}`
+    :"";
+  const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nНаправление: ${bkState.catName}${bkState.serviceItem?"\nУслуга: "+bkState.serviceItem:""}${structExtra}\nДата: ${bkState.date}, Время: ${bkState.time}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nСПЕЦИАЛИСТ: ${bkState.spec}\nКОММЕНТАРИЙ: ${bkState.comment||"—"}`;
   window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:clientName,date:bkState.date,time:bkState.time,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
   bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
   bookingsHistory.unshift({
