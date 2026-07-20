@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#1B8585">
-<title>Гармония</title>
+<title>Гармония — помощник ЦСОН</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20260717d">
+<link rel="stylesheet" href="css/styles.css?v=20260720f">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -18,7 +18,9 @@
 <div class="bloom bloom-3" aria-hidden="true"></div>
 
 <div class="shell" id="shell" role="main">
+  <div class="shell-blobs" aria-hidden="true"><i class="sb1"></i><i class="sb2"></i><i class="sb3"></i><i class="sb4"></i><i class="sb5"></i><i class="sb6"></i><i class="sb7"></i><i class="sb8"></i></div>
   <header class="hdr" role="banner">
+    <div class="hdr-blobs" aria-hidden="true"><i class="hb1"></i><i class="hb2"></i><i class="hb3"></i></div>
     <div class="hdr-left">
       <div class="hdr-logo" aria-hidden="true">
         <img src="img/logo-icon.png" alt="Логотип Гармония">
@@ -63,11 +65,11 @@
   </div>
 
   <div class="asst-fs-hdr gone" id="asstFsHdr">
-    <span class="asst-fs-title">Чат-бот «Гармония»</span>
-    <button class="asst-fs-close" onclick="closeAssistantFullscreen()" aria-label="Закрыть помощника">✕</button>
+    <span class="asst-fs-title">🤖 Чат-бот «Гармония»</span>
+    <button class="asst-fs-close" onclick="closeAssistantFullscreen()" aria-label="Закрыть чат-бот">✕</button>
   </div>
 
-  <div class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Диалог с помощником"></div>
+  <div class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Диалог с чат-ботом"></div>
   <div class="scroll-hint-fade" aria-hidden="true"></div>
   <div class="actions" id="actions" role="region" aria-label="Действия"></div>
 
@@ -108,6 +110,7 @@
   </div>
 
   <div class="profile-panel" id="profilePanel" role="dialog" aria-modal="true" aria-label="Личный кабинет">
+    <div class="prof-blobs" aria-hidden="true"><i class="pb1"></i><i class="pb2"></i><i class="pb3"></i><i class="pb4"></i></div>
     <button class="prof-close" onclick="closeProfilePanel()" aria-label="Закрыть">✕</button>
     <div class="prof-body" id="profBody"></div>
     <div class="panel-close-bar"><button class="panel-close-btn" onclick="closeProfilePanel()"><span class="pcb-arrow">←</span> <span id="profCloseLbl">Закрыть и вернуться</span></button></div>
@@ -117,12 +120,12 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="assertive"></div>
-<script src="js/data.js?v=20260717d"></script>
-<script src="js/booking.js?v=20260717d"></script>
-<script src="js/db.js?v=20260717d"></script>
-<script src="js/extras.js?v=20260717d"></script>
-<script src="js/features.js?v=20260717d"></script>
-<script src="js/admin.js?v=20260717d"></script>
-<script src="js/app.js?v=20260717d"></script>
+<script src="js/data.js?v=20260720f"></script>
+<script src="js/booking.js?v=20260720f"></script>
+<script src="js/db.js?v=20260720f"></script>
+<script src="js/extras.js?v=20260720f"></script>
+<script src="js/features.js?v=20260720f"></script>
+<script src="js/admin.js?v=20260720f"></script>
+<script src="js/app.js?v=20260720f"></script>
 </body>
 </html>

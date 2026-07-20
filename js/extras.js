@@ -240,7 +240,7 @@ const I18N={
     menu_cabinet:"Мой кабинет",menu_cabinet_sub:"История, талоны",
     menu_gallery:"Фотогалерея",
     sec_services:"Услуги и информация",sec_cabinet:"Кабинет",
-    ask_helper:"Спросить помощника",ask_helper_sub:"Задайте вопрос — подскажу нужный раздел",
+    ask_helper:"Спросить чат-бот",ask_helper_sub:"Задайте вопрос — подскажу нужный раздел",
     btn_close:"Закрыть",btn_back:"← Назад",btn_home:"🏠 Главная",
     cart_title:"🛒 Корзина заявки",cart_empty:"🛒 Корзина пуста",
     cart_send:"📧 Отправить заявку",cart_clear:"🗑 Очистить корзину",
@@ -494,10 +494,10 @@ function showSeasonalGreeting(){
 function showOnboarding(){
   if(localStorage.getItem("onboardingDone"))return;
   const steps=[
-    {emoji:"👋",title:"Добро пожаловать!",text:"Я — виртуальный помощник центра «Гармония». Помогу с услугами, записью, такси и вопросами."},
+    {emoji:"👋",title:"Добро пожаловать!",text:"Я — чат-бот центра «Гармония». Помогу с услугами, записью, такси и вопросами."},
     {emoji:"📋",title:"Анкета получателя",text:"Заполните анкету один раз в личном кабинете — ФИО, СНИЛС и данные сами подставятся в заявки."},
     {emoji:"📖",title:"Запись на услуги",text:"В разделе «Записаться на услуги» — все услуги с ценами. Нажмите ★, чтобы добавить в избранное."},
-    {emoji:"🤖",title:"Помощник",text:"Нажмите «Спросить помощника» и задайте вопрос своими словами — подскажу нужный раздел."},
+    {emoji:"🤖",title:"Чат-бот",text:"Нажмите «Спросить чат-бот» и задайте вопрос своими словами — подскажу нужный раздел."},
     {emoji:"🚕",title:"Такси",text:"Закажите поездку с сопровождением или без. Есть бесплатный тариф для льготных категорий."},
     {emoji:"🛒",title:"Корзина",text:"Добавляйте услуги в корзину кнопкой «+» и отправляйте заявку одним нажатием."},
     {emoji:"🍊",title:"Карта Морошка",text:"Включите тумблер 🍊 в шапке — цены пересчитаются со скидкой 5%."},
@@ -513,7 +513,7 @@ function showOnboarding(){
     ovl.innerHTML=`<div class="onb-card">
       <div class="onb-progress"><div class="onb-progress-fill" style="width:${progress}%"></div></div>
       ${idx===0
-        ?'<div class="onb-bot-live"><video src="img/bot-live.mp4" poster="img/bot-live-poster.jpg" autoplay muted loop playsinline disablepictureinpicture></video></div>'
+        ?'<div class="onb-bot-live"><img src="img/bot-live.webp" alt=""></div>'
         :`<div class="onb-emoji-badge"><span class="onb-emoji">${s.emoji}</span></div>`}
       <div class="onb-title">${s.title}</div>
       <div class="onb-text">${s.text}</div>

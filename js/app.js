@@ -426,7 +426,7 @@ function doSendOrder(){
 }
 
 function tryShare(){
-  const data={title:"Гармония — ЦСОН ЯНАО",text:"Помощник социального центра «Гармония» (ЯНАО). Услуги, запись, контакты.",url:location.href};
+  const data={title:"Гармония — ЦСОН ЯНАО",text:"Чат-бот социального центра «Гармония» (ЯНАО). Услуги, запись, контакты.",url:location.href};
   if(navigator.share){navigator.share(data).catch(()=>{});}
   else{navigator.clipboard?.writeText(location.href);showToast("📋 Ссылка скопирована!");}
 }
@@ -519,8 +519,8 @@ function showMainMenu(){
     +'<svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg>'
     +'<div class="ga-sparkle ga-sp1"></div><div class="ga-sparkle ga-sp2"></div><div class="ga-sparkle ga-sp3"></div><div class="ga-sparkle ga-sp4"></div><div class="ga-sparkle ga-sp5"></div><div class="ga-sparkle ga-sp6"></div>'
     +'<div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-name-accent"></span><span class="ga-sub">Чем могу помочь?</span></div>'
-    +'<div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.jpg" class="ga-bot-img" alt=""></div></div>';
-  html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-present.jpg" class="bb-ava"><div class="bb-txt"><b>Помощник «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
+    +'<div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.webp" class="ga-bot-img" alt=""></div></div>';
+  html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-present.jpg" class="bb-ava"><div class="bb-txt"><b>Чат-бот «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
   html+='<div class="news-sec-title">Новости и обновления центра</div>';
   html+='<div class="news-feed">';
   if(newsData.length){
@@ -982,13 +982,18 @@ function taxiRenderDateTimePicker(){
   const monthNames=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
   const days=[];
   const now=new Date();
-  for(let i=0;i<14;i++){
+  // Заявки на соцтакси принимаются заранее — не позднее чем за день до поездки,
+  // поэтому доступные даты начинаются с завтрашнего дня.
+  for(let i=1;i<=14;i++){
     const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);
     days.push(d);
   }
+  if(!document.getElementById("taxiPreNote")){
+    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">🕐 Заявки на поездку принимаются заранее — не позднее чем за день до поездки. Выберите дату начиная с завтрашнего дня.</div>');
+  }
   dateScroll.innerHTML=days.map(function(d,i){
     const iso=d.toISOString().split("T")[0];
-    const lbl=i===0?"Сегодня":i===1?"Завтра":dayNames[d.getDay()];
+    const lbl=i===0?"Завтра":dayNames[d.getDay()];
     return '<button type="button" class="taxi-date-chip'+(i===0?" sel":"")+'" data-iso="'+iso+'"><span class="taxi-date-chip-dow">'+lbl+'</span><span class="taxi-date-chip-num">'+d.getDate()+' '+monthNames[d.getMonth()]+'</span></button>';
   }).join("");
   dateHidden.value=days[0].toISOString().split("T")[0];
@@ -1487,15 +1492,16 @@ function showBookingTime(){
   const w=document.createElement("div");w.className="booking-page";
   const dObj=new Date(bkState.date);
   const dateStr=dObj.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
-  const slots=["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
-  const lunchIdxs=new Set([6,7,8]);
   const isService=bkState.flow==="service"||bkState.flow==="struct";
-  const groupNote=(bkState.flow==="struct"&&bkState.mode==="group")?`<div class="bk-group-note">👥 Занятие групповое${bkState.cap?" (до "+bkState.cap+" мест)":""} — время общее для всех участников. Центр подтвердит его после обработки заявки.</div>`:"";
+  const isGroup=bkState.flow==="struct"&&bkState.mode==="group";
+  const slots=isGroup?["09:00"]:["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
+  const lunchIdxs=isGroup?new Set():new Set([6,7,8]);
+  const groupNote=isGroup?`<div class="bk-group-note">👥 Занятие групповое${bkState.cap?" (до "+bkState.cap+" мест)":""}. Единое время начала для всех участников — 09:00.</div>`:"";
   w.innerHTML=`
     <button class="pl-back" onclick="showBookingDate()">← Назад к дате</button>
     <h2>📝 ${dateStr}</h2>
     <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?75:66.6}%"></div></div>
-    <div class="bk-step-lbl"><span class="taxi-step-num">${isService?4:3}</span>Выберите время</div>
+    <div class="bk-step-lbl"><span class="taxi-step-num">${isService?4:3}</span>${isGroup?"Время занятия — единое для группы":"Выберите время"}</div>
     ${groupNote}
     <div class="bk-time-wrap" id="bkTimeWrap">
       <div class="time-grid" role="group" aria-label="Выберите время приёма">
@@ -1534,6 +1540,10 @@ function showBookingTime(){
       summaryEl.querySelector("#bkSendBtn").onclick=doSendBooking;
     };
   });
+  if(isGroup){
+    const only=w.querySelector(".time-slot");
+    if(only)only.click();
+  }
   actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 
@@ -2281,7 +2291,7 @@ function showWelcome(){
   const saved=localStorage.getItem("hasMoroshka");
   if(saved!==null){hasMoroshka=saved==="true";updateMToggle();showMainMenu();return;}
   updateMToggle();
-  addMsg(`${greeting()}, <b>${clientName}</b>! Я помощник ГБУ ЯНАО «ЦСОН Гармония».`,true);
+  addMsg(`${greeting()}, <b>${clientName}</b>! Я чат-бот ГБУ ЯНАО «ЦСОН Гармония».`,true);
   setTimeout(()=>{
     addMsg(`У вас есть <b>Единая карта жителя Ямала «Морошка»</b>?<br><span class="note">Карта даёт скидку на социальные услуги центра.</span>`,true);
     setTimeout(()=>{
@@ -2373,7 +2383,7 @@ function showMenuPage(){
     '<h2>Все разделы</h2>'+
     '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#1B8585,#0d6b6b)">📋</span><div class="sp-txt"><b>Записаться на услуги</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item sp-item-taxi" data-a="taxi"><span class="sp-ico sp-ico-taxi" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🚕</span><div class="sp-txt"><b>Такси</b><span>Заказать поездку</span></div><span class="sp-taxi-badge">Новое</span><span class="sp-arr">›</span></div>'+
-    '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-tablet.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Помощник</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-tablet.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Чат-бот</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-more">Услуги и информация</div>'+
     '<div class="sp-grid">'+
     '<div class="sp-g" data-a="booking"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📅</span><b>Записаться</b></div>'+
@@ -2413,3 +2423,4 @@ function selectCity(cityKey,silent){
     showMainMenu();
   }
 }
+
