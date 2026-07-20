@@ -952,50 +952,42 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .dark .si-info b{color:#d0d8e8;}
 
 /* ═══ ГЛАВНАЯ: ПРИВЕТСТВИЕ + НОВОСТИ ═══ */
-.greet-anim{position:relative;border-radius:28px;padding:36px 24px;color:#fff;overflow:hidden;margin-bottom:16px;min-height:194px;background:linear-gradient(160deg,#051f2b 0%,#0a3838 32%,#0d5555 58%,#116e6e 80%,#158a80 100%);display:flex;align-items:center;gap:18px;box-shadow:0 16px 46px rgba(20,117,117,.38),0 2px 8px rgba(0,0,0,.1);animation:gaCardIn .6s cubic-bezier(.16,1,.3,1) both;}
+.greet-anim{
+  position:relative;border-radius:26px;padding:34px 26px;color:#fff;overflow:hidden;margin-bottom:16px;min-height:194px;
+  background:linear-gradient(155deg,#0D4F4F 0%,var(--teal) 45%,var(--teal-mid) 100%);
+  display:flex;align-items:center;gap:20px;
+  box-shadow:0 18px 42px rgba(15,76,76,.34),0 2px 0 rgba(255,255,255,.08) inset,0 -1px 0 rgba(0,0,0,.18) inset;
+  border:1px solid rgba(255,255,255,.10);
+  animation:gaCardIn .6s cubic-bezier(.16,1,.3,1) both;
+}
 @keyframes gaCardIn{0%{opacity:0;transform:translate3d(0,14px,0) scale3d(.97,.97,1);}100%{opacity:1;transform:translate3d(0,0,0) scale3d(1,1,1);}}
 
-/* Северное сияние — тематические ленты для ЯНАО */
-.ga-blob-field{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:28px;}
-.ga-blob{position:absolute;filter:blur(13px);will-change:transform,border-radius;opacity:1;}
-.ga-blob-1{width:40%;height:40%;top:2%;left:2%;background:radial-gradient(circle at 32% 32%,#7ff5d8,#1B8585 68%);animation:blobDrift1 14s ease-in-out infinite,blobMorph1 9s ease-in-out infinite;}
-.ga-blob-2{width:32%;height:32%;top:38%;left:58%;background:radial-gradient(circle at 32% 32%,#52e8c0,#0a4444 68%);animation:blobDrift2 17s ease-in-out infinite,blobMorph2 11s ease-in-out infinite;}
-.ga-blob-3{width:36%;height:36%;top:50%;left:16%;background:radial-gradient(circle at 32% 32%,#a8f5e0,#147575 68%);animation:blobDrift3 12.5s ease-in-out infinite,blobMorph3 8s ease-in-out infinite;}
-.ga-blob-4{width:24%;height:24%;top:0%;left:60%;background:radial-gradient(circle at 32% 32%,#ffe8b8,#e0a83c 68%);animation:blobDrift4 15.5s ease-in-out infinite,blobMorph1 10s ease-in-out infinite reverse;}
-.ga-blob-5{width:27%;height:27%;top:60%;left:66%;background:radial-gradient(circle at 32% 32%,#6ce8cc,#083838 68%);animation:blobDrift5 19s ease-in-out infinite,blobMorph2 13s ease-in-out infinite reverse;}
+/* Живые переливающиеся пятна в фирменных цветах — без точек и «палочек» */
+.ga-blob-field{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:26px;}
+.ga-blob{position:absolute;filter:blur(15px);will-change:transform,border-radius;}
+.ga-blob-1{width:42%;height:42%;top:-6%;left:-6%;background:radial-gradient(circle at 32% 32%,#7ff5d8,#1B8585 68%);opacity:.85;animation:blobDrift1 15s ease-in-out infinite,blobMorph1 9s ease-in-out infinite;}
+.ga-blob-2{width:34%;height:34%;top:34%;left:62%;background:radial-gradient(circle at 32% 32%,#F0C24B,#B07A00 70%);opacity:.55;animation:blobDrift2 18s ease-in-out infinite,blobMorph2 11s ease-in-out infinite;}
+.ga-blob-3{width:38%;height:38%;top:52%;left:10%;background:radial-gradient(circle at 32% 32%,#a8f5e0,#147575 68%);opacity:.7;animation:blobDrift3 13s ease-in-out infinite,blobMorph3 8s ease-in-out infinite;}
+.ga-blob-4{width:24%;height:24%;top:-8%;left:58%;background:radial-gradient(circle at 32% 32%,#ffe8b8,#e0a83c 68%);opacity:.5;animation:blobDrift4 16s ease-in-out infinite,blobMorph1 10s ease-in-out infinite reverse;}
 @keyframes blobDrift1{0%,100%{transform:translate3d(0,0,0) scale(1);}25%{transform:translate3d(8%,10%,0) scale(1.15);}50%{transform:translate3d(-4%,16%,0) scale(.9);}75%{transform:translate3d(6%,4%,0) scale(1.05);}}
 @keyframes blobDrift2{0%,100%{transform:translate3d(0,0,0) scale(1);}30%{transform:translate3d(-14%,-8%,0) scale(1.2);}60%{transform:translate3d(-6%,10%,0) scale(.85);}}
 @keyframes blobDrift3{0%,100%{transform:translate3d(0,0,0) scale(1);}35%{transform:translate3d(10%,-12%,0) scale(.88);}70%{transform:translate3d(-8%,-4%,0) scale(1.18);}}
 @keyframes blobDrift4{0%,100%{transform:translate3d(0,0,0) scale(1);}40%{transform:translate3d(-10%,14%,0) scale(1.25);}75%{transform:translate3d(6%,6%,0) scale(.92);}}
-@keyframes blobDrift5{0%,100%{transform:translate3d(0,0,0) scale(1);}45%{transform:translate3d(-12%,-10%,0) scale(1.1);}80%{transform:translate3d(8%,-6%,0) scale(.9);}}
 @keyframes blobMorph1{0%,100%{border-radius:42% 58% 63% 37% / 41% 44% 56% 59%;}50%{border-radius:63% 37% 42% 58% / 58% 51% 49% 42%;}}
 @keyframes blobMorph2{0%,100%{border-radius:58% 42% 35% 65% / 52% 38% 62% 48%;}50%{border-radius:39% 61% 60% 40% / 44% 62% 38% 56%;}}
 @keyframes blobMorph3{0%,100%{border-radius:50% 50% 68% 32% / 35% 60% 40% 65%;}50%{border-radius:65% 35% 45% 55% / 60% 40% 60% 40%;}}
 
-.greet-anim::before{content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;background-image:
-  radial-gradient(circle at 88% 6%, rgba(255,255,255,.12) 0%, transparent 24%),
-  radial-gradient(circle at 4% 96%, rgba(255,255,255,.07) 0%, transparent 28%);}
-
-.ga-sparkle{position:absolute;z-index:0;border-radius:50%;background:#fff;pointer-events:none;will-change:transform,opacity;}
-.ga-sp1{width:5px;height:5px;top:16%;right:38%;animation:gaTwinkle 2.6s ease-in-out infinite;}
-.ga-sp2{width:4px;height:4px;top:58%;right:20%;animation:gaTwinkle 3.2s ease-in-out infinite .7s;}
-.ga-sp3{width:6px;height:6px;top:38%;left:30%;animation:gaTwinkle 2.9s ease-in-out infinite 1.4s;}
-.ga-sp4{width:3.5px;height:3.5px;top:12%;left:42%;animation:gaTwinkle 3.5s ease-in-out infinite 2.1s;}
-.ga-sp5{width:3px;height:3px;top:72%;left:14%;animation:gaTwinkle 2.4s ease-in-out infinite .3s;}
-.ga-sp6{width:4.5px;height:4.5px;top:26%;right:10%;animation:gaTwinkle 3.8s ease-in-out infinite 1.8s;}
-@keyframes gaTwinkle{0%,100%{opacity:0;transform:scale3d(.4,.4,1);}50%{opacity:.95;transform:scale3d(1,1,1);}}
-
-.ga-heart-deco{position:absolute;z-index:0;top:12px;right:132px;width:64px;height:64px;opacity:.24;pointer-events:none;will-change:transform,opacity;animation:gaHeartPulse 4.5s ease-in-out infinite;}
-.ga-heart-deco-2{position:absolute;z-index:0;bottom:16px;left:16px;width:38px;height:38px;opacity:.16;pointer-events:none;will-change:transform,opacity;animation:gaHeartPulse2 5.5s ease-in-out infinite;}
-@keyframes gaHeartPulse{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0deg);opacity:.2;}50%{transform:translate3d(0,0,0) scale(1.12) rotate(4deg);opacity:.36;}}
-@keyframes gaHeartPulse2{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(-18deg);opacity:.13;}50%{transform:translate3d(0,0,0) scale(1.14) rotate(-12deg);opacity:.26;}}
+/* Фирменные кольца-узоры — тот же приём, что на обложке личного кабинета */
+.ga-rings{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:26px;}
+.ga-rings::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;border:26px solid rgba(255,255,255,.08);top:-110px;right:-70px;}
+.ga-rings::after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;border:18px solid rgba(240,194,75,.14);bottom:-95px;left:-55px;}
 
 .ga-body{position:relative;z-index:1;flex:1;min-width:0;}
-.ga-hi{font-size:14px;opacity:.85;display:block;animation:gaLineIn .5s cubic-bezier(.16,1,.3,1) both;}
-.ga-name{font-size:20px;font-weight:800;line-height:1.28;margin:6px 0 5px;letter-spacing:-.2px;background:linear-gradient(90deg,#ffffff 0%,#ffffff 55%,#ffe8b8 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.2);animation:gaLineIn .55s cubic-bezier(.16,1,.3,1) .08s both;word-break:break-word;overflow-wrap:break-word;}
-.ga-name-accent{display:block;width:44px;height:3px;border-radius:3px;background:linear-gradient(90deg,#ffe8b8,rgba(255,232,184,0));margin-bottom:9px;animation:gaAccentGrow .7s cubic-bezier(.16,1,.3,1) .3s both;}
+.ga-hi{font-size:13px;font-weight:600;letter-spacing:.2px;color:rgba(255,255,255,.75);display:block;animation:gaLineIn .5s cubic-bezier(.16,1,.3,1) both;}
+.ga-name{font-size:20px;font-weight:800;line-height:1.28;margin:7px 0 6px;letter-spacing:-.2px;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.25);animation:gaLineIn .55s cubic-bezier(.16,1,.3,1) .08s both;word-break:break-word;overflow-wrap:break-word;}
+.ga-name-accent{display:block;width:44px;height:3px;border-radius:3px;background:linear-gradient(90deg,#F0C24B,rgba(240,194,75,0));margin-bottom:10px;animation:gaAccentGrow .7s cubic-bezier(.16,1,.3,1) .3s both;}
 @keyframes gaAccentGrow{0%{width:0;opacity:0;}100%{width:44px;opacity:1;}}
-.ga-sub{font-size:13.5px;opacity:.78;animation:gaLineIn .6s cubic-bezier(.16,1,.3,1) .16s both;}
+.ga-sub{font-size:13.5px;color:rgba(255,255,255,.72);animation:gaLineIn .6s cubic-bezier(.16,1,.3,1) .16s both;}
 @keyframes gaLineIn{0%{opacity:0;transform:translate3d(0,8px,0);}100%{opacity:1;transform:translate3d(0,0,0);}}
 
 .bot-btn{display:flex;align-items:center;gap:14px;width:100%;padding:15px 16px;background:#fff;border:1px solid rgba(0,0,0,.04);border-radius:16px;cursor:pointer;font-family:inherit;text-align:left;transition:.2s;box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:16px;}
@@ -1021,7 +1013,7 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .news-empty b{font-size:15px;color:var(--text-primary);}
 .news-empty span{font-size:12.5px;color:var(--text-tertiary);}
 
-.dark .greet-anim{background:linear-gradient(135deg,#062e2e,#0a4444,#0d5c5c);}
+.dark .greet-anim{box-shadow:0 22px 48px rgba(0,0,0,.55),0 2px 0 rgba(255,255,255,.05) inset,0 -1px 0 rgba(0,0,0,.3) inset;}
 .dark .bot-btn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.10);}
 .dark .bot-btn:hover{background:rgba(255,255,255,.07);}
 .dark .bb-txt b{color:#e0e8f4;}
@@ -1474,11 +1466,14 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 
 /* Фото бота в приветственном баннере */
 .ga-bot-wrap{position:relative;z-index:1;flex-shrink:0;width:118px;height:118px;display:flex;align-items:center;justify-content:center;}
-.ga-bot-ring{position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(255,255,255,.35);will-change:transform,opacity;animation:gaRingPulse 3s ease-in-out infinite;}
-.ga-bot-ring::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:1.5px solid rgba(255,224,150,.3);}
-@keyframes gaRingPulse{0%,100%{transform:scale3d(1,1,1);opacity:.6;}50%{transform:scale3d(1.08,1.08,1);opacity:1;}}
-.ga-bot-img{position:relative;z-index:1;width:118px;height:118px;border-radius:50%;object-fit:cover;object-position:center;flex-shrink:0;background:rgba(255,255,255,.12);box-shadow:0 0 0 4px rgba(255,255,255,.5),0 0 40px rgba(255,224,150,.55),0 8px 28px rgba(0,0,0,.25);will-change:transform;animation:gaBotFloat 3.5s ease-in-out infinite;}
-@keyframes gaBotFloat{0%,100%{transform:translate3d(0,0,0);}50%{transform:translate3d(0,-6px,0);}}
+.ga-bot-halo{position:absolute;inset:-22px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle, rgba(240,194,75,.24) 0%, rgba(240,194,75,0) 68%);
+  animation:gaHaloBreathe 4.5s ease-in-out infinite;}
+@keyframes gaHaloBreathe{0%,100%{opacity:.6;transform:scale(1);}50%{opacity:1;transform:scale(1.06);}}
+.ga-bot-ring{position:absolute;inset:-5px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);pointer-events:none;animation:gaRingPulse 3.2s ease-in-out infinite;}
+@keyframes gaRingPulse{0%,100%{transform:scale3d(1,1,1);opacity:.65;}50%{transform:scale3d(1.06,1.06,1);opacity:1;}}
+.ga-bot-img{position:relative;z-index:1;width:118px;height:118px;border-radius:50%;object-fit:cover;object-position:center;flex-shrink:0;background:rgba(255,255,255,.10);box-shadow:0 0 0 3px rgba(255,255,255,.25),0 10px 30px rgba(0,0,0,.28);animation:gaBotFloat 3.5s ease-in-out infinite;}
+@keyframes gaBotFloat{0%,100%{transform:translate3d(0,0,0);}50%{transform:translate3d(0,-5px,0);}}
 @media(max-width:360px){.ga-bot-wrap,.ga-bot-img{width:92px;height:92px;}}
 
 /* ═══════════════════════════════════════
@@ -1586,10 +1581,11 @@ textarea.fb-inp,textarea.book-inp{border-radius:18px !important;}
 .bk-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--teal-mid));border-radius:4px;transition:width .4s cubic-bezier(.34,1.2,.64,1);}
 
 /* ═══ 11. Оттенок баннера в зависимости от времени суток ═══ */
-.greet-anim.ga-morning{background:linear-gradient(160deg,#062824 0%,#0a3d38 32%,#0d5c4f 58%,#147560 80%,#2a9070 100%);}
-.greet-anim.ga-day{background:linear-gradient(160deg,#051f2b 0%,#0a3838 32%,#0d5555 58%,#116e6e 80%,#158a80 100%);}
-.greet-anim.ga-evening{background:linear-gradient(160deg,#1a1438 0%,#231b4a 28%,#1a3d52 55%,#0d5555 80%,#158070 100%);}
-.greet-anim.ga-night{background:linear-gradient(160deg,#040d1f 0%,#071a2e 30%,#0a2c38 58%,#0d4848 82%,#116060 100%);}
+.greet-anim.ga-morning{background:linear-gradient(155deg,#0E5A4E 0%,#1B8585 45%,#2FAE9E 100%);}
+.greet-anim.ga-day{background:linear-gradient(155deg,#0D4F4F 0%,var(--teal) 45%,var(--teal-mid) 100%);}
+.greet-anim.ga-evening{background:linear-gradient(155deg,#233064 0%,#155a5a 48%,#1B8585 100%);}
+.greet-anim.ga-night{background:linear-gradient(155deg,#0A2038 0%,#0D3C3C 48%,#0F5555 100%);}
+
 
 /* ═══ 12. Иллюстрация пустых состояний ═══ */
 .empty-illust{width:110px;height:92px;margin:0 auto 8px;display:block;}
@@ -2388,3 +2384,120 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
 }
 .dark .prof-nudge{background:linear-gradient(135deg,rgba(240,194,75,.20),rgba(212,146,10,.12)) !important;border-color:rgba(240,194,75,.30) !important;}
 .dark .prof-logout-row{background:rgba(40,26,30,.6) !important;}
+
+/* ═══ Живой интерактивный маскот: наклон за пальцем, тап-реакция ═══ */
+.mascot-interactive{position:relative;}
+.mascot-interactive img{transform-style:preserve-3d;}
+@keyframes mascotPoke{
+  0%{transform:scale(1) rotate(0deg);}
+  30%{transform:scale(.90) rotate(-4deg);}
+  55%{transform:scale(1.10) rotate(3deg);}
+  75%{transform:scale(.97) rotate(-1deg);}
+  100%{transform:scale(1) rotate(0deg);}
+}
+.mascot-poke{animation:mascotPoke .5s cubic-bezier(.34,1.56,.64,1) both;}
+.mascot-particle{
+  position:absolute;font-size:15px;line-height:1;pointer-events:none;z-index:5;
+  animation:mascotParticle .9s ease-out forwards;
+}
+@keyframes mascotParticle{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.4);}
+  15%{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  100%{opacity:0;transform:translate(calc(-50% + var(--mpx)),calc(-50% + var(--mpy))) scale(.7);}
+}
+.mascot-bubble{
+  position:absolute;bottom:100%;left:50%;transform:translate(-50%,6px);margin-bottom:8px;
+  background:rgba(15,76,76,.92);color:#fff;font-size:12px;font-weight:700;white-space:nowrap;
+  padding:6px 12px;border-radius:999px;box-shadow:0 6px 16px rgba(15,76,76,.3);
+  opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:6;
+}
+.mascot-bubble::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:rgba(15,76,76,.92);}
+.mascot-bubble.show{opacity:1;transform:translate(-50%,0);}
+.dark .mascot-bubble{background:rgba(30,42,66,.95);}
+.dark .mascot-bubble::after{border-top-color:rgba(30,42,66,.95);}
+@media(prefers-reduced-motion:reduce){
+  .mascot-poke,.mascot-particle{animation:none !important;}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   НОВОСТНАЯ ЛЕНТА В СТИЛЕ ВК: шапка-пост, фото во всю ширину, лайки
+   ═══════════════════════════════════════════════════════════════ */
+.news-card-vk{
+  padding:0 !important;
+  overflow:hidden;
+  border-radius:18px !important;
+}
+.news-card-vk .news-post-hdr{display:flex;align-items:center;gap:10px;padding:13px 15px 10px;}
+.news-post-ava{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;box-shadow:0 2px 6px rgba(15,76,76,.15);border:1.5px solid rgba(27,133,133,.15);}
+.news-post-hdr-txt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.28;}
+.news-post-hdr-txt b{font-size:13.5px;color:var(--text-primary);font-weight:800;}
+.news-post-hdr-txt span{font-size:11.5px;color:var(--text-tertiary);font-weight:600;}
+.news-tag-vk{flex-shrink:0;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#fff;
+  background:linear-gradient(135deg,var(--gold-mid,#D4920A),var(--gold-bright,#F0C24B));padding:4px 10px;border-radius:999px;}
+
+/* Медиа — во всю ширину карточки, без скруглений и отступов внутри */
+.news-card-vk .news-img{border-radius:0 !important;margin-bottom:0 !important;}
+.news-card-vk .news-carousel{border-radius:0 !important;margin-bottom:0 !important;}
+
+.news-card-vk .news-title,.news-card-vk .news-ttl{padding:12px 15px 0;margin-bottom:4px !important;}
+.news-card-vk .news-text{padding:0 15px;margin-bottom:12px;}
+
+/* Панель действий как в ВК: лайк слева, поделиться справа, разделитель сверху */
+.news-vk-actions{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-top:1px solid rgba(0,0,0,.055);}
+.nva-btn{display:flex;align-items:center;gap:6px;background:none;border:none;padding:6px 9px;border-radius:10px;cursor:pointer;color:var(--text-tertiary);font-family:inherit;transition:background .15s,color .15s;}
+.nva-btn:active{background:rgba(0,0,0,.05);}
+.nva-like svg path{transition:fill .15s,stroke .15s;}
+.nva-like.liked{color:#e0245e;}
+.nva-count{font-size:13px;font-weight:700;min-width:10px;}
+.nva-lbl{font-size:12.5px;font-weight:700;}
+.nva-share{margin-left:auto;}
+@keyframes nvaPop{0%{transform:scale(1);}35%{transform:scale(1.35);}60%{transform:scale(.92);}100%{transform:scale(1);}}
+.nva-btn.pop svg{animation:nvaPop .38s cubic-bezier(.34,1.56,.64,1);display:inline-block;}
+
+/* Тёмная тема */
+.dark .news-post-hdr-txt b{color:#e0e8f4;}
+.dark .news-vk-actions{border-top-color:rgba(255,255,255,.08);}
+.dark .nva-btn{color:#8899bb;}
+.dark .nva-btn:active{background:rgba(255,255,255,.06);}
+
+/* ═══ Иконка ВКонтакте в меню ═══ */
+.sp-g-i-vk{background:#0077FF !important;display:flex;align-items:center;justify-content:center;}
+
+/* ═══════════════════════════════════════════════════════════════
+   ВКЛАДКИ «НОВОСТИ ЦЕНТРА / ГРУППА ВК»
+   ═══════════════════════════════════════════════════════════════ */
+.news-tabs{display:flex;gap:6px;margin:2px 0 14px;background:rgba(27,133,133,.07);border-radius:14px;padding:4px;}
+.news-tab-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:none;background:none;
+  font-family:inherit;font-size:13px;font-weight:700;color:var(--text-tertiary);padding:9px 8px;border-radius:11px;
+  cursor:pointer;transition:background .18s,color .18s,box-shadow .18s;}
+.news-tab-btn.active{background:#fff;color:var(--teal);box-shadow:0 3px 10px rgba(15,76,76,.14);}
+.news-tab-vk-ico{width:16px;height:16px;border-radius:4px;object-fit:contain;flex-shrink:0;}
+#newsPanelHomeVk,#newsPanelTabVk{animation:pcardIn .25s ease both;}
+@keyframes pcardIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.vk-widget-host{min-height:120px;border-radius:16px;overflow:hidden;}
+.vk-widget-loading{display:flex;align-items:center;justify-content:center;min-height:160px;color:var(--text-tertiary);
+  font-size:13.5px;font-weight:600;background:rgba(27,133,133,.05);border-radius:16px;}
+
+.vk-fallback-card{
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;
+  padding:32px 22px;border-radius:18px;
+  background:linear-gradient(135deg,rgba(0,119,255,.07),rgba(27,133,133,.06));
+  border:1px solid rgba(0,119,255,.14);
+}
+.vk-fallback-ico{width:56px;height:56px;border-radius:14px;box-shadow:0 6px 18px rgba(0,119,255,.22);}
+.vk-fallback-title{font-size:16px;font-weight:800;color:var(--text-primary);}
+.vk-fallback-sub{font-size:13px;color:var(--text-secondary);line-height:1.5;max-width:320px;}
+.vk-fallback-btn{margin-top:4px;border:none;background:#0077FF;color:#fff;font-family:inherit;font-weight:700;
+  font-size:13.5px;padding:11px 20px;border-radius:12px;cursor:pointer;box-shadow:0 6px 16px rgba(0,119,255,.28);
+  transition:transform .15s;}
+.vk-fallback-btn:active{transform:scale(.96);}
+
+.dark .news-tabs{background:rgba(255,255,255,.06);}
+.dark .news-tab-btn{color:#8899bb;}
+.dark .news-tab-btn.active{background:#232840;color:#7fd6cf;}
+.dark .vk-widget-loading{background:rgba(255,255,255,.05);color:#8899bb;}
+.dark .vk-fallback-card{background:linear-gradient(135deg,rgba(0,119,255,.12),rgba(27,133,133,.10));border-color:rgba(0,119,255,.22);}
+.dark .vk-fallback-title{color:#e0e8f4;}
+.dark .vk-fallback-sub{color:#a0b0c8;}

@@ -447,8 +447,22 @@ function clearSearch(){
 function renderSearchResults(q){
   if(!q){currentSvcList=null;showServices();return;}
   clearActions();
+  const nq=asstNorm(q);
+  const qWords=nq.split(" ").filter(w=>w.length>1);
   const results=[];
-  servicesData.forEach(cat=>{cat.items.forEach((svc,i)=>{if(svc.n.toLowerCase().includes(q.toLowerCase()))results.push({cat,svc,i});});});
+  servicesData.forEach(cat=>{
+    cat.items.forEach((svc,i)=>{
+      const nn=asstNorm(svc.n);
+      let score=0;
+      if(nn.includes(nq))score=1000; // точное вхождение фразы — в приоритете
+      else{
+        const nameWords=nn.split(" ").filter(w=>w.length>1);
+        qWords.forEach(w=>{if(fuzzyTextHasWord(nameWords,w))score+=w.length;});
+      }
+      if(score>0)results.push({cat,svc,i,score});
+    });
+  });
+  results.sort((a,b)=>b.score-a.score);
   if(results.length===0){actionsEl.innerHTML=`<div class="search-empty">🔍 По запросу «${q}» ничего не найдено</div>`;return;}
   addMsg(`🔍 Найдено: ${results.length} услуг`,true);
   const ul=document.createElement("div");ul.className="svc-list";ul.style.maxHeight="44vh";
@@ -514,14 +528,14 @@ function showMainMenu(){
   var gr=greeting();
   var w=document.createElement("div");w.className="home-view";
   var html='<div class="greet-anim '+timeOfDayClass()+'">'
-    +'<div class="ga-blob-field"><div class="ga-blob ga-blob-1"></div><div class="ga-blob ga-blob-2"></div><div class="ga-blob ga-blob-3"></div><div class="ga-blob ga-blob-4"></div><div class="ga-blob ga-blob-5"></div></div>'
-    +'<svg class="ga-heart-deco" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.2"/><circle cx="50" cy="14" r="4" fill="#ffffff"/></svg>'
-    +'<svg class="ga-heart-deco-2" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 30c8 5 14 13 14 22 0 11-9 20-20 20 9 0 16-7 16-16 0-13-10-23-23-26 5-1 9-2 13-0z" fill="none" stroke="#ffffff" stroke-width="2.6"/><circle cx="50" cy="14" r="4.5" fill="#ffffff"/></svg>'
-    +'<div class="ga-sparkle ga-sp1"></div><div class="ga-sparkle ga-sp2"></div><div class="ga-sparkle ga-sp3"></div><div class="ga-sparkle ga-sp4"></div><div class="ga-sparkle ga-sp5"></div><div class="ga-sparkle ga-sp6"></div>'
+    +'<div class="ga-blob-field"><div class="ga-blob ga-blob-1"></div><div class="ga-blob ga-blob-2"></div><div class="ga-blob ga-blob-3"></div><div class="ga-blob ga-blob-4"></div></div>'
+    +'<div class="ga-rings"></div>'
     +'<div class="ga-body"><span class="ga-hi">'+gr+',</span><div class="ga-name">'+clientName+'</div><span class="ga-name-accent"></span><span class="ga-sub">Чем могу помочь?</span></div>'
-    +'<div class="ga-bot-wrap"><div class="ga-bot-ring"></div><img src="img/bot-heart.webp" class="ga-bot-img" alt=""></div></div>';
+    +'<div class="ga-bot-wrap"><div class="ga-bot-halo"></div><div class="ga-bot-ring"></div><img src="img/bot-heart.webp" class="ga-bot-img" alt=""></div></div>';
   html+='<button class="bot-btn" data-act="assistant"><img src="img/bot-present.jpg" class="bb-ava"><div class="bb-txt"><b>Чат-бот «Гармония»</b><span>Задать вопрос</span></div><span class="bb-arr">›</span></button>';
   html+='<div class="news-sec-title">Новости и обновления центра</div>';
+  html+=newsTabsHtml("Home",false);
+  html+='<div id="newsPanelHomeCenter">';
   html+='<div class="news-feed">';
   if(newsData.length){
     newsData.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");}).forEach(function(n,ni){
@@ -540,12 +554,14 @@ function showMainMenu(){
           +'<div class="news-carousel-dots">'+imgs.map(function(_,di){return '<span class="news-dot'+(di===0?" active":"")+'" onclick="newsCarouselGoById(\'homeNewsTrack'+ni+'\','+di+')"></span>';}).join("")+'</div>'
           +'</div>';
       }
-      html+='<div class="news-card">'+mediaHtml+'<div class="news-top"><span class="news-tag">'+n.tag+'</span><span class="news-date">'+dateStr+'</span></div><div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div></div>';
+      html+='<div class="news-card news-card-vk">'+newsPostHeader(n,dateStr)+mediaHtml+'<div class="news-title">'+n.title+'</div><div class="news-text">'+n.text+'</div>'+newsActionsBar(n)+'</div>';
     });
   }else{
     html+='<div class="news-empty"><div class="ne-ico">📰</div><b>Новостей пока нет</b><span>Здесь появятся новости и обновления центра</span></div>';
   }
   html+='</div>';
+  html+='</div>'; // /newsPanelHomeCenter
+  html+='<div id="newsPanelHomeVk" class="gone"><div id="vkWidgetHostHome" class="vk-widget-host"></div></div>';
   w.innerHTML=html;
   chatEl.appendChild(w);
   w.querySelectorAll(".news-carousel").forEach(function(carousel){
@@ -989,7 +1005,7 @@ function taxiRenderDateTimePicker(){
     days.push(d);
   }
   if(!document.getElementById("taxiPreNote")){
-    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">🕐 Заявки на поездку принимаются заранее — не позднее чем за день до поездки. Выберите дату начиная с завтрашнего дня.</div>');
+    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">🕐 Заявки на поездку принимаются заранее — не позднее чем за день до поездки, единое время подачи — 08:30. Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для уточнения деталей.</div>');
   }
   dateScroll.innerHTML=days.map(function(d,i){
     const iso=d.toISOString().split("T")[0];
@@ -999,37 +1015,9 @@ function taxiRenderDateTimePicker(){
   dateHidden.value=days[0].toISOString().split("T")[0];
 
   function renderTimeGrid(selectedIso){
-    const isToday=selectedIso===days[0].toISOString().split("T")[0];
-    const slots=[];
-    let sh=cd.openH||8,sm=cd.openM||30;
-    const eh=cd.closeH||18,em=cd.closeM||0;
-    if(isToday){
-      const nowMin=now.getHours()*60+now.getMinutes()+30; // минимум +30 мин от текущего момента
-      const startMin=Math.max(sh*60+sm,Math.ceil(nowMin/15)*15);
-      sh=Math.floor(startMin/60);sm=startMin%60;
-    }
-    let cur=sh*60+sm;
-    const end=eh*60+em;
-    while(cur<end){
-      const h=Math.floor(cur/60),m=cur%60;
-      slots.push(String(h).padStart(2,"0")+":"+String(m).padStart(2,"0"));
-      cur+=30;
-    }
-    if(!slots.length){
-      timeGrid.innerHTML='<div class="taxi-addr-empty">На выбранную дату центр не работает — выберите другой день</div>';
-      timeHidden.value="";
-      return;
-    }
-    timeGrid.innerHTML=slots.map(function(s,i){return '<button type="button" class="taxi-time-chip'+(i===0?" sel":"")+'" data-time="'+s+'">'+s+'</button>';}).join("");
-    timeHidden.value=slots[0];
-    timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(btn){
-      btn.onclick=function(){
-        timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(b){b.classList.remove("sel");});
-        btn.classList.add("sel");
-        timeHidden.value=btn.dataset.time;
-        if(typeof window.taxiProgressHook==="function")window.taxiProgressHook();
-      };
-    });
+    // Время подачи такси фиксировано для всех филиалов — 08:30, единственный слот.
+    timeGrid.innerHTML='<button type="button" class="taxi-time-chip sel" data-time="08:30">08:30</button>';
+    timeHidden.value="08:30";
   }
   renderTimeGrid(dateHidden.value);
 
@@ -1287,14 +1275,6 @@ function taxiConfirmBooking(tariffIdx,isFree){
     if(q.remaining<=0){showToast("⚠️ Лимит бесплатных поездок на этот год исчерпан");return;}
   }
 
-  const drivers=getTaxiDrivers();
-  let driver=null;
-  if(drivers.length){
-    let rot=parseInt(localStorage.getItem("taxiDriverRotation")||"0");
-    driver=drivers[rot%drivers.length];
-    localStorage.setItem("taxiDriverRotation",String(rot+1));
-  }
-
   if(isFree)useFreeTaxiTrip();
 
   ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
@@ -1303,39 +1283,34 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const price=useMor?t.moroshka:t.base;
   const cd=cityData[currentCity]||cityData.gubkin;
 
-  const body=`Заказ социального такси\nТалон: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${pax} (${passengerNames.join(", ")||"—"})\nОткуда: ${from}\nКуда: ${to}\nДата: ${date}, время: ${time}\nКомментарий: ${comment||"—"}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nВодитель: ${driver?driver.name:"—"}`;
+  const body=`Заказ социального такси\nТалон: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${pax} (${passengerNames.join(", ")||"—"})\nОткуда: ${from}\nКуда: ${to}\nДата подачи: ${date}, время: ${time}\nКомментарий: ${comment||"—"}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
   window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси "+ticketNum+" — "+clientName)}&body=${encodeURIComponent(body)}`;
 
   const taxiHistory=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   taxiHistory.unshift({
     num:ticketNum,tariff:t.label,duration:t.duration,price:price,isFree:!!isFree,from:from,to:to,pax:pax,passengerNames:passengerNames,
-    date:date,time:time,comment:comment,driverName:driver?driver.name:null,
+    date:date,time:time,comment:comment,
     createdAt:new Date().toISOString(),cityName:currentCityName,status:"new"
   });
   localStorage.setItem("taxiHistory",JSON.stringify(taxiHistory));
 
   chatEl.innerHTML="";
-  showSuccessAnim("Такси заказано!");
+  showSuccessAnim("Заявка на такси отправлена!");
   const freeQuotaAfter=isFree?getFreeTaxiQuota():null;
-  const etaText=taxiEstimateArrival(date,time);
   const hasRouteCoords=taxiCoords.from&&taxiCoords.to;
   const w=document.createElement("div");w.className="taxi-page";
   w.innerHTML=`
     <div class="taxi-confirm-card">
       <div class="taxi-confirm-check">✅</div>
-      <div class="taxi-confirm-title">Такси заказано</div>
+      <div class="taxi-confirm-title">Заявка отправлена</div>
       <div class="taxi-confirm-ticket">Талон ${ticketNum}</div>
-      <div class="taxi-eta-banner"><span class="taxi-eta-ico">⏱</span><div><span class="taxi-eta-lbl">Ориентировочная подача</span><span class="taxi-eta-val">${etaText}</span></div></div>
+      <div class="taxi-eta-banner"><span class="taxi-eta-ico">📞</span><div><span class="taxi-eta-lbl">Что дальше</span><span class="taxi-eta-val">Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для подтверждения поездки</span></div></div>
       <div class="taxi-confirm-row"><span>Тариф</span><b>${t.label}</b></div>
       <div class="taxi-confirm-row"><span>Стоимость</span><b>${isFree?"Бесплатно 🎁":price+" ₽"}</b></div>
       ${freeQuotaAfter?`<div class="taxi-confirm-row"><span>Осталось поездок</span><b>${freeQuotaAfter.remaining} из ${freeQuotaAfter.limit}</b></div>`:""}
       <div class="taxi-confirm-row"><span>Пассажиров</span><b>${pax}${passengerNames.length?" ("+esc(passengerNames.join(", "))+")":""}</b></div>
-      <div class="taxi-confirm-row"><span>Дата и время</span><b>${date}, ${time}</b></div>
+      <div class="taxi-confirm-row"><span>Дата и время подачи</span><b>${date}, ${time}</b></div>
       <div class="taxi-confirm-row taxi-confirm-route"><span>Маршрут</span><b>📍 ${esc(from)}<br>🏁 ${esc(to)}</b></div>
-      ${driver?`<div class="taxi-driver-card">
-        <div class="taxi-driver-ava">🚗</div>
-        <div class="taxi-driver-info"><span class="taxi-driver-lbl">Ваш водитель</span><span class="taxi-driver-name">${driver.name}</span></div>
-      </div>`:""}
       ${hasRouteCoords?'<div class="taxi-route-map" id="taxiRouteMap"></div>':'<div class="taxi-route-map-note">🗺️ Карта маршрута появится, если оба адреса выбраны из подсказок поиска (не введены вручную)</div>'}
     </div>
     <div class="adm-hint">📧 Откроется почтовый клиент — нажмите «Отправить», чтобы заявка ушла в центр.</div>
@@ -1344,16 +1319,6 @@ function taxiConfirmBooking(tariffIdx,isFree){
   actionsEl.innerHTML='<button class="act-btn teal" onclick="showTaxi()" style="width:100%">🚕 Заказать ещё раз</button><button class="act-btn" onclick="showMainMenu()" style="width:100%;margin-top:8px">🏠 Главная</button>';
   if(hasRouteCoords)setTimeout(function(){taxiInitRouteMap(taxiCoords.from,taxiCoords.to);},100);
   function esc(s){return (s||"").replace(/</g,"&lt;");}
-}
-function taxiEstimateArrival(date,time){
-  // Честная оценка: пока нет диспетчерской системы, время подачи ориентировочное.
-  const now=new Date();
-  const reqDate=new Date(date+"T"+time+":00");
-  const diffMin=Math.round((reqDate-now)/60000);
-  if(diffMin<=45&&diffMin>=-5){
-    return "≈ 15–20 минут после подтверждения (ориентировочно)";
-  }
-  return "к "+time+" "+new Date(date).toLocaleDateString("ru-RU",{day:"numeric",month:"long"})+" (ориентировочно)";
 }
 function taxiInitRouteMap(from,to){
   const el=document.getElementById("taxiRouteMap");
@@ -1637,9 +1602,11 @@ function showContacts(){
   html+='<div class="pinfo-row"><span class="pinfo-ico">📞</span><span class="pinfo-txt"><span class="pinfo-lbl">Приёмная</span><span class="pinfo-val"><a href="tel:+'+cd.phoneRaw+'">'+cd.phone+'</a></span></span></div>';
   html+='<div class="pinfo-row"><span class="pinfo-ico">✉️</span><span class="pinfo-txt"><span class="pinfo-lbl">Email</span><span class="pinfo-val"><a href="mailto:'+cd.email+'">'+cd.email+'</a></span></span></div>';
   html+='<div class="pinfo-row"><span class="pinfo-ico">🕒</span><span class="pinfo-txt"><span class="pinfo-lbl">Режим работы</span><span class="pinfo-val">'+cd.hours+'</span></span></div>';
+  html+='<div class="pinfo-row"><span class="pinfo-ico"><img src="img/vk-icon.png" style="width:20px;height:20px;border-radius:5px;object-fit:contain"></span><span class="pinfo-txt"><span class="pinfo-lbl">Группа ВКонтакте</span><span class="pinfo-val"><a href="'+VK_GROUP.url+'" target="_blank" rel="noopener">'+VK_GROUP.url.replace(/^https?:\/\//,"")+'</a></span></span></div>';
   html+='</div>';
   html+='<div class="pquick-grid contacts-actions"><button class="pquick-btn" onclick="location.href=\'tel:+'+cd.phoneRaw+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#10b981,#059669)">📞</span><span>Позвонить</span></button>'
-      +'<button class="pquick-btn" onclick="location.href=\'mailto:'+cd.email+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#1B8585,#2A9D9D)">✉️</span><span>Написать</span></button></div>';
+      +'<button class="pquick-btn" onclick="location.href=\'mailto:'+cd.email+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#1B8585,#2A9D9D)">✉️</span><span>Написать</span></button>'
+      +'<button class="pquick-btn" onclick="window.open(\''+VK_GROUP.url+'\',\'_blank\',\'noopener\')"><span class="pquick-ico sp-g-i-vk"><img src="img/vk-icon.png" style="width:20px;height:20px;object-fit:contain"></span><span>Группа ВК</span></button></div>';
   w.innerHTML=html;
   chatEl.appendChild(w);
   actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
@@ -2395,6 +2362,7 @@ function showMenuPage(){
     '<div class="sp-g" data-a="news"><span class="sp-g-i" style="background:linear-gradient(135deg,#D4920A,#E8A020)">📰</span><b>Новости</b></div>'+
     '<div class="sp-g" data-a="contacts"><span class="sp-g-i" style="background:linear-gradient(135deg,#B07A00,#D4920A)">📍</span><b>Контакты</b></div>'+
     '<div class="sp-g" data-a="moroshka"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><img src="img/moroshka-logo.jpg" style="width:22px;height:22px;object-fit:contain"></span><b>Морошка</b></div>'+
+    '<div class="sp-g" data-a="vk"><span class="sp-g-i sp-g-i-vk"><img src="img/vk-icon.png" style="width:24px;height:24px;border-radius:6px;object-fit:contain"></span><b>Группа ВК</b></div>'+
     '<div class="sp-g" data-a="gallery"><span class="sp-g-i" style="background:linear-gradient(135deg,#166565,#0F6060)">🖼️</span><b>Фотогалерея</b></div>'+
     '<div class="sp-g" data-a="feedback"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">⭐</span><b>Отзыв</b></div>'+
     '</div>';
@@ -2403,6 +2371,9 @@ function showMenuPage(){
   w.querySelectorAll("[data-a]").forEach(function(el){
     var a=el.dataset.a;
     if(a==="assistant"){el.onclick=function(){openAssistantFullscreen();};}
+    else if(a==="vk"){
+      el.onclick=function(){window.open(VK_GROUP.url,"_blank","noopener");};
+    }
     else if(acts[a])el.onclick=function(){pushNav(showMenuPage);showTyping(acts[a]);};
   });
 }
@@ -2426,3 +2397,120 @@ function selectCity(cityKey,silent){
   }
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+// ЖИВОЙ ИНТЕРАКТИВНЫЙ МАСКОТ
+// Робот слегка тянется за пальцем/курсором (3D-наклон) и реагирует
+// на тап всплеском сердечек и короткой фразой. Чистый CSS/JS,
+// без картинок-видео — работает поверх обычных <img> гифок.
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  var reduceMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var PHRASES=["Привет! 👋","Чем помочь?","Я тут 💚","Задайте вопрос!","Рад видеть!","Слушаю вас"];
+  var wired=new WeakSet();
+
+  function wrapEl(mascotImg){
+    // Поднимаемся до контейнера, который можно безопасно трансформировать
+    return mascotImg.closest(".ga-bot-wrap,.asst-live,.onb-bot-live")||mascotImg.parentElement;
+  }
+
+  function attachTilt(container,mascotImg){
+    if(reduceMotion)return;
+    var raf=null,tx=0,ty=0;
+    function apply(){
+      mascotImg.style.transform="rotateX("+ty+"deg) rotateY("+tx+"deg)";
+      raf=null;
+    }
+    function onMove(clientX,clientY){
+      var r=container.getBoundingClientRect();
+      if(!r.width||!r.height)return;
+      var cx=r.left+r.width/2, cy=r.top+r.height/2;
+      var dx=(clientX-cx)/(r.width/2), dy=(clientY-cy)/(r.height/2);
+      dx=Math.max(-1,Math.min(1,dx)); dy=Math.max(-1,Math.min(1,dy));
+      tx=dx*10; ty=-dy*10; // максимум ~10° наклона
+      if(!raf)raf=requestAnimationFrame(apply);
+    }
+    function onLeave(){
+      tx=0;ty=0;
+      if(!raf)raf=requestAnimationFrame(apply);
+    }
+    container.style.perspective="400px";
+    mascotImg.style.transition="transform .18s ease-out";
+    mascotImg.style.willChange="transform";
+    container.addEventListener("pointermove",function(e){onMove(e.clientX,e.clientY);});
+    container.addEventListener("pointerleave",onLeave);
+    // Плавный «взгляд» за пальцем и на мобильных, без блокировки скролла страницы
+    container.addEventListener("touchmove",function(e){
+      if(e.touches&&e.touches[0])onMove(e.touches[0].clientX,e.touches[0].clientY);
+    },{passive:true});
+    container.addEventListener("touchend",onLeave,{passive:true});
+  }
+
+  function burstHearts(container){
+    var n=reduceMotion?0:4;
+    for(var i=0;i<n;i++){
+      var p=document.createElement("span");
+      p.className="mascot-particle";
+      p.textContent=(i%2===0)?"💚":"✨";
+      var angle=(Math.random()*140-70)*Math.PI/180;
+      var dist=34+Math.random()*22;
+      p.style.setProperty("--mpx",(Math.sin(angle)*dist)+"px");
+      p.style.setProperty("--mpy",(-Math.cos(angle)*dist-10)+"px");
+      p.style.left="50%";p.style.top="38%";
+      p.style.animationDelay=(i*45)+"ms";
+      container.appendChild(p);
+      setTimeout(function(el){el.remove();},900+i*45,p);
+    }
+  }
+
+  function showBubble(container){
+    if(container.querySelector(".mascot-bubble"))return;
+    var b=document.createElement("div");
+    b.className="mascot-bubble";
+    b.textContent=PHRASES[Math.floor(Math.random()*PHRASES.length)];
+    container.appendChild(b);
+    requestAnimationFrame(function(){b.classList.add("show");});
+    setTimeout(function(){b.classList.remove("show");setTimeout(function(){b.remove();},220);},1500);
+  }
+
+  function attachTap(container,mascotImg){
+    container.style.cursor="pointer";
+    container.addEventListener("pointerdown",function(e){
+      mascotImg.classList.remove("mascot-poke");
+      void mascotImg.offsetWidth; // рестарт CSS-анимации
+      mascotImg.classList.add("mascot-poke");
+      burstHearts(container);
+      showBubble(container);
+    });
+  }
+
+  function initOne(img){
+    if(wired.has(img))return;
+    wired.add(img);
+    var container=wrapEl(img);
+    if(!container)return;
+    container.classList.add("mascot-interactive");
+    attachTilt(container,img);
+    attachTap(container,img);
+  }
+
+  function scan(root){
+    (root||document).querySelectorAll(".ga-bot-img,.asst-live img,.onb-bot-live img").forEach(initOne);
+  }
+
+  var mo=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes&&m.addedNodes.forEach(function(node){
+        if(node.nodeType===1)scan(node);
+      });
+    });
+  });
+  document.addEventListener("DOMContentLoaded",function(){
+    scan(document);
+    if(document.body)mo.observe(document.body,{childList:true,subtree:true});
+  });
+  if(document.readyState!=="loading"){
+    scan(document);
+    if(document.body)mo.observe(document.body,{childList:true,subtree:true});
+  }
+})();

@@ -2,6 +2,40 @@
 function asstNorm(s){
   return (s||"").toLowerCase().replace(/ё/g,"е").replace(/[^a-zа-я0-9 ]/gi," ").replace(/\s+/g," ").trim();
 }
+// ═══ Нечёткий поиск: устойчив к опечаткам («писхолог» → «психолог») ═══
+function levenshtein(a,b){
+  if(a===b)return 0;
+  const la=a.length,lb=b.length;
+  if(!la)return lb;if(!lb)return la;
+  let prev=new Array(lb+1);for(let j=0;j<=lb;j++)prev[j]=j;
+  for(let i=1;i<=la;i++){
+    const cur=[i];
+    for(let j=1;j<=lb;j++){
+      cur[j]=a[i-1]===b[j-1]?prev[j-1]:1+Math.min(prev[j-1],prev[j],cur[j-1]);
+    }
+    prev=cur;
+  }
+  return prev[lb];
+}
+// Допуск на опечатки растёт со словом: короткие слова почти не прощают ошибок.
+function fuzzyMaxDist(len){
+  if(len<=3)return 0;
+  if(len<=5)return 1;
+  if(len<=8)return 2;
+  return 3;
+}
+// true, если слово w (из запроса пользователя) похоже на "правильное" слово target
+function fuzzyWordMatch(w,target){
+  if(!w||!target)return false;
+  if(target.includes(w)||w.includes(target))return true;
+  const d=levenshtein(w,target);
+  return d<=fuzzyMaxDist(Math.min(w.length,target.length));
+}
+// Ищет среди слов текста лучшее нечёткое совпадение с искомым словом; возвращает true/false
+function fuzzyTextHasWord(textWords,needle){
+  for(let i=0;i<textWords.length;i++){if(fuzzyWordMatch(textWords[i],needle))return true;}
+  return false;
+}
 function extractAddressFromQuery(q){
   const m=q.match(/(?:по адресу|адрес|до|на|в|к)\s+([а-яa-z0-9][а-яa-z0-9 ]*\d[а-яa-z0-9 ]*)/i);
   if(m&&m[1]){
@@ -230,14 +264,15 @@ const BRANCH_NAMES={gubkin:"Губкинский",muravlenko:"Муравленк
 
 function findServiceCategory(q){
   if(typeof servicesData==="undefined"||!servicesData.length)return null;
+  var qWords=q.split(" ").filter(Boolean);
   var best=null,bestScore=0;
   servicesData.forEach(function(cat){
     var nameWords=asstNorm(cat.name).split(" ").filter(function(w){return w.length>3;});
     var score=0;
-    nameWords.forEach(function(w){if(q.includes(w))score+=1;});
+    nameWords.forEach(function(w){if(fuzzyTextHasWord(qWords,w))score+=1;});
     cat.items.forEach(function(it){
       var words=asstNorm(it.n).split(" ").filter(function(w){return w.length>4;});
-      words.forEach(function(w){if(q.includes(w))score+=2;});
+      words.forEach(function(w){if(fuzzyTextHasWord(qWords,w))score+=2;});
     });
     if(score>bestScore){bestScore=score;best=cat;}
   });
@@ -403,9 +438,9 @@ function findItemInCategory(cat,q){
   const qWords=q.split(" ").filter(function(w){return w.length>2;});
   let bestIdx=-1,bestScore=0;
   cat.items.forEach(function(item,idx){
-    const nameNorm=asstNorm(item.n);
+    const nameWords=asstNorm(item.n).split(" ").filter(function(w){return w.length>2;});
     let score=0;
-    qWords.forEach(function(w){if(nameNorm.includes(w))score+=w.length;});
+    qWords.forEach(function(w){if(fuzzyTextHasWord(nameWords,w))score+=w.length;});
     if(score>bestScore){bestScore=score;bestIdx=idx;}
   });
   return bestScore>=3?bestIdx:-1;
@@ -472,9 +507,18 @@ function smartAsk(query){
   }
 
   let best=null,bestScore=0;
+  const qWords=q.split(" ").filter(Boolean);
   ASST_INTENTS.forEach(it=>{
     let score=0;
-    it.kw.forEach(k=>{const nk=asstNorm(k);if(q.includes(nk))score+=Math.max(1,nk.length);});
+    it.kw.forEach(k=>{
+      const nk=asstNorm(k);
+      if(q.includes(nk)){score+=Math.max(1,nk.length);return;}
+      // Опечатка: каждое слово фразы должно найтись похожим словом в запросе.
+      const kwWords=nk.split(" ").filter(function(w){return w.length>2;});
+      if(kwWords.length&&kwWords.every(function(w){return fuzzyTextHasWord(qWords,w);})){
+        score+=Math.max(1,nk.length)*0.75; // нечёткое совпадение чуть дешевле точного
+      }
+    });
     if(score>bestScore){bestScore=score;best=it;}
   });
   if(best&&bestScore>=2)return resolveIntentResult(best,q);
@@ -584,6 +628,13 @@ function showNews(){
   document.getElementById("searchBar").classList.add("gone");
   chatEl.innerHTML="";
   addMsg("📰 Новости и анонсы центра «Гармония»:",true);
+  const tabsWrap=document.createElement("div");tabsWrap.innerHTML=newsTabsHtml("Tab",false);
+  actionsEl.appendChild(tabsWrap.firstElementChild);
+  const centerPanel=document.createElement("div");centerPanel.id="newsPanelTabCenter";
+  const vkPanel=document.createElement("div");vkPanel.id="newsPanelTabVk";vkPanel.className="gone";
+  vkPanel.innerHTML='<div id="vkWidgetHostTab" class="vk-widget-host"></div>';
+  actionsEl.appendChild(centerPanel);
+  actionsEl.appendChild(vkPanel);
   setTimeout(()=>{
     const list=document.createElement("div");list.className="news-list";
     const rawItems=(typeof newsData!=="undefined")?newsData:[];
@@ -606,9 +657,11 @@ function showNews(){
           <div class="news-carousel-dots">${imgs.map((_,di)=>`<span class="news-dot${di===0?" active":""}" data-di="${di}" onclick="newsCarouselGoById('newsTrack${ni}',${di})"></span>`).join("")}</div>
         </div>`;
       }
-      c.innerHTML=mediaHtml+
-        `<div class="news-top"><span class="news-tag">${n.tag||"Анонс"}</span><span class="news-date">${n.date||""}</span></div>`+
-        `<div class="news-ttl">${n.title}</div><div class="news-text">${n.text}</div>`;
+      const d=new Date(n.date);
+      const dateStr=isNaN(d)?(n.date||""):d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
+      c.className="news-card news-card-vk";
+      c.innerHTML=newsPostHeader(n,dateStr)+mediaHtml+
+        `<div class="news-ttl">${n.title}</div><div class="news-text">${n.text}</div>`+newsActionsBar(n);
       list.appendChild(c);
       if(imgs.length>1){
         setTimeout(()=>{
@@ -623,9 +676,130 @@ function showNews(){
         },50);
       }
     });
-    actionsEl.appendChild(list);
+    centerPanel.appendChild(list);
   },200);
 }
+// ═══════════════════════════════════════════════════════════════
+// НОВОСТНАЯ ЛЕНТА В СТИЛЕ ВК: шапка поста, лайки, «поделиться»
+// ═══════════════════════════════════════════════════════════════
+function newsGetLikes(){
+  try{return JSON.parse(localStorage.getItem("newsLikes")||"{}");}catch(e){return {};}
+}
+function newsSaveLikes(v){localStorage.setItem("newsLikes",JSON.stringify(v));}
+function newsId(n){return n.id||asstNorm(n.title||"").replace(/\s+/g,"_").slice(0,32)||"news";}
+function newsLikeCount(n){
+  const st=newsGetLikes()[newsId(n)];
+  const base=n.likes||0;
+  if(!st)return base;
+  return base+(st.liked?1:0);
+}
+function newsIsLiked(n){return !!(newsGetLikes()[newsId(n)]&&newsGetLikes()[newsId(n)].liked);}
+
+function newsPostHeader(n,dateStr){
+  return `<div class="news-post-hdr">
+    <img src="img/logo-round.jpg" class="news-post-ava" alt="" onerror="this.style.display='none'">
+    <div class="news-post-hdr-txt"><b>Гармония</b><span>${dateStr}${n.tag?" · "+n.tag:""}</span></div>
+    ${n.tag?`<span class="news-tag-vk">${n.tag}</span>`:""}
+  </div>`;
+}
+
+function newsActionsBar(n){
+  const liked=newsIsLiked(n);
+  const cnt=newsLikeCount(n);
+  return `<div class="news-vk-actions">
+    <button class="nva-btn nva-like${liked?" liked":""}" onclick="toggleNewsLike('${newsId(n)}',this)" aria-label="Нравится">
+      <svg viewBox="0 0 24 24" width="21" height="21"><path d="M12 21s-7.5-4.7-10.2-9.1C.3 9.2 1.4 5.6 4.8 4.6c2-.6 4 .1 5.2 1.9L12 8.4l2-1.9c1.2-1.8 3.2-2.5 5.2-1.9 3.4 1 4.5 4.6 3 7.3C19.5 16.3 12 21 12 21z" fill="${liked?"#e0245e":"none"}" stroke="${liked?"#e0245e":"currentColor"}" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span class="nva-count">${cnt}</span>
+    </button>
+    <button class="nva-btn nva-share" onclick="shareNewsItem('${newsId(n)}')" aria-label="Поделиться">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.2M8.3 13.3l7.4 4.2"/></svg>
+      <span class="nva-lbl">Поделиться</span>
+    </button>
+  </div>`;
+}
+
+function toggleNewsLike(id,btn){
+  const likes=newsGetLikes();
+  const cur=likes[id]||{liked:false};
+  cur.liked=!cur.liked;
+  likes[id]=cur;
+  newsSaveLikes(likes);
+  const n=(typeof newsData!=="undefined"?newsData:[]).find(x=>newsId(x)===id);
+  const cnt=n?newsLikeCount(n):0;
+  document.querySelectorAll(`.nva-like[onclick*="'${id}'"]`).forEach(b=>{
+    b.classList.toggle("liked",cur.liked);
+    const path=b.querySelector("path");
+    if(path){path.setAttribute("fill",cur.liked?"#e0245e":"none");path.setAttribute("stroke",cur.liked?"#e0245e":"currentColor");}
+    const c=b.querySelector(".nva-count");if(c)c.textContent=cnt;
+    if(cur.liked){b.classList.remove("pop");void b.offsetWidth;b.classList.add("pop");}
+  });
+}
+function shareNewsItem(id){
+  const n=(typeof newsData!=="undefined"?newsData:[]).find(x=>newsId(x)===id);
+  if(!n)return;
+  const data={title:"«Гармония» — новости центра",text:n.title,url:location.href};
+  if(navigator.share){navigator.share(data).catch(()=>{});}
+  else{navigator.clipboard?.writeText(n.title+" — "+location.href);if(typeof showToast==="function")showToast("📋 Новость скопирована!");}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ВКЛАДКИ «НОВОСТИ ЦЕНТРА / ГРУППА ВК» — общая группа для всех филиалов
+// ═══════════════════════════════════════════════════════════════
+function newsTabsHtml(prefix,activeIsVk){
+  return `<div class="news-tabs" id="newsTabs${prefix}">
+    <button class="news-tab-btn${activeIsVk?"":" active"}" onclick="newsTabSwitch('${prefix}','center',this)">📰 Новости центра</button>
+    <button class="news-tab-btn${activeIsVk?" active":""}" onclick="newsTabSwitch('${prefix}','vk',this)">
+      <img src="img/vk-icon.png" class="news-tab-vk-ico" alt="">Группа ВК
+    </button>
+  </div>`;
+}
+function newsTabSwitch(prefix,tab,btn){
+  document.querySelectorAll("#newsTabs"+prefix+" .news-tab-btn").forEach(b=>b.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  const center=document.getElementById("newsPanel"+prefix+"Center");
+  const vk=document.getElementById("newsPanel"+prefix+"Vk");
+  if(!center||!vk)return;
+  if(tab==="vk"){
+    center.classList.add("gone");vk.classList.remove("gone");
+    ensureVkWidget("vkWidgetHost"+prefix);
+  }else{
+    vk.classList.add("gone");center.classList.remove("gone");
+  }
+}
+function vkFallbackCard(){
+  return `<div class="vk-fallback-card">
+    <img src="img/vk-icon.png" class="vk-fallback-ico" alt="">
+    <div class="vk-fallback-title">Группа «Гармония» ВКонтакте</div>
+    <div class="vk-fallback-sub">Живая лента появится здесь, как только подключим виджет сообщества. А пока загляните в группу напрямую — там свежие посты, фото и события.</div>
+    <button class="vk-fallback-btn" onclick="window.open(VK_GROUP.url,'_blank','noopener')">Открыть группу ВКонтакте →</button>
+  </div>`;
+}
+let _vkScriptLoading=false;
+function ensureVkWidget(hostId){
+  const host=document.getElementById(hostId);
+  if(!host||host.dataset.done)return;
+  // Без числового ID сообщества официальный виджет не построить — честно показываем переход в группу.
+  if(!VK_GROUP.numericId){host.innerHTML=vkFallbackCard();host.dataset.done="1";return;}
+  host.innerHTML='<div class="vk-widget-loading">Загружаем ленту ВКонтакте…</div>';
+  function build(){
+    try{
+      window.VK.Widgets.Group(hostId,{mode:3,width:"100%",height:"560",no_cover:0,color1:"FFFFFF",color2:"1B8585",color3:"0F6060"},VK_GROUP.numericId);
+      host.dataset.done="1";
+    }catch(e){host.innerHTML=vkFallbackCard();host.dataset.done="1";}
+  }
+  if(window.VK&&window.VK.Widgets){build();return;}
+  if(!_vkScriptLoading){
+    _vkScriptLoading=true;
+    const s=document.createElement("script");
+    s.src="https://vk.com/js/api/openapi.js?169";
+    s.onload=function(){if(window.VK&&window.VK.Widgets)build();else{host.innerHTML=vkFallbackCard();host.dataset.done="1";}};
+    s.onerror=function(){host.innerHTML=vkFallbackCard();host.dataset.done="1";};
+    document.head.appendChild(s);
+  }
+  // Если скрипт ВК не ответил за 4 секунды (нет сети, блокировка) — не оставляем пустой экран.
+  setTimeout(function(){if(!host.dataset.done)build();},4000);
+}
+
 function attachCarouselDrag(track){
   // На сенсорных экранах листание делает сам браузер (нативный свайп + snap).
   // JS-перетаскивание нужно только для мыши на компьютере.
