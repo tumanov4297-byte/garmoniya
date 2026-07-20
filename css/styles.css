@@ -2307,3 +2307,84 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
    Запрещаем сжатие ЛЮБОГО ребёнка ленты — прокручивает всегда сама лента. */
 .chat>*{flex-shrink:0 !important;min-height:max-content;}
 .chat>.booking-page,.chat>.home-view,.chat>.svc-page{height:auto !important;max-height:none !important;}
+
+/* ═══════════ ЛИЧНЫЙ КАБИНЕТ — ПРЕМИУМ-ВИЗУАЛ ═══════════ */
+/* Обложка-герой */
+.prof-cover{
+  background:linear-gradient(135deg,#0D4F4F 0%,var(--teal) 45%,var(--teal-mid) 100%) !important;
+  border-radius:0 0 28px 28px;
+  box-shadow:0 10px 26px rgba(15,76,76,.28);
+  padding:38px 20px 26px !important;
+  overflow:hidden;
+}
+.prof-cover-bg::before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;border:30px solid rgba(255,255,255,.07);top:-120px;right:-90px;}
+.prof-cover-bg::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;border:22px solid rgba(240,194,75,.16);bottom:-110px;left:-70px;}
+.prof-ava{
+  width:96px !important;height:96px !important;
+  border:3px solid #fff !important;
+  box-shadow:0 0 0 4px rgba(240,194,75,.55),0 8px 22px rgba(0,0,0,.28) !important;
+  background:linear-gradient(135deg,rgba(255,255,255,.28),rgba(255,255,255,.12)) !important;
+}
+.prof-ava-init{font-size:34px !important;font-weight:800;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.25);}
+.prof-name{font-size:20px !important;font-weight:800 !important;letter-spacing:.2px;text-shadow:0 2px 8px rgba(0,0,0,.22);}
+.prof-name-accent{display:block;width:64px;height:4px;border-radius:3px;margin:7px auto 6px;background:linear-gradient(90deg,#F0C24B,#D4920A);}
+.prof-phone{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.30);border-radius:999px;padding:4px 14px;font-size:12px !important;color:#EAF7F5 !important;}
+.prof-cover-bot{position:absolute;right:12px;bottom:12px;width:64px;height:64px;border-radius:50%;border:2.5px solid rgba(255,255,255,.85);box-shadow:0 4px 14px rgba(0,0,0,.28);object-fit:cover;pointer-events:none;}
+
+/* Чипы статистики — статичное стекло */
+.prof-chip{
+  background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,255,255,.62)) !important;
+  border:1px solid rgba(255,255,255,.9) !important;
+  box-shadow:0 6px 16px rgba(15,76,76,.10),inset 0 1px 0 rgba(255,255,255,.95) !important;
+  border-radius:16px !important;
+}
+.prof-chip b{color:var(--teal) !important;font-size:19px !important;}
+.prof-chip:active{transform:scale(.96);}
+
+/* Баннер анкеты — золотое стекло */
+.prof-nudge{
+  background:linear-gradient(135deg,rgba(240,194,75,.30),rgba(212,146,10,.20)) !important;
+  border:1px solid rgba(212,146,10,.42) !important;
+  border-radius:16px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 16px rgba(176,122,0,.14) !important;
+}
+.prof-nudge-arr{animation:nudgeArr 1.4s ease-in-out infinite;}
+@keyframes nudgeArr{0%,100%{transform:translateX(0);}50%{transform:translateX(5px);}}
+
+/* Навигация — отдельные стеклянные карточки */
+.prof-nav-list{background:transparent !important;border:none !important;box-shadow:none !important;margin:12px 14px 0 !important;padding:0 !important;display:flex;flex-direction:column;gap:8px;}
+.prof-nav-row{
+  background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,255,255,.58)) !important;
+  border:1px solid rgba(255,255,255,.9) !important;
+  border-radius:16px !important;
+  box-shadow:0 5px 14px rgba(15,76,76,.09),inset 0 1px 0 rgba(255,255,255,.95) !important;
+  transition:transform .15s;
+}
+.prof-nav-row:active{transform:scale(.98);}
+.prof-nav-arr{color:var(--teal) !important;font-weight:800;}
+
+/* Карточки разделов и заголовки */
+.pcard{
+  background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,255,255,.62)) !important;
+  border:1px solid rgba(255,255,255,.9) !important;
+  box-shadow:0 6px 16px rgba(15,76,76,.09),inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+.prof-sec-title{position:relative;padding-bottom:10px;}
+.prof-sec-title::after{content:"";position:absolute;left:16px;bottom:0;width:56px;height:4px;border-radius:3px;background:linear-gradient(90deg,#F0C24B,#D4920A);}
+.prof-back-row{border-radius:14px !important;}
+
+/* Выход */
+.prof-logout-row{
+  background:linear-gradient(135deg,rgba(255,255,255,.75),rgba(255,240,240,.6)) !important;
+  border:1.5px solid rgba(192,57,43,.30) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+/* Тёмная тема кабинета */
+.dark .prof-chip,.dark .prof-nav-row,.dark .pcard{
+  background:linear-gradient(135deg,rgba(34,46,70,.85),rgba(24,34,54,.7)) !important;
+  border-color:rgba(255,255,255,.14) !important;
+  box-shadow:0 6px 16px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+.dark .prof-nudge{background:linear-gradient(135deg,rgba(240,194,75,.20),rgba(212,146,10,.12)) !important;border-color:rgba(240,194,75,.30) !important;}
+.dark .prof-logout-row{background:rgba(40,26,30,.6) !important;}

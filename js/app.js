@@ -2001,8 +2001,10 @@ function renderProfilePanel(){
           ${photo?'<button class="prof-ava-remove" onclick="event.stopPropagation();removePhoto()" aria-label="Удалить фото">✕</button>':""}
         </div>
         <div class="prof-name">${clientName}</div>
+        <span class="prof-name-accent"></span>
         <div class="prof-phone">${clientPhone} · ${cityPrefixed(currentCityName)}</div>
       </div>
+      <img src="img/bot-live.webp" class="prof-cover-bot" alt="">
     </div>
 
     <div class="prof-stat-chips">
