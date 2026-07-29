@@ -5,7 +5,7 @@ const ORDER_EMAIL="aidavydenko@yanao.ru",ORG_EMAIL="cson-gub@yanao.ru",MAIN_PHON
 // numericId нужен для виджета: как получить за 10 секунд —
 // откройте vk.com/dev/Widgets → «Виджет сообщества» → впишите cson_noyabrsk →
 // в сгенерированном коде будет строка вида VK.Widgets.Group("...", {...}, 123456789) — это и есть id.
-const VK_GROUP={numericId:null,screen:"cson_noyabrsk",url:"https://vk.ru/cson_noyabrsk"};
+const VK_GROUP={numericId:127392806,screen:"cson_noyabrsk",url:"https://vk.ru/cson_noyabrsk"};
 
 const cityData={
   gubkin:{address:"629830, ЯНАО, г. Губкинский, 3-й мкрн, д. 42",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},

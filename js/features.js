@@ -629,12 +629,14 @@ function showNews(){
   chatEl.innerHTML="";
   addMsg("📰 Новости и анонсы центра «Гармония»:",true);
   const tabsWrap=document.createElement("div");tabsWrap.innerHTML=newsTabsHtml("Tab",false);
-  actionsEl.appendChild(tabsWrap.firstElementChild);
+  // Вкладки и лента живут в основном скролле (.chat), а не в нижней панели:
+  // у .actions max-height 38vh — лента в нём листалась в тесном «колодце».
+  chatEl.appendChild(tabsWrap.firstElementChild);
   const centerPanel=document.createElement("div");centerPanel.id="newsPanelTabCenter";
   const vkPanel=document.createElement("div");vkPanel.id="newsPanelTabVk";vkPanel.className="gone";
   vkPanel.innerHTML='<div id="vkWidgetHostTab" class="vk-widget-host"></div>';
-  actionsEl.appendChild(centerPanel);
-  actionsEl.appendChild(vkPanel);
+  chatEl.appendChild(centerPanel);
+  chatEl.appendChild(vkPanel);
   setTimeout(()=>{
     const list=document.createElement("div");list.className="news-list";
     const rawItems=(typeof newsData!=="undefined")?newsData:[];
@@ -775,29 +777,65 @@ function vkFallbackCard(){
   </div>`;
 }
 let _vkScriptLoading=false;
+function vkFeedHeight(){
+  // Лента почти во весь экран: скроллится приятно, без «колодца». Лимиты виджета ВК: 200–1200.
+  return Math.max(520,Math.min(1200,(window.innerHeight||800)-190));
+}
+function vkSkeletonHtml(){
+  return `<div class="vk-skeleton" aria-hidden="true">
+    <div class="vk-sk-hdr"><span class="vk-sk-ava"></span><span class="vk-sk-lines"><i></i><i></i></span></div>
+    <div class="vk-sk-img"></div>
+    <div class="vk-sk-line w82"></div><div class="vk-sk-line w58"></div>
+    <div class="vk-sk-cap">Загружаем ленту ВКонтакте…</div>
+  </div>`;
+}
 function ensureVkWidget(hostId){
   const host=document.getElementById(hostId);
   if(!host||host.dataset.done)return;
   // Без числового ID сообщества официальный виджет не построить — честно показываем переход в группу.
   if(!VK_GROUP.numericId){host.innerHTML=vkFallbackCard();host.dataset.done="1";return;}
-  host.innerHTML='<div class="vk-widget-loading">Загружаем ленту ВКонтакте…</div>';
+  host.classList.add("vk-glass-frame");
+  host.innerHTML=vkSkeletonHtml();
   function build(){
     try{
-      window.VK.Widgets.Group(hostId,{mode:3,width:"100%",height:"560",no_cover:0,color1:"FFFFFF",color2:"1B8585",color3:"0F6060"},VK_GROUP.numericId);
+      // Плавное появление: ждём iframe от ВК, затем проявляем ленту и убираем скелет.
+      const mo=new MutationObserver(function(){
+        const fr=host.querySelector("iframe");
+        if(!fr)return;
+        mo.disconnect();
+        const reveal=function(){
+          if(host.classList.contains("vk-ready"))return;
+          host.classList.add("vk-ready");
+          const sk=host.querySelector(".vk-skeleton");
+          if(sk)setTimeout(function(){if(sk.parentNode)sk.remove();},480);
+        };
+        fr.addEventListener("load",reveal);
+        setTimeout(reveal,2500); // страховка, если load не прилетит
+      });
+      mo.observe(host,{childList:true,subtree:true});
+      window.VK.Widgets.Group(hostId,{mode:4,width:"auto",height:String(vkFeedHeight()),no_cover:1,color1:"FFFFFF",color2:"1F2D2D",color3:"1B8585"},VK_GROUP.numericId);
       host.dataset.done="1";
-    }catch(e){host.innerHTML=vkFallbackCard();host.dataset.done="1";}
+      // Если ВК так и не вставил iframe (блокировка сети) — не держим вечный скелет.
+      setTimeout(function(){
+        if(!host.querySelector("iframe")){host.classList.remove("vk-glass-frame","vk-ready");host.innerHTML=vkFallbackCard();}
+      },8000);
+    }catch(e){host.classList.remove("vk-glass-frame");host.innerHTML=vkFallbackCard();host.dataset.done="1";}
   }
   if(window.VK&&window.VK.Widgets){build();return;}
   if(!_vkScriptLoading){
     _vkScriptLoading=true;
     const s=document.createElement("script");
     s.src="https://vk.com/js/api/openapi.js?169";
-    s.onload=function(){if(window.VK&&window.VK.Widgets)build();else{host.innerHTML=vkFallbackCard();host.dataset.done="1";}};
-    s.onerror=function(){host.innerHTML=vkFallbackCard();host.dataset.done="1";};
+    s.onload=function(){if(window.VK&&window.VK.Widgets)build();else{host.classList.remove("vk-glass-frame");host.innerHTML=vkFallbackCard();host.dataset.done="1";}};
+    s.onerror=function(){host.classList.remove("vk-glass-frame");host.innerHTML=vkFallbackCard();host.dataset.done="1";};
     document.head.appendChild(s);
   }
   // Если скрипт ВК не ответил за 4 секунды (нет сети, блокировка) — не оставляем пустой экран.
-  setTimeout(function(){if(!host.dataset.done)build();},4000);
+  setTimeout(function(){
+    if(host.dataset.done)return;
+    if(window.VK&&window.VK.Widgets){build();}
+    else{host.classList.remove("vk-glass-frame");host.innerHTML=vkFallbackCard();host.dataset.done="1";}
+  },4000);
 }
 
 function attachCarouselDrag(track){

@@ -63,8 +63,14 @@ function addMsg(html,isBot=true){
   const tm=document.createElement("span");tm.className="msg-time";
   var now=new Date();tm.textContent=(now.getHours()<10?"0":"")+now.getHours()+":"+(now.getMinutes()<10?"0":"")+now.getMinutes();
   b.appendChild(tm);
-  r.appendChild(b);chatEl.appendChild(r);
-  setTimeout(()=>{r.classList.remove("msg-enter");chatEl.scrollTo({top:chatEl.scrollHeight,behavior:"smooth"});},30);
+  r.appendChild(b);
+  const isFirst=chatEl.childElementCount===0; // экран только открылся — показываем верх, а не низ
+  chatEl.appendChild(r);
+  setTimeout(()=>{
+    r.classList.remove("msg-enter");
+    if(isFirst){chatEl.scrollTo({top:0,behavior:"auto"});}
+    else{chatEl.scrollTo({top:chatEl.scrollHeight,behavior:"smooth"});}
+  },30);
 }
 function clearActions(){actionsEl.innerHTML="";}
 function showTyping(cb,delay=360){
@@ -126,8 +132,11 @@ function openAssistantFullscreen(){
   navHistory=[];
   document.getElementById("shell").classList.add("assistant-mode");
   document.getElementById("asstFsHdr").classList.remove("gone");
-  document.getElementById("chat").innerHTML="";
+  const c=document.getElementById("chat");
+  c.innerHTML="";
+  c.scrollTop=0; // вход в бота — всегда с верха ленты
   showAssistant();
+  requestAnimationFrame(()=>{c.scrollTop=0;});
 }
 function closeAssistantFullscreen(){
   exitAssistantFullscreenMode();
@@ -2328,8 +2337,10 @@ function movePillTo(btn){
   const bar=document.getElementById("tabBar");
   const barRect=bar.getBoundingClientRect();
   const btnRect=btn.getBoundingClientRect();
-  pill.style.width=btnRect.width+"px";
-  pill.style.transform="translate3d("+(btnRect.left-barRect.left)+"px,0,0)";
+  // Отступ 3px со всех сторон: капля не касается стенок капсулы,
+  // радиусы концентричны (28 внешний → 19 внутренний), стекло сидит ровно.
+  pill.style.width=Math.max(0,btnRect.width-6)+"px";
+  pill.style.transform="translate3d("+(btnRect.left-barRect.left-bar.clientLeft+3)+"px,0,0)";
 }
 function tabGo(t){
   document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");});

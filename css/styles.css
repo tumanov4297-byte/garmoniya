@@ -2476,7 +2476,7 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
 #newsPanelHomeVk,#newsPanelTabVk{animation:pcardIn .25s ease both;}
 @keyframes pcardIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-.vk-widget-host{min-height:120px;border-radius:16px;overflow:hidden;}
+.vk-widget-host{width:100%;min-height:120px;border-radius:16px;overflow:hidden;}
 .vk-widget-loading{display:flex;align-items:center;justify-content:center;min-height:160px;color:var(--text-tertiary);
   font-size:13.5px;font-weight:600;background:rgba(27,133,133,.05);border-radius:16px;}
 
@@ -2501,3 +2501,215 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
 .dark .vk-fallback-card{background:linear-gradient(135deg,rgba(0,119,255,.12),rgba(27,133,133,.10));border-color:rgba(0,119,255,.22);}
 .dark .vk-fallback-title{color:#e0e8f4;}
 .dark .vk-fallback-sub{color:#a0b0c8;}
+
+/* ═══════════ ПРЕМИУМ-ПОЛИРОВКА v2: лента ВК + жидкое стекло ═══════════ */
+
+/* --- Лента ВК: стеклянная рама. Живёт внутри скролла (.chat), поэтому
+   стекло СТАТИЧНОЕ (без backdrop-filter) — иначе Safari ломает прокрутку. --- */
+.vk-glass-frame{
+  width:100%;
+  padding:8px;
+  border-radius:20px;
+  min-height:320px;
+  background:linear-gradient(150deg,rgba(255,255,255,.72) 0%,rgba(255,255,255,.42) 55%,rgba(255,255,255,.60) 100%);
+  border:1px solid rgba(255,255,255,.85);
+  box-shadow:0 12px 32px rgba(15,76,76,.14),
+             inset 0 1px 0 rgba(255,255,255,.95),
+             inset 0 -1px 0 rgba(255,255,255,.35);
+  overflow:hidden;
+  position:relative;
+}
+.vk-glass-frame iframe{
+  display:block;width:100% !important;border:0;border-radius:14px;background:#fff;
+  opacity:0;transform:translateY(8px) scale(.992);
+  transition:opacity .55s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1);
+}
+.vk-glass-frame.vk-ready iframe{opacity:1;transform:none;}
+.dark .vk-glass-frame{
+  background:linear-gradient(150deg,rgba(30,42,66,.80),rgba(22,33,52,.62));
+  border-color:rgba(255,255,255,.14);
+  box-shadow:0 12px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+/* --- Стеклянный скелет загрузки с мягким мерцанием --- */
+.vk-skeleton{position:absolute;inset:8px;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;
+  background:rgba(255,255,255,.55);overflow:hidden;z-index:1;}
+.vk-skeleton::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.75) 50%,transparent 70%);
+  animation:vkShimmer 1.6s ease-in-out infinite;}
+.vk-sk-hdr{display:flex;align-items:center;gap:10px;}
+.vk-sk-ava{width:42px;height:42px;border-radius:50%;background:rgba(27,133,133,.16);flex-shrink:0;}
+.vk-sk-lines{display:flex;flex-direction:column;gap:7px;flex:1;}
+.vk-sk-lines i{display:block;height:10px;border-radius:6px;background:rgba(27,133,133,.14);}
+.vk-sk-lines i:first-child{width:46%;}
+.vk-sk-lines i:last-child{width:28%;background:rgba(27,133,133,.09);}
+.vk-sk-img{width:100%;aspect-ratio:16/10;border-radius:12px;background:rgba(27,133,133,.10);}
+.vk-sk-line{height:11px;border-radius:6px;background:rgba(27,133,133,.12);}
+.vk-sk-line.w82{width:82%;}
+.vk-sk-line.w58{width:58%;}
+.vk-sk-cap{margin-top:auto;text-align:center;font-size:13px;font-weight:700;color:var(--text-tertiary);padding-bottom:4px;}
+@keyframes vkShimmer{to{transform:translateX(100%);}}
+.dark .vk-skeleton{background:rgba(18,26,44,.6);}
+.dark .vk-skeleton::after{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.10) 50%,transparent 70%);}
+.dark .vk-sk-ava,.dark .vk-sk-lines i,.dark .vk-sk-img,.dark .vk-sk-line{background:rgba(255,255,255,.08);}
+.vk-widget-host{border-radius:20px;}
+
+/* --- Вкладки «Новости / Группа ВК» — жидкое стекло (статичное: внутри скролла) --- */
+.news-tabs{
+  background:linear-gradient(135deg,rgba(255,255,255,.58) 0%,rgba(255,255,255,.34) 60%,rgba(255,255,255,.48) 100%) !important;
+  border:1px solid rgba(255,255,255,.80);
+  box-shadow:0 6px 18px rgba(15,76,76,.08),inset 0 1px 0 rgba(255,255,255,.9);
+  border-radius:16px;padding:4px;
+}
+.news-tab-btn{
+  border-radius:12px;
+  transition:background .28s cubic-bezier(.22,1,.36,1),color .2s,box-shadow .28s cubic-bezier(.22,1,.36,1),transform .18s;
+}
+.news-tab-btn:active{transform:scale(.97);}
+.news-tab-btn.active{
+  background:linear-gradient(160deg,rgba(255,255,255,.98),rgba(255,255,255,.86)) !important;
+  box-shadow:0 4px 14px rgba(15,76,76,.16),inset 0 1px 0 #fff !important;
+}
+.dark .news-tabs{
+  background:linear-gradient(135deg,rgba(30,42,66,.65),rgba(22,33,52,.45)) !important;
+  border-color:rgba(255,255,255,.12);
+  box-shadow:0 6px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.07);
+}
+.dark .news-tab-btn.active{background:linear-gradient(160deg,#273052,#1f2740) !important;box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.10) !important;}
+
+/* --- Карусели новостей: приятная инерция и чёткая фиксация кадра --- */
+.news-carousel-track{-webkit-overflow-scrolling:touch;}
+.news-carousel-img{scroll-snap-stop:always;}
+.news-carousel-counter{background:rgba(15,25,25,.45);border:1px solid rgba(255,255,255,.25);
+  box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.news-dot{box-shadow:0 1px 3px rgba(0,0,0,.3),inset 0 0.5px 0 rgba(255,255,255,.6);}
+.news-dot.active{transition:width .28s cubic-bezier(.34,1.56,.64,1),background .2s;}
+
+/* --- Основная лента: инерция прокрутки на iOS --- */
+.chat{-webkit-overflow-scrolling:touch;}
+
+/* --- Нижняя капсула: прозрачнее и чище (просьба «прозрачно») --- */
+.tab-bar{
+  background:linear-gradient(135deg,rgba(255,255,255,.15) 0%,rgba(255,255,255,.05) 55%,rgba(255,255,255,.11) 100%) !important;
+}
+.dark .tab-bar{
+  background:linear-gradient(135deg,rgba(20,28,46,.28),rgba(20,28,46,.12) 55%,rgba(20,28,46,.22)) !important;
+}
+.actions{background:rgba(255,255,255,.16) !important;}
+.dark .actions{background:rgba(15,18,30,.28) !important;}
+/* если браузер не умеет blur — стекло становится молочным, не исчезает */
+@supports not (backdrop-filter:blur(1px)){
+  .tab-bar{background:rgba(255,255,255,.95) !important;}
+  .actions{background:rgba(255,255,255,.97) !important;}
+  .dark .tab-bar{background:rgba(20,28,46,.96) !important;}
+  .dark .actions{background:rgba(15,18,30,.96) !important;}
+}
+
+/* --- Уважение к настройке «уменьшить движение» --- */
+@media (prefers-reduced-motion:reduce){
+  .vk-skeleton::after{animation:none;}
+  .vk-glass-frame iframe{transition:opacity .2s linear;transform:none;}
+  .chat{scroll-behavior:auto;}
+  .news-tab-btn,.news-dot.active{transition:none;}
+}
+
+/* ═══════════ ПОЛИРОВКА v3: стеклянная капля активного пункта меню ═══════════ */
+/* Раньше: плоский блин rgba во всю высоту капсулы, радиус 16 против 28 у капсулы —
+   углы спорили, выглядело криво. Теперь: капля с отступом 3px, концентричный радиус,
+   объём за счёт градиента и внутреннего блика (без backdrop-filter — блюр уже даёт капсула). */
+.tb-pill{
+  top:9px !important;
+  height:46px !important;
+  border-radius:19px !important;
+  background:linear-gradient(165deg,rgba(255,255,255,.66) 0%,rgba(255,255,255,.28) 55%,rgba(255,255,255,.46) 100%) !important;
+  border:1px solid rgba(255,255,255,.75);
+  box-shadow:0 4px 12px rgba(15,76,76,.14),
+             inset 0 1px 0 rgba(255,255,255,.95),
+             inset 0 -1px 0 rgba(255,255,255,.30);
+}
+.tb-pill::before{content:"";position:absolute;top:2px;left:12%;right:12%;height:42%;
+  background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));
+  border-radius:14px;pointer-events:none;}
+.dark .tb-pill{
+  background:linear-gradient(165deg,rgba(255,255,255,.14),rgba(255,255,255,.05) 55%,rgba(255,255,255,.10)) !important;
+  border-color:rgba(255,255,255,.18);
+  box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.16);
+}
+.dark .tb-pill::before{background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0));}
+/* активный пункт читается чётко поверх стекла */
+.tb.active{color:#0F6060;text-shadow:0 1px 0 rgba(255,255,255,.55);}
+.tb.active svg{stroke:#0F6060;filter:drop-shadow(0 1px 0 rgba(255,255,255,.5));}
+.dark .tb.active{color:#7fd6cf;text-shadow:none;}
+.dark .tb.active svg{stroke:#7fd6cf;filter:none;}
+@supports not (backdrop-filter:blur(1px)){
+  .tb-pill{background:rgba(27,133,133,.10) !important;border-color:rgba(27,133,133,.14);box-shadow:none;}
+}
+@media (prefers-reduced-motion:reduce){
+  .tb-pill{transition:none !important;}
+}
+
+/* ═══════════ ЖИДКОЕ СТЕКЛО v5: максимум прозрачности, ноль швов ═══════════ */
+/* Что лечим по скриншоту:
+   1) блик капсулы обрывался на середине видимым краем — заменён бесшовным по всей ширине;
+   2) капля активного пункта была обведена контуром и спорила скруглением — контур снят,
+      стекло стало почти невесомым: форму дают свет и тень, а не рамки. */
+
+/* --- Капсула меню: почти чистое стекло, фон ~85% прозрачнее прежнего --- */
+.tab-bar{
+  background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,rgba(255,255,255,.015) 55%,rgba(255,255,255,.04) 100%) !important;
+  border:1px solid rgba(255,255,255,.30) !important;
+  border-top:1px solid rgba(255,255,255,.45) !important;
+  box-shadow:0 12px 30px rgba(15,76,76,.16),
+             inset 0 1px 1px rgba(255,255,255,.40) !important;
+}
+/* старый обрезанный блик — долой */
+.tab-bar::before{display:none !important;}
+/* бесшовный световой градиент по всей ширине, повторяет форму капсулы */
+.tab-bar::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 40%);
+}
+.dark .tab-bar{
+  background:linear-gradient(135deg,rgba(20,28,46,.09) 0%,rgba(20,28,46,.02) 55%,rgba(20,28,46,.07) 100%) !important;
+  border-color:rgba(255,255,255,.14) !important;
+  border-top-color:rgba(255,255,255,.22) !important;
+  box-shadow:0 12px 30px rgba(0,0,0,.40),inset 0 1px 1px rgba(255,255,255,.12) !important;
+}
+.dark .tab-bar::after{background:linear-gradient(180deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,0) 40%);}
+
+/* --- Капля активного пункта: без контура, чистый свет --- */
+.tb-pill{
+  border:none !important;
+  background:linear-gradient(165deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.10) 60%,rgba(255,255,255,.22) 100%) !important;
+  box-shadow:0 3px 12px rgba(15,76,76,.12),
+             inset 0 1px 0 rgba(255,255,255,.55) !important;
+}
+.tb-pill::before{display:none !important;}
+.dark .tb-pill{
+  background:linear-gradient(165deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.025) 60%,rgba(255,255,255,.07) 100%) !important;
+  box-shadow:0 3px 12px rgba(0,0,0,.30),
+             inset 0 1px 0 rgba(255,255,255,.14) !important;
+}
+
+/* --- Панель действий: тоже почти воздух --- */
+.actions{background:rgba(255,255,255,.08) !important;}
+.dark .actions{background:rgba(15,18,30,.14) !important;}
+
+/* --- Жидкость: капля течёт между пунктами с лёгким пружинным перелётом --- */
+.tb-pill{
+  transition:transform .42s cubic-bezier(.30,1.35,.45,1),
+             width .42s cubic-bezier(.30,1.35,.45,1) !important;
+}
+
+/* без blur прозрачность недопустима — стекло густеет ради читаемости */
+@supports not (backdrop-filter:blur(1px)){
+  .tab-bar{background:rgba(255,255,255,.95) !important;}
+  .actions{background:rgba(255,255,255,.97) !important;}
+  .dark .tab-bar{background:rgba(20,28,46,.96) !important;}
+  .dark .actions{background:rgba(15,18,30,.96) !important;}
+  .tb-pill{background:rgba(27,133,133,.10) !important;box-shadow:none !important;}
+  .dark .tb-pill{background:rgba(255,255,255,.08) !important;}
+}
+@media (prefers-reduced-motion:reduce){
+  .tb-pill{transition:none !important;}
+}
