@@ -3215,3 +3215,81 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
 @media (prefers-reduced-motion:reduce){
   .tab-bar::before{animation:none;transform:translateX(-150%) skewX(-14deg);opacity:.4;}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   v15: слой удобств (extra.js) — «Наверх», полоса загрузки,
+   офлайн, кросс-фейд темы, .ics-чип, праздники, morph иконок
+   ═══════════════════════════════════════════════════════════ */
+
+/* --- Кнопка «Наверх» --- */
+#backTop{
+  position:fixed;right:16px;z-index:60;
+  bottom:calc(96px + env(safe-area-inset-bottom));
+  width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.5);
+  background:linear-gradient(135deg,rgba(27,133,133,.92),rgba(15,96,96,.92));
+  color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 10px 26px rgba(15,76,76,.34),inset 0 1px 0 rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  opacity:0;transform:translateY(16px) scale(.8);pointer-events:none;
+  transition:opacity .28s ease,transform .28s cubic-bezier(.34,1.4,.64,1);
+  -webkit-tap-highlight-color:transparent;}
+#backTop.show{opacity:1;transform:none;pointer-events:auto;}
+#backTop:active{transform:scale(.9);}
+.dark #backTop{background:linear-gradient(135deg,rgba(40,54,80,.94),rgba(24,34,54,.94));border-color:rgba(255,255,255,.18);}
+
+/* --- Полоса загрузки при переходах --- */
+#navProgress{position:fixed;top:0;left:0;height:3px;width:0;z-index:9998;pointer-events:none;
+  background:linear-gradient(90deg,#1B8585,#34d399,#e8c57c);
+  box-shadow:0 0 8px rgba(52,211,153,.6);opacity:0;border-radius:0 3px 3px 0;}
+#navProgress.go{opacity:1;width:90%;transition:width .5s cubic-bezier(.1,.7,.3,1);}
+#navProgress.done{width:100%;opacity:0;transition:width .2s ease,opacity .3s ease .15s;}
+
+/* --- Кросс-фейд смены темы --- */
+.theme-fade{position:fixed;inset:0;z-index:9997;pointer-events:none;
+  background:radial-gradient(120% 120% at 50% 40%,rgba(20,40,40,.0),rgba(8,20,20,.0));
+  background-color:rgba(10,24,24,0);transition:background-color .34s ease;}
+.theme-fade.show{background-color:rgba(10,24,24,.55);}
+
+/* --- Индикатор офлайна --- */
+#offlineBar{position:fixed;left:12px;right:12px;z-index:70;
+  top:calc(8px + env(safe-area-inset-top));
+  padding:9px 14px;border-radius:13px;text-align:center;
+  background:linear-gradient(135deg,rgba(180,90,30,.95),rgba(150,70,20,.95));
+  color:#fff;font-size:12.5px;font-weight:700;box-shadow:0 8px 22px rgba(120,60,20,.32);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transform:translateY(-140%);opacity:0;transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .3s ease;}
+#offlineBar.show{transform:none;opacity:1;}
+
+/* --- Чип записи: две зоны (открыть + в календарь) --- */
+.hdr-next-chip{padding:0 !important;background:transparent !important;box-shadow:none !important;
+  display:flex !important;gap:8px;align-items:stretch;}
+.hnc-main{flex:1;display:flex;align-items:center;gap:10px;padding:9px 12px;border:none;cursor:pointer;text-align:left;
+  border-radius:13px;background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(255,255,255,.82));
+  box-shadow:0 6px 18px rgba(10,50,50,.18),inset 0 1px 0 #fff;transition:transform .15s;min-width:0;
+  -webkit-tap-highlight-color:transparent;}
+.hnc-main:active{transform:scale(.98);}
+.hnc-cal{flex-shrink:0;width:46px;border:none;cursor:pointer;border-radius:13px;color:#0f6060;
+  background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(255,255,255,.82));
+  box-shadow:0 6px 18px rgba(10,50,50,.18),inset 0 1px 0 #fff;display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;-webkit-tap-highlight-color:transparent;}
+.hnc-cal:active{transform:scale(.92);}
+.dark .hnc-main,.dark .hnc-cal{background:linear-gradient(135deg,rgba(40,54,80,.96),rgba(30,42,66,.9));box-shadow:0 6px 18px rgba(0,0,0,.35);}
+.dark .hnc-cal{color:#7fd6cf;}
+
+/* --- Праздничный акцент в шапке --- */
+.hdr-holiday-emo{position:absolute;top:calc(8px + env(safe-area-inset-top));right:14px;z-index:3;
+  font-size:18px;pointer-events:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));
+  animation:hlFloat 3.4s ease-in-out infinite;}
+@keyframes hlFloat{0%,100%{transform:translateY(0) rotate(-4deg);}50%{transform:translateY(-4px) rotate(4deg);}}
+.hdr-holiday.hl-vict{border-bottom-color:rgba(232,160,32,.4);}
+
+/* --- Morph иконок нижнего меню при выборе --- */
+.tb svg{transition:transform .3s cubic-bezier(.34,1.5,.64,1),stroke-width .3s ease;}
+.tb.active svg{transform:translateY(-1px) scale(1.12);}
+.tb span{transition:font-weight .2s ease,transform .25s ease;}
+.tb.active span{transform:translateY(1px);}
+
+@media (prefers-reduced-motion:reduce){
+  #backTop,#offlineBar,.theme-fade,.hdr-holiday-emo,.tb svg,.tb.active svg{transition:none !important;animation:none !important;}
+  #navProgress{display:none;}
+}

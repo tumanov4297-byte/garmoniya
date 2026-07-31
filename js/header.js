@@ -99,7 +99,7 @@
       var d=new Date(b.visitDate+"T00:00:00");
       return !isNaN(d) && d>=today;
     }).sort(function(a,b){ return new Date(a.visitDate)-new Date(b.visitDate); });
-    if(!future.length){ chip.classList.add("gone"); return; }
+    if(!future.length){ chip.classList.add("gone"); chip.innerHTML=""; return; }
     var nx=future[0];
     var d=new Date(nx.visitDate+"T00:00:00");
     var isToday=d.getTime()===today.getTime();
@@ -107,12 +107,48 @@
     var isTmr=d.getTime()===tmr.getTime();
     var months=["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
     var whenLbl=isToday?"сегодня":(isTmr?"завтра":(d.getDate()+" "+months[d.getMonth()]));
-    $("hdrNextTitle").textContent="Запись "+whenLbl+" в "+(nx.visitTime||"");
-    $("hdrNextSub").textContent=(nx.spec||nx.dept||"Приём специалиста");
+    var title="Запись "+whenLbl+" в "+(nx.visitTime||"");
+    var sub=(nx.spec||nx.dept||"Приём специалиста");
+    chip.innerHTML=
+      '<button class="hnc-main" type="button">'
+      +'<span class="hnc-ico">📅</span>'
+      +'<span class="hnc-txt"><b>'+esc(title)+'</b><span>'+esc(sub)+'</span></span>'
+      +'<span class="hnc-arr">→</span>'
+      +'</button>'
+      +'<button class="hnc-cal" type="button" aria-label="Добавить в календарь" title="Добавить в календарь">'
+      +'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
+      +'</button>';
     chip.classList.remove("gone");
-    chip.onclick=function(){
-      if(typeof openOrdersPanel==="function"){ if(typeof closeAllPanels==="function")closeAllPanels(); openOrdersPanel(); if(typeof ordFilter==="function"){ var b=document.querySelector('.of-btn[data-f="bookings"]'); if(b)ordFilter("bookings",b); } }
+    chip.querySelector(".hnc-main").onclick=function(){
+      if(typeof openOrdersPanel==="function"){ openOrdersPanel(); if(typeof ordFilter==="function"){ var b=document.querySelector('.of-btn[data-f="bookings"]'); if(b)ordFilter("bookings",b); } }
     };
+    chip.querySelector(".hnc-cal").onclick=function(ev){ ev.stopPropagation(); addToCalendar(nx); };
+  }
+
+  /* ─────────── .ics — добавить запись в календарь ─────────── */
+  function addToCalendar(b){
+    try{
+      var date=(b.visitDate||"").replace(/-/g,"");
+      var t=(b.visitTime||"09:00").replace(":","");
+      if(date.length!==8){ if(typeof showToast==="function")showToast("Не удалось создать событие"); return; }
+      var startH=parseInt(t.slice(0,2),10)||9, startM=parseInt(t.slice(2,4),10)||0;
+      var endH=(startH+1)%24;
+      var dtStart=date+"T"+String(startH).padStart(2,"0")+String(startM).padStart(2,"0")+"00";
+      var dtEnd=date+"T"+String(endH).padStart(2,"0")+String(startM).padStart(2,"0")+"00";
+      var summary="Запись — "+(b.spec||b.dept||"приём в «Гармонии»");
+      var loc=(typeof currentCityName!=="undefined")?("«Гармония», "+currentCityName):"«Гармония»";
+      var uid="garm-"+(b.num||Date.now())+"@garmoniya";
+      var ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Garmoniya//CSON//RU","CALSCALE:GREGORIAN","BEGIN:VEVENT",
+        "UID:"+uid,"DTSTART:"+dtStart,"DTEND:"+dtEnd,"SUMMARY:"+summary,"LOCATION:"+loc,
+        "DESCRIPTION:Напоминание о записи в центр «Гармония»","BEGIN:VALARM","TRIGGER:-PT2H","ACTION:DISPLAY",
+        "DESCRIPTION:Напоминание","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+      var blob=new Blob([ics],{type:"text/calendar;charset=utf-8"});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a"); a.href=url; a.download="zapis-garmoniya.ics";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); },1500);
+      if(typeof showToast==="function")showToast("📅 Событие сохранено в календарь");
+    }catch(e){ if(typeof showToast==="function")showToast("Не удалось создать событие"); }
   }
 
   /* ─────────── Аватар → кабинет ─────────── */

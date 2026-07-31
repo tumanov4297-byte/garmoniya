@@ -1,0 +1,17 @@
+{
+  "name": "Гармония — помощник ЦСОН",
+  "short_name": "Гармония",
+  "description": "Социальные услуги центра «Гармония»: запись, заявки, новости.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1B8585",
+  "theme_color": "#1B8585",
+  "lang": "ru",
+  "icons": [
+    { "src": "img/logo-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/logo-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/logo-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
