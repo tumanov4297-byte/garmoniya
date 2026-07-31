@@ -2578,7 +2578,7 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
 .dark .news-tab-btn.active{background:linear-gradient(160deg,#273052,#1f2740) !important;box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.10) !important;}
 
 /* --- Карусели новостей: приятная инерция и чёткая фиксация кадра --- */
-.news-carousel-track{-webkit-overflow-scrolling:touch;}
+.news-carousel-track{-webkit-overflow-scrolling:touch;touch-action:pan-x;}
 .news-carousel-img{scroll-snap-stop:always;}
 .news-carousel-counter{background:rgba(15,25,25,.45);border:1px solid rgba(255,255,255,.25);
   box-shadow:0 2px 8px rgba(0,0,0,.2);}
@@ -2882,3 +2882,207 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
   background-repeat:no-repeat;background-position:right 10px center;
 }
 .pset-select option{color:#111;}
+
+/* ═══════════════ v11: автоскрытие нижней капсулы ═══════════════ */
+/* Капсула плавает абсолютно — прячем чистым transform за нижний край,
+   вёрстка не смещается. Внутренняя пружина «капли» продолжает жить. */
+.tab-bar{
+  transition:transform .40s cubic-bezier(.22,1,.36,1),opacity .3s ease,
+             background .3s ease,box-shadow .3s ease;
+  will-change:transform;
+}
+.tab-bar.nav-hidden{
+  transform:translateY(calc(100% + 16px + env(safe-area-inset-bottom)));
+  opacity:0;
+  pointer-events:none;
+}
+@media (prefers-reduced-motion:reduce){
+  .tab-bar{transition:opacity .15s linear,background .3s ease;}
+  .tab-bar.nav-hidden{transform:none;opacity:0;}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v12: ПРЕМИУМ-ШАПКА — раскладка, статус, эффекты, шторки
+   ═══════════════════════════════════════════════════════════ */
+
+/* --- База: колоночная раскладка, декоративные слои абсолютно --- */
+.hdr{
+  position:relative !important;
+  display:block !important;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 12px !important;
+  overflow:hidden;
+  transition:padding .34s cubic-bezier(.22,1,.36,1),background .6s ease;
+}
+.hdr-aurora,.hdr-snow,.hdr-sheen{position:absolute;inset:0;pointer-events:none;z-index:0;}
+.hdr .hdr-main,.hdr .hdr-status-strip,.hdr .hdr-next-chip{position:relative;z-index:2;}
+.hdr-blobs{z-index:1;}
+
+/* --- Тема по времени суток --- */
+.hdr.hdr-morning{background:radial-gradient(120% 150% at 85% -20%,rgba(232,160,32,.34),transparent 46%),linear-gradient(135deg,#27a89f 0%,#1B8585 100%) !important;}
+.hdr.hdr-day{background:radial-gradient(120% 150% at 88% -20%,rgba(232,197,124,.26),transparent 46%),linear-gradient(135deg,#1f9a94 0%,#166f6f 100%) !important;}
+.hdr.hdr-evening{background:radial-gradient(120% 150% at 85% -20%,rgba(232,160,32,.22),transparent 48%),linear-gradient(135deg,#186363 0%,#123f4d 100%) !important;}
+.hdr.hdr-night{background:radial-gradient(120% 150% at 80% -20%,rgba(120,200,190,.14),transparent 50%),linear-gradient(135deg,#123a3a 0%,#0c2330 100%) !important;}
+.hdr::after{content:none;} /* сбрасываем старую световую кромку — теперь блик отдельным слоем */
+.hdr{border-bottom:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 6px 22px rgba(10,50,50,.16);}
+
+/* --- Аврора (северное сияние) --- */
+.hdr-aurora{
+  background:
+    radial-gradient(60% 120% at 20% 0%,rgba(120,230,200,.22),transparent 60%),
+    radial-gradient(50% 120% at 70% 10%,rgba(150,200,255,.18),transparent 62%),
+    radial-gradient(60% 130% at 95% 0%,rgba(232,197,124,.18),transparent 60%);
+  background-size:200% 200%;
+  filter:blur(8px);
+  opacity:.9;
+  animation:hdrAurora 14s ease-in-out infinite alternate;
+}
+@keyframes hdrAurora{
+  0%{background-position:0% 50%;}
+  50%{background-position:60% 40%;}
+  100%{background-position:100% 60%;}
+}
+
+/* --- Спекулярный блик по стеклу --- */
+.hdr-sheen{overflow:hidden;}
+.hdr-sheen::before{content:"";position:absolute;top:-40%;left:-30%;width:40%;height:180%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);
+  transform:skewX(-18deg) translateX(-160%);
+  animation:hdrSheen 8s ease-in-out infinite;}
+@keyframes hdrSheen{0%,72%{transform:skewX(-18deg) translateX(-160%);}88%,100%{transform:skewX(-18deg) translateX(520%);}}
+
+/* --- Снег --- */
+.hdr-snow i{position:absolute;top:-8px;border-radius:50%;background:#fff;
+  animation-name:hdrSnowFall;animation-timing-function:linear;animation-iteration-count:infinite;}
+@keyframes hdrSnowFall{
+  0%{transform:translateY(-10px) translateX(0);}
+  100%{transform:translateY(140px) translateX(10px);}
+}
+
+/* --- Верхний ряд --- */
+.hdr-main{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.hdr-left{display:flex;align-items:center;gap:11px;min-width:0;}
+.hdr-logo{border:none;padding:0;background:#fff;width:52px;height:52px;border-radius:15px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;overflow:visible;position:relative;
+  box-shadow:0 6px 18px rgba(0,0,0,.24),0 0 0 2px rgba(255,255,255,.32),inset 0 1px 0 rgba(255,255,255,.9);
+  transition:transform .18s cubic-bezier(.34,1.5,.64,1),width .34s cubic-bezier(.22,1,.36,1),height .34s cubic-bezier(.22,1,.36,1);
+  -webkit-tap-highlight-color:transparent;}
+.hdr-logo:active{transform:scale(.92);}
+.hdr-logo img{width:42px;height:42px;object-fit:contain;transition:width .34s,height .34s;}
+.hdr-logo.wink{animation:hdrLogoWink .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes hdrLogoWink{0%,100%{transform:rotate(0) scale(1);}30%{transform:rotate(-9deg) scale(1.08);}60%{transform:rotate(7deg) scale(1.05);}}
+.hdr-logo-heart{position:absolute;top:-6px;right:-6px;font-size:15px;animation:hdrHeartPop .9s ease forwards;pointer-events:none;}
+@keyframes hdrHeartPop{0%{opacity:0;transform:scale(.4) translateY(0);}25%{opacity:1;transform:scale(1.15) translateY(-4px);}100%{opacity:0;transform:scale(.9) translateY(-20px);}}
+.hdr-titles{min-width:0;}
+.hdr-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:19px;color:#fff;letter-spacing:-0.3px;text-shadow:0 1px 3px rgba(0,0,0,.2);line-height:1.1;}
+.hdr-city{display:inline-flex;align-items:center;gap:3px;margin-top:2px;padding:2px 8px 2px 0;border:none;background:none;cursor:pointer;
+  color:rgba(255,255,255,.86);font-family:inherit;font-size:12px;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.16);
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;}
+.hdr-city:active{opacity:.6;}
+.hdr-city-caret{font-size:10px;opacity:.8;}
+
+.hdr-right{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.hdr-ico-btn{position:relative;width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.13);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);transition:transform .15s,background .2s;-webkit-tap-highlight-color:transparent;}
+.hdr-ico-btn:active{transform:scale(.9);background:rgba(255,255,255,.22);}
+.hdr-bell-badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+  background:#f43f5e;color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(244,63,94,.5),0 0 0 2px rgba(27,133,133,.9);animation:hdrBellPop .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes hdrBellPop{from{transform:scale(0);}to{transform:scale(1);}}
+.hdr-avatar{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.55);overflow:hidden;cursor:pointer;
+  background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 3px 10px rgba(0,0,0,.2);transition:transform .15s;-webkit-tap-highlight-color:transparent;}
+.hdr-avatar:active{transform:scale(.92);}
+.hdr-avatar img{width:100%;height:100%;object-fit:cover;}
+.hdr-ava-init{color:#fff;font-weight:800;font-size:14px;}
+
+/* --- Строка статуса --- */
+.hdr-status-strip{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;
+  max-height:40px;opacity:1;overflow:hidden;
+  transition:max-height .34s cubic-bezier(.22,1,.36,1),opacity .24s ease,margin-top .34s cubic-bezier(.22,1,.36,1);}
+.hdr-status{display:inline-flex;align-items:center;gap:7px;min-width:0;padding:5px 12px;border-radius:11px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+  font-size:12.5px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.12);}
+.hdr-status-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#9ca3af;box-shadow:0 0 0 0 rgba(0,0,0,0);}
+.hdr-status.is-open .hdr-status-dot{background:#34d399;animation:hdrPulse 2.2s ease-in-out infinite;}
+.hdr-status.is-soon .hdr-status-dot{background:#fbbf24;animation:hdrPulse 1.6s ease-in-out infinite;}
+.hdr-status.is-closed .hdr-status-dot{background:#f87171;}
+@keyframes hdrPulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.55);}50%{box-shadow:0 0 0 6px rgba(52,211,153,0);}}
+.hdr-status.is-soon .hdr-status-dot{animation-name:hdrPulseA;}
+@keyframes hdrPulseA{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.55);}50%{box-shadow:0 0 0 6px rgba(251,191,36,0);}}
+.hdr-call{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:11px;flex-shrink:0;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);color:#fff;text-decoration:none;
+  font-size:12.5px;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.2);transition:transform .15s,background .2s;-webkit-tap-highlight-color:transparent;}
+.hdr-call:active{transform:scale(.95);background:rgba(255,255,255,.26);}
+
+/* --- Чип ближайшей записи --- */
+.hdr-next-chip{display:flex;align-items:center;gap:10px;width:100%;margin-top:9px;padding:9px 12px;border:none;cursor:pointer;
+  border-radius:13px;background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(255,255,255,.82));
+  box-shadow:0 6px 18px rgba(10,50,50,.18),inset 0 1px 0 #fff;
+  max-height:60px;opacity:1;overflow:hidden;text-align:left;
+  transition:max-height .34s cubic-bezier(.22,1,.36,1),opacity .24s ease,margin-top .34s cubic-bezier(.22,1,.36,1),transform .15s;
+  -webkit-tap-highlight-color:transparent;}
+.hdr-next-chip:active{transform:scale(.98);}
+.hnc-ico{font-size:20px;flex-shrink:0;}
+.hnc-txt{display:flex;flex-direction:column;min-width:0;flex:1;}
+.hnc-txt b{font-size:13.5px;font-weight:800;color:#0f4c4c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hnc-txt span{font-size:11.5px;color:#5b7a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hnc-arr{font-size:17px;color:#1B8585;flex-shrink:0;font-weight:700;}
+
+/* --- Компактный режим отключён (ломал прокрутку ленты на iOS). --- */
+
+/* --- Тёмная тема --- */
+.dark .hdr{border-bottom-color:rgba(255,255,255,.08);}
+.dark .hdr-logo{background:#e9f5f3;}
+.dark .hnc-ico{filter:none;}
+.dark .hdr-next-chip{background:linear-gradient(135deg,rgba(40,54,80,.96),rgba(30,42,66,.9));box-shadow:0 6px 18px rgba(0,0,0,.35);}
+.dark .hnc-txt b{color:#dbeee9;}
+.dark .hnc-txt span{color:#93b3ad;}
+.dark .hnc-arr{color:#7fd6cf;}
+
+/* --- Нижние шторки (уведомления, филиалы) --- */
+.hdr-sheet-ovl{position:fixed;inset:0;z-index:800;display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(8,26,26,.42);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  opacity:0;transition:opacity .3s ease;}
+.hdr-sheet-ovl.open{opacity:1;}
+.hdr-sheet{width:100%;max-width:520px;max-height:76vh;display:flex;flex-direction:column;
+  background:var(--card-bg,#fff);border-radius:22px 22px 0 0;padding:8px 14px calc(16px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 40px rgba(0,0,0,.28);transform:translateY(100%);transition:transform .34s cubic-bezier(.22,1,.36,1);}
+.hdr-sheet-ovl.open .hdr-sheet{transform:none;}
+.dark .hdr-sheet{background:#161f30;}
+.hdr-sheet-grip{width:40px;height:4px;border-radius:2px;background:rgba(0,0,0,.14);margin:6px auto 8px;}
+.dark .hdr-sheet-grip{background:rgba(255,255,255,.2);}
+.hdr-sheet-hd{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 12px;}
+.hdr-sheet-hd b{font-size:17px;font-weight:800;color:var(--text-primary);}
+.hdr-sheet-x{width:32px;height:32px;border-radius:10px;border:none;background:rgba(0,0,0,.05);color:var(--text-secondary);font-size:15px;cursor:pointer;}
+.dark .hdr-sheet-x{background:rgba(255,255,255,.08);color:#cdd8ea;}
+.hnf-list,.hcs-list{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:7px;padding-bottom:4px;}
+.hnf-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:rgba(27,133,133,.05);}
+.dark .hnf-row{background:rgba(255,255,255,.05);}
+.hnf-ico{font-size:20px;flex-shrink:0;}
+.hnf-txt{display:flex;flex-direction:column;min-width:0;}
+.hnf-txt b{font-size:14px;font-weight:700;color:var(--text-primary);}
+.hnf-txt span{font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hnf-empty{text-align:center;padding:40px 20px;color:var(--text-tertiary);font-size:32px;}
+.hnf-empty div{font-size:15px;font-weight:700;color:var(--text-secondary);margin-top:10px;}
+.hnf-empty span{display:block;font-size:12.5px;color:var(--text-tertiary);margin-top:5px;}
+.hcs-row{display:flex;align-items:center;gap:11px;padding:14px 12px;border-radius:14px;border:1px solid transparent;
+  background:rgba(27,133,133,.05);cursor:pointer;font-family:inherit;transition:transform .12s,background .2s;-webkit-tap-highlight-color:transparent;}
+.hcs-row:active{transform:scale(.98);}
+.hcs-row.active{background:rgba(27,133,133,.12);border-color:rgba(27,133,133,.32);}
+.dark .hcs-row{background:rgba(255,255,255,.05);}
+.dark .hcs-row.active{background:rgba(127,214,207,.14);border-color:rgba(127,214,207,.32);}
+.hcs-pin{font-size:16px;}
+.hcs-name{flex:1;text-align:left;font-size:14.5px;font-weight:700;color:var(--text-primary);}
+.hcs-check{color:#1B8585;font-weight:800;}
+.dark .hcs-check{color:#7fd6cf;}
+
+@media (prefers-reduced-motion:reduce){
+  .hdr-aurora,.hdr-sheen::before,.hdr-snow i,.hdr-status-dot{animation:none !important;}
+  .hdr,.hdr-status-strip,.hdr-next-chip,.hdr-logo,.hdr-logo img{transition:none !important;}
+}
+@supports not (backdrop-filter:blur(1px)){
+  .hdr-sheet-ovl{background:rgba(8,26,26,.6);}
+}

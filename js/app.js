@@ -123,7 +123,7 @@ function flyToCart(sourceEl){
 }
 function setNav(showBack){document.getElementById("backBtn").classList.toggle("gone",!showBack);}
 function pushNav(fn){navHistory.push(fn);}
-function goBack(){if(navHistory.length>0){const fn=navHistory.pop();fn();}}
+function goBack(){var _n=document.getElementById("tabBar");if(_n)_n.classList.remove("nav-hidden");if(navHistory.length>0){const fn=navHistory.pop();fn();}}
 function exitAssistantFullscreenMode(){
   document.getElementById("shell").classList.remove("assistant-mode");
   document.getElementById("asstFsHdr").classList.add("gone");
@@ -144,22 +144,8 @@ function closeAssistantFullscreen(){
 }
 
 function updateHoursBanner(){
-  const b=document.getElementById("hoursBanner");
-  const cd=cityData[currentCity]||cityData.gubkin;
-  const now=new Date();const dow=now.getDay();
-  const h=now.getHours(),m=now.getMinutes();
-  const mins=h*60+m;
-  const openMins=cd.openH*60+cd.openM,closeMins=cd.closeH*60+cd.closeM;
-  const isWeekday=dow>=1&&dow<=5;
-  const isOpen=isWeekday&&mins>=openMins&&mins<closeMins;
-  if(isOpen){
-    b.className="hours-banner open";
-    b.innerHTML='<span class="hb-dot"></span><span class="hb-txt">Открыто до '+cd.closeH+':'+String(cd.closeM).padStart(2,'0')+'</span>';
-  }else{
-    b.className="hours-banner closed";
-    const nextDay=(dow===5||dow===6||dow===0)?"пн":"завтра";
-    b.innerHTML='<span class="hb-dot"></span><span class="hb-txt">Закрыто · с '+nextDay+' 08:30</span>';
-  }
+  // Статус работы теперь живёт в шапке (header.js) — с цветным индикатором и обратным отсчётом.
+  if(typeof window.hdrUpdateStatus==="function"){ window.hdrUpdateStatus(); }
 }
 
 function pHtml(p,m){
@@ -1942,6 +1928,7 @@ function handlePhotoChange(e){
       const dataUrl=canvas.toDataURL("image/jpeg",0.85);
       localStorage.setItem("profilePhoto",dataUrl);
       renderProfilePanel();
+      if(typeof window.hdrRefresh==="function")window.hdrRefresh();
       showToast("📸 Фото обновлено");
     };
     img.src=ev.target.result;
@@ -1952,6 +1939,7 @@ function handlePhotoChange(e){
 function removePhoto(){
   localStorage.removeItem("profilePhoto");
   renderProfilePanel();
+  if(typeof window.hdrRefresh==="function")window.hdrRefresh();
   showToast("Фото удалено");
 }
 
@@ -2175,6 +2163,7 @@ function saveMyData(){
   localStorage.setItem("clientSnils",clientSnils);
   showToast("💾 Данные обновлены");
   document.querySelectorAll(".mo").forEach(function(m){m.remove();});
+  if(typeof window.hdrRefresh==="function")window.hdrRefresh();
   renderProfilePanel();
 }
 
@@ -2351,6 +2340,7 @@ function movePillTo(btn){
   pill.style.transform="translate3d("+(btnRect.left-barRect.left-bar.clientLeft+3)+"px,0,0)";
 }
 function tabGo(t){
+  var _nav=document.getElementById("tabBar");if(_nav)_nav.classList.remove("nav-hidden");
   document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");});
   event.currentTarget.classList.add("active");
   movePillTo(event.currentTarget);
@@ -2541,4 +2531,23 @@ function selectCity(cityKey,silent){
     scan(document);
     if(document.body)mo.observe(document.body,{childList:true,subtree:true});
   }
+})();
+
+// ═══ Автоскрытие нижней капсулы меню при прокрутке ═══
+// Вниз — уплывает за нижний край, чуть вверх / у краёв ленты — возвращается.
+(function(){
+  var nav=document.getElementById("tabBar");
+  var sc=document.getElementById("chat");
+  if(!nav||!sc)return;
+  var last=sc.scrollTop,acc=0;
+  sc.addEventListener("scroll",function(){
+    var y=sc.scrollTop, d=y-last; last=y;
+    var nearTop=y<24;
+    var nearBottom=y+sc.clientHeight>=sc.scrollHeight-48;
+    if(nearTop||nearBottom){ nav.classList.remove("nav-hidden"); acc=0; return; }
+    acc+=d;
+    if(acc>40){ nav.classList.add("nav-hidden"); acc=0; }       // уверенно вниз — прячем
+    else if(acc<-16){ nav.classList.remove("nav-hidden"); acc=0; } // чуть вверх — показываем
+    if(acc>64)acc=64;else if(acc<-64)acc=-64; // защита от дребезга
+  },{passive:true});
 })();
