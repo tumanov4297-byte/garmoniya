@@ -2800,9 +2800,7 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
   100%{opacity:0;transform:translate(calc(-50% + var(--hx,0px)),calc(-50% + var(--hy,-30px))) scale(calc(var(--hs,1) * .6));}
 }
 
-/* --- 4. Мягкое проявление картинок --- */
-.imgfx{opacity:0;transition:opacity .5s ease,filter .5s ease;filter:blur(6px);}
-.imgfx-in{opacity:1;filter:none;}
+/* --- 4. Проявление картинок отключено (возврат к оригиналу). --- */
 
 /* --- 6. Стеклянный тост --- */
 .toast{
@@ -2821,12 +2819,13 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
   .toast{background:linear-gradient(135deg,var(--teal-dark),var(--teal)) !important;}
 }
 
-/* --- 7. Отклик нажатия на всех карточках --- */
-.sp-item:active,.sp-g:active,.news-card:active,.pl-catcard:active,
-.pcard:active,.ord-card:active,.nva-btn:active,.of-btn:active{
+/* --- 7. Отклик нажатия — только на кнопках-пунктах меню.
+   Новостные посты (.news-card) и кнопки ленты сознательно НЕ трогаем:
+   на них press-эффект мешал восприятию прокрутки. --- */
+.sp-item:active,.sp-g:active,.pl-catcard:active,
+.pcard:active,.ord-card:active,.of-btn:active{
   transform:scale(.97) !important;transition:transform .1s !important;
 }
-.nva-like.liked svg{animation:none;}
 
 /* --- 5. Брендовый сплэш при запуске --- */
 .app-splash{
@@ -2856,7 +2855,6 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
 @media (prefers-reduced-motion:reduce){
   .rv-init{opacity:1 !important;transform:none !important;}
   .view-swap{animation:none;}
-  .imgfx{opacity:1;filter:none;}
   .splash-ring{animation:none;}
   .splash-logo,.splash-name,.splash-sub{animation:none;opacity:1;}
 }

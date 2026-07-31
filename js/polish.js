@@ -104,25 +104,10 @@
     };
   }
 
-  /* ─────────── 4. Мягкое проявление картинок ─────────── */
-  function tagImages(){
-    if(reduce || !chat) return;
-    try{
-      var imgs=chat.querySelectorAll("img");
-      for(var i=0;i<imgs.length;i++){
-        var im=imgs[i];
-        if(im.dataset.fx) continue;
-        if(im.closest(".ga-bot-wrap,.asst-live,.onb-bot-live")) continue;
-        if(im.classList.contains("ga-bot-img")) continue;
-        im.dataset.fx="1"; im.classList.add("imgfx");
-        if(im.complete && im.naturalWidth>0){ im.classList.add("imgfx-in"); }
-        else{
-          im.addEventListener("load",function(){ this.classList.add("imgfx-in"); },{once:true});
-          im.addEventListener("error",function(){ this.classList.add("imgfx-in"); },{once:true});
-        }
-      }
-    }catch(e){}
-  }
+  /* ─────────── 4. Проявление картинок — ОТКЛЮЧЕНО ───────────
+     Из-за гонки события load картинки иногда оставались невидимыми
+     (лента выглядела «не работающей»). Возвращено к оригиналу. */
+  function tagImages(){ /* no-op */ }
 
   /* ─────────── 5. Брендовый сплэш при запуске ─────────── */
   (function splash(){
