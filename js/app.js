@@ -2025,7 +2025,7 @@ function renderProfilePanel(){
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('settings')">
         <span class="prof-nav-ico" style="background:linear-gradient(135deg,#3d6b6b,#2d5252)">⚙️</span>
-        <span class="prof-nav-txt"><b>Настройки</b><span>Тема, шрифт, данные</span></span>
+        <span class="prof-nav-txt"><b>Настройки</b><span>Тема, шрифт, филиал, язык, данные</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
     </div>
@@ -2091,11 +2091,19 @@ function showProfileSection(section){
   }
 
   if(section==="settings"){
+    const cities=[["gubkin","Губкинский"],["purpe","мкр. Пурпе"],["muravlenko","Муравленко"],["noyabrsk","Ноябрьск"],["tarko","Тарко-Сале"],["urengoy","Уренгой"]];
+    const cityOpts=cities.map(c=>`<option value="${c[0]}"${currentCity===c[0]?" selected":""}>${c[1]}</option>`).join("");
+    const langOpts=[["ru","Русский"],["en","English"]].map(l=>`<option value="${l[0]}"${currentLang===l[0]?" selected":""}>${l[1]}</option>`).join("");
     body.innerHTML=back+`<h2 class="prof-sec-title">⚙️ Настройки</h2>
       <div class="pcard">
         <div class="pcard-hdr">Внешний вид</div>
         <div class="pset-row"><span class="pset-lbl">🔤 Размер шрифта</span><div class="pset-btns"><button class="pset-btn" onclick="changeFontSize(-1)">А−</button><button class="pset-btn" onclick="changeFontSize(1)">А+</button></div></div>
         <div class="pset-row"><span class="pset-lbl">🌙 Тёмная тема</span><button class="pswitch ${darkMode?"on":""}" onclick="toggleDarkTheme();this.classList.toggle('on')" role="switch" aria-checked="${darkMode}"><span class="pswitch-knob"></span></button></div>
+      </div>
+      <div class="pcard">
+        <div class="pcard-hdr">Регион и язык</div>
+        <div class="pset-row"><span class="pset-lbl">📍 Филиал</span><select class="pset-select" onchange="selectCity(this.value)" aria-label="Выбор филиала">${cityOpts}</select></div>
+        <div class="pset-row"><span class="pset-lbl">🌐 Язык интерфейса</span><select class="pset-select" onchange="switchLang(this.value)" aria-label="Язык интерфейса">${langOpts}</select></div>
       </div>
       <div class="pcard">
         <div class="pcard-hdr">Мои данные</div>
@@ -2400,6 +2408,15 @@ function selectCity(cityKey,silent){
   const sel=document.getElementById("citySel");if(sel)sel.value=cityKey;
   const cd=document.getElementById("cityDisplay");if(cd)cd.textContent=cityPrefixed(currentCityName);
   updateHoursBanner();
+  const profOpen=document.getElementById("profilePanel")&&document.getElementById("profilePanel").classList.contains("open");
+  if(profOpen&&!wasSame){
+    // Филиал сменили прямо в кабинете — не выкидываем на главную, обновляем сам кабинет.
+    servicesData=branchContent[currentCity].services;staffData=branchContent[currentCity].staff;
+    currentCatId=null;currentSvcList=null;
+    showToast(`📍 Филиал: ${cityPrefixed(currentCityName)}`);
+    if(typeof showProfileSection==="function")showProfileSection("settings");
+    return;
+  }
   if(!silent&&!wasSame){
     navHistory=[];currentCatId=null;currentSvcList=null;
     document.getElementById("searchBar").classList.add("gone");
@@ -2524,23 +2541,4 @@ function selectCity(cityKey,silent){
     scan(document);
     if(document.body)mo.observe(document.body,{childList:true,subtree:true});
   }
-})();
-
-// ═══ Автоскрытие панели настроек (шрифт/тема/филиал/язык) при прокрутке ═══
-// Шапка «Гармония» остаётся всегда. Вниз — панель плавно складывается,
-// чуть вверх или у верха ленты — сразу возвращается.
-(function(){
-  const topBar=document.getElementById("a11yBar");
-  const sc=document.getElementById("chat");
-  if(!sc||!topBar)return;
-  let last=sc.scrollTop,acc=0;
-  sc.addEventListener("scroll",function(){
-    const y=sc.scrollTop;
-    const d=y-last;last=y;
-    if(y<24){topBar.classList.remove("a11y-hidden");acc=0;return;}
-    acc+=d;
-    if(acc>34){topBar.classList.add("a11y-hidden");acc=0;}
-    else if(acc<-14){topBar.classList.remove("a11y-hidden");acc=0;}
-    if(acc>60)acc=60;else if(acc<-60)acc=-60;
-  },{passive:true});
 })();

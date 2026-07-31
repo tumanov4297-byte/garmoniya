@@ -2772,11 +2772,11 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
 
 /* ═══════════════ v9: визуальный слой polish.js ═══════════════ */
 
-/* --- 1. Появление карточек при прокрутке --- */
-.rv-init{opacity:0;transform:translateY(16px) scale(.985);
-  transition:opacity .5s cubic-bezier(.22,1,.36,1) var(--rv-d,0ms),
-             transform .5s cubic-bezier(.22,1,.36,1) var(--rv-d,0ms);
-  will-change:opacity,transform;}
+/* --- 1. Появление карточек (только статические списки; лента новостей не трогается).
+   Без will-change и без scale — иначе promoted-слои дают шлейфы при скролле. --- */
+.rv-init{opacity:0;transform:translateY(14px);
+  transition:opacity .46s cubic-bezier(.22,1,.36,1) var(--rv-d,0ms),
+             transform .46s cubic-bezier(.22,1,.36,1) var(--rv-d,0ms);}
 .rv-in{opacity:1;transform:none;}
 
 /* --- 2. Кросс-фейд при смене раздела --- */
@@ -2860,3 +2860,25 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
   .splash-ring{animation:none;}
   .splash-logo,.splash-name,.splash-sub{animation:none;opacity:1;}
 }
+
+/* ═══════════════ v10: настройки перенесены в кабинет ═══════════════ */
+/* Верхняя панель настроек удалена из разметки — её место в Профиле. */
+.pset-select{
+  font-family:inherit;font-size:14px;font-weight:700;color:var(--text-primary);
+  background:rgba(27,133,133,.08);
+  border:1px solid rgba(27,133,133,.18);
+  border-radius:11px;padding:8px 30px 8px 12px;cursor:pointer;
+  min-width:150px;max-width:58%;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231B8585' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 10px center;
+  transition:border-color .2s,background-color .2s,transform .1s;
+}
+.pset-select:active{transform:scale(.98);}
+.pset-select:focus{outline:none;border-color:var(--teal,#1B8585);background:rgba(27,133,133,.12);}
+.dark .pset-select{
+  color:#eaf2ff;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237fd6cf' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+.pset-select option{color:#111;}

@@ -44,28 +44,6 @@
     </div>
   </header>
 
-  <div class="a11y-bar" id="a11yBar">
-    <div class="a11y-inner">
-    <div class="a11y-group">
-      <button class="a11y-btn" onclick="changeFontSize(-1)" aria-label="Уменьшить шрифт">А−</button>
-      <button class="a11y-btn" onclick="changeFontSize(1)" aria-label="Увеличить шрифт">А+</button>
-    </div>
-    <button class="a11y-btn theme-btn" id="themeBtn" onclick="toggleDarkTheme()" aria-label="Тёмная тема">🌙</button>
-    <select class="a11y-lang" id="citySel" onchange="selectCity(this.value)" aria-label="Выбор филиала">
-      <option value="gubkin">Губкинский</option>
-      <option value="purpe">мкр. Пурпе</option>
-      <option value="muravlenko">Муравленко</option>
-      <option value="noyabrsk">Ноябрьск</option>
-      <option value="tarko">Тарко-Сале</option>
-      <option value="urengoy">Уренгой</option>
-    </select>
-    <select class="a11y-lang" id="langSel" onchange="switchLang(this.value)" aria-label="Язык интерфейса">
-      <option value="ru">Русский</option>
-      <option value="en">English</option>
-    </select>
-    </div>
-  </div>
-
   <div class="search-bar gone" id="searchBar" role="search">
     <div class="search-wrap">
       <span class="search-ico" aria-hidden="true">🔍</span>
