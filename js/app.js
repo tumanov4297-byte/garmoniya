@@ -2525,3 +2525,22 @@ function selectCity(cityKey,silent){
     if(document.body)mo.observe(document.body,{childList:true,subtree:true});
   }
 })();
+
+// ═══ Автоскрытие панели настроек (шрифт/тема/филиал/язык) при прокрутке ═══
+// Шапка «Гармония» остаётся всегда. Вниз — панель плавно складывается,
+// чуть вверх или у верха ленты — сразу возвращается.
+(function(){
+  const topBar=document.getElementById("a11yBar");
+  const sc=document.getElementById("chat");
+  if(!sc||!topBar)return;
+  let last=sc.scrollTop,acc=0;
+  sc.addEventListener("scroll",function(){
+    const y=sc.scrollTop;
+    const d=y-last;last=y;
+    if(y<24){topBar.classList.remove("a11y-hidden");acc=0;return;}
+    acc+=d;
+    if(acc>34){topBar.classList.add("a11y-hidden");acc=0;}
+    else if(acc<-14){topBar.classList.remove("a11y-hidden");acc=0;}
+    if(acc>60)acc=60;else if(acc<-60)acc=-60;
+  },{passive:true});
+})();

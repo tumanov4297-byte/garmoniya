@@ -17,6 +17,14 @@
 <div class="bloom bloom-2" aria-hidden="true"></div>
 <div class="bloom bloom-3" aria-hidden="true"></div>
 
+<div class="app-splash" id="appSplash" aria-hidden="true">
+  <div class="splash-core">
+    <span class="splash-ring"></span>
+    <img src="img/logo-icon.png" alt="" class="splash-logo">
+  </div>
+  <div class="splash-name">Гармония</div>
+  <div class="splash-sub">центр социального обслуживания</div>
+</div>
 <div class="shell" id="shell" role="main">
   <div class="shell-blobs" aria-hidden="true"><i class="sb1"></i><i class="sb2"></i><i class="sb3"></i><i class="sb4"></i><i class="sb5"></i><i class="sb6"></i><i class="sb7"></i><i class="sb8"></i></div>
   <header class="hdr" role="banner">
@@ -37,6 +45,7 @@
   </header>
 
   <div class="a11y-bar" id="a11yBar">
+    <div class="a11y-inner">
     <div class="a11y-group">
       <button class="a11y-btn" onclick="changeFontSize(-1)" aria-label="Уменьшить шрифт">А−</button>
       <button class="a11y-btn" onclick="changeFontSize(1)" aria-label="Увеличить шрифт">А+</button>
@@ -54,6 +63,7 @@
       <option value="ru">Русский</option>
       <option value="en">English</option>
     </select>
+    </div>
   </div>
 
   <div class="search-bar gone" id="searchBar" role="search">
@@ -127,5 +137,6 @@
 <script src="js/features.js?v=20260721f"></script>
 <script src="js/admin.js?v=20260721f"></script>
 <script src="js/app.js?v=20260721f"></script>
+<script src="js/polish.js?v=20260721f"></script>
 </body>
 </html>
