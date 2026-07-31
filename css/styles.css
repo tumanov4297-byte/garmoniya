@@ -3161,3 +3161,57 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
   .tb-pill{background:rgba(27,133,133,.12) !important;box-shadow:none !important;}
   .actions{background:rgba(255,255,255,.97) !important;}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   v14: БЛЕСТЯЩЕ-ЧИСТОЕ СТЕКЛО — меньше матовости, больше глянца
+   ═══════════════════════════════════════════════════════════ */
+.tab-bar{
+  background:linear-gradient(135deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,.015) 50%,rgba(255,255,255,.05) 100%) !important;
+  -webkit-backdrop-filter:blur(9px) saturate(1.7) brightness(1.12);
+  backdrop-filter:blur(9px) saturate(1.7) brightness(1.12);
+  border:1px solid rgba(255,255,255,.45) !important;
+  border-top:1px solid rgba(255,255,255,.8) !important;
+  box-shadow:
+    0 14px 34px rgba(10,50,50,.18),
+    inset 0 1.5px 1px rgba(255,255,255,.8),
+    inset 0 0 0 1px rgba(255,255,255,.12),
+    inset 0 -6px 12px rgba(255,255,255,.14) !important;
+}
+.dark .tab-bar{
+  background:linear-gradient(135deg,rgba(40,54,80,.10) 0%,rgba(24,34,54,.03) 50%,rgba(40,54,80,.08) 100%) !important;
+  border-color:rgba(255,255,255,.2) !important;
+  border-top-color:rgba(255,255,255,.34) !important;
+  box-shadow:0 14px 34px rgba(0,0,0,.42),inset 0 1.5px 1px rgba(255,255,255,.22),inset 0 -6px 12px rgba(255,255,255,.06) !important;
+}
+/* прозрачнее и чётче искажение на Chromium (RED OS) */
+@supports (backdrop-filter:url(#liquidGlass)){
+  .tab-bar{ backdrop-filter:url(#liquidGlass) blur(4px) saturate(1.75) brightness(1.12); }
+}
+
+/* глянцевый блик, скользящий по стеклу — «отполированное» стекло ловит свет */
+.tab-bar::before{
+  display:block !important;
+  content:"";position:absolute;top:0;bottom:0;left:0;width:42%;border-radius:inherit;pointer-events:none;z-index:1;
+  background:linear-gradient(105deg,transparent 22%,rgba(255,255,255,.30) 47%,rgba(255,255,255,.6) 51%,rgba(255,255,255,.30) 55%,transparent 80%);
+  transform:translateX(-150%) skewX(-14deg);
+  animation:tabGleam 6.5s ease-in-out infinite;
+}
+@keyframes tabGleam{0%,72%{transform:translateX(-150%) skewX(-14deg);}88%,100%{transform:translateX(330%) skewX(-14deg);}}
+
+/* капля активного пункта — глянцевая, с яркой гранью */
+.tb-pill{
+  background:linear-gradient(165deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.14) 55%,rgba(255,255,255,.3) 100%) !important;
+  box-shadow:
+    0 3px 12px rgba(15,76,76,.14),
+    inset 0 1.5px 0 rgba(255,255,255,.9),
+    inset 0 -2px 6px rgba(255,255,255,.22),
+    inset 0 0 0 1px rgba(255,255,255,.14) !important;
+}
+.dark .tb-pill{
+  background:linear-gradient(165deg,rgba(255,255,255,.18),rgba(255,255,255,.04) 55%,rgba(255,255,255,.11)) !important;
+  box-shadow:0 3px 12px rgba(0,0,0,.3),inset 0 1.5px 0 rgba(255,255,255,.26) !important;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .tab-bar::before{animation:none;transform:translateX(-150%) skewX(-14deg);opacity:.4;}
+}
