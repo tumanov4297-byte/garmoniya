@@ -17,6 +17,13 @@
 <div class="bloom bloom-2" aria-hidden="true"></div>
 <div class="bloom bloom-3" aria-hidden="true"></div>
 
+<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true">
+  <filter id="liquidGlass" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.010 0.014" numOctaves="2" seed="7" result="noise"/>
+    <feGaussianBlur in="noise" stdDeviation="1.4" result="softNoise"/>
+    <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
 <div class="app-splash" id="appSplash" aria-hidden="true">
   <div class="splash-core">
     <span class="splash-ring"></span>
