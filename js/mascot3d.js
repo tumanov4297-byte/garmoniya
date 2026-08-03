@@ -129,12 +129,16 @@
       if(pcount()>=2){                                  // щипок → масштаб
         var d=pdist();
         if(state.pinchDist>0 && d>0) state.zoom=clampZoom(state.pinchZoom*(d/state.pinchDist));
+        state.interactT=performance.now();
         return;
       }
       if(!state.dragging)return;                        // одним пальцем → вращение
       var dx=(e.clientX-state.lastX), dy=(e.clientY-state.lastY);
       if(Math.abs(dx)>3||Math.abs(dy)>3) state.moved=true;
-      state.rotY+=dx*0.01; state.rotX+=dy*0.01; state.velY=dx*0.01; state.velX=dy*0.01;
+      state.rotY+=dx*0.01; state.rotX+=dy*0.01;
+      state.rotX=Math.max(-1.1,Math.min(1.1,state.rotX));   // не даём перевернуть модель
+      state.velY=dx*0.01; state.velX=dy*0.01;
+      state.interactT=performance.now();                    // гасим «живость» на время вращения
       state.lastX=e.clientX; state.lastY=e.clientY;
     }
     function up(e){
@@ -156,12 +160,19 @@
       state.raf=requestAnimationFrame(frame);
       if(!state.ready || document.hidden) return;
       var t=(performance.now()-state.t0)/1000;
+      // Фактор покоя: пока крутят/щипают и ~0.5с после — гасим фоновую
+      // «живость» (паринг, качание, дыхание, авто-вращение), чтобы модель
+      // шла за пальцем 1:1 и не прыгала.
+      if(state.idle==null) state.idle=1;
+      var interacting=state.dragging||(performance.now()-(state.interactT||0)<500);
+      state.idle+=((interacting?0:1)-state.idle)*0.08;
+      var idle=state.idle;
       if(state.dragging){
         // тянем напрямую
       }else{
         state.rotY+=state.velY; state.rotX+=state.velX;   // инерция
         state.velY*=0.94; state.velX*=0.94;
-        if(Math.abs(state.velY)<0.0002 && Math.abs(state.velX)<0.0002){ state.rotY+=0.005; } // тихое авто-вращение
+        if(Math.abs(state.velY)<0.0002 && Math.abs(state.velX)<0.0002){ state.rotY+=0.005*idle; } // тихое авто-вращение
       }
       pivot.rotation.y=state.rotY;
 
@@ -175,7 +186,7 @@
       // приветственный кивок при появлении (затухает за ~1.6 c)
       if(state.introStart){
         var ie=(performance.now()-state.introStart)/1000;
-        if(ie<1.7){ extraX+=Math.sin(ie*7)*0.16*Math.exp(-ie*1.9); }
+        if(ie<1.7){ extraX+=Math.sin(ie*7)*0.16*Math.exp(-ie*1.9)*idle; }
         else state.introStart=0;
       }
       // радостный подскок при тапе (~0.6 c)
@@ -185,11 +196,11 @@
         else state.hopStart=0;
       }
       pivot.rotation.x=state.rotX+extraX;
-      pivot.rotation.z=Math.sin(t*0.7)*0.03;                 // лёгкое покачивание
-      pivot.position.y=Math.sin(t*1.3)*0.05 + hopY;          // парение + подскок
+      pivot.rotation.z=Math.sin(t*0.7)*0.03*idle;            // покачивание (гаснет при вращении)
+      pivot.position.y=Math.sin(t*1.3)*0.05*idle + hopY;     // парение (гаснет при вращении) + подскок
       // дыхание корпуса + сжатие при подскоке
       if(state.model && state.baseScale){
-        var breathe=1+Math.sin(t*1.8)*0.012;
+        var breathe=1+Math.sin(t*1.8)*0.012*idle;
         state.model.scale.set(state.baseScale*breathe*(1-squash*0.5), state.baseScale*breathe*(1+squash), state.baseScale*breathe*(1-squash*0.5));
       }
       renderer.render(scene,camera);
@@ -210,19 +221,23 @@
     var theme=("");
     try{ theme=localStorage.getItem("bot3dTheme")||"cosmos"; }catch(e){ theme="cosmos"; }
     overlay=document.createElement("div");
-    overlay.className="bot3d-modal bot3d-photos theme-"+theme; overlay.setAttribute("role","dialog"); overlay.setAttribute("aria-modal","true");
+    overlay.className="bot3d-modal bot3d-photos bot3d-lightbg theme-"+theme; overlay.setAttribute("role","dialog"); overlay.setAttribute("aria-modal","true");
     var eqBars=""; for(var i=0;i<7;i++){ eqBars+='<i style="--i:'+i+'"></i>'; }
     var N=38, waveBars="";
     for(var wi=0;wi<N;wi++){ var dd=Math.abs(wi-(N-1)/2)/((N-1)/2); var amp=Math.max(0.12,1-dd*dd); waveBars+='<i style="--i:'+wi+';--amp:'+amp.toFixed(2)+'"></i>'; }
     overlay.innerHTML=
-      '<div class="b3m-bg" id="b3mBg"><div class="b3m-photos" id="b3mPhotos"></div><canvas class="b3m-nebula" id="b3mNebula"></canvas><div class="b3m-glow"></div><div class="b3m-scrim"></div></div>'
+      '<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><defs><filter id="botLiquid" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.011 0.013" numOctaves="2" seed="7" result="n"/><feGaussianBlur in="n" stdDeviation="1.1" result="nb"/><feDisplacementMap in="SourceGraphic" in2="nb" scale="16" xChannelSelector="R" yChannelSelector="G"/></filter></defs></svg>'
+      +'<div class="b3m-bg" id="b3mBg"><div class="b3m-photos" id="b3mPhotos"></div><canvas class="b3m-nebula" id="b3mNebula"></canvas><div class="b3m-glow"></div><div class="b3m-scrim"></div></div>'
       +'<div class="b3m-bar"><b>Робот «Гармония»</b>'
         +'<div class="b3m-bar-actions">'
           +'<button class="b3m-theme" id="b3mTheme" aria-label="Сменить фон">'+(theme==="cosmos"?"💠":"🌌")+'</button>'
           +'<button class="b3m-x" aria-label="Закрыть">✕</button>'
         +'</div></div>'
-      +'<div class="b3m-stage"><div class="b3m-holder" id="b3mHolder">'
+      +'<div class="b3m-stage">'
+      +'<div class="b3m-demo-badge">ДЕМО · в разработке</div>'
+      +'<div class="b3m-holder" id="b3mHolder">'
       +'<img src="img/bot-live.webp" class="bot3d-fallback" alt="Робот Гармония"></div>'
+      +'<div class="b3m-demo-note">Модель робота и голосовой помощник — демонстрация, в разработке</div>'
       +'<div class="b3m-zoom"><button class="b3z-btn" onclick="bot3dZoom(0.2)" aria-label="Увеличить">＋</button>'
       +'<button class="b3z-btn" onclick="bot3dZoom(-0.2)" aria-label="Уменьшить">－</button></div></div>'
       +'<div class="b3m-foot">'
@@ -242,36 +257,8 @@
     document.body.classList.add("bot3d-lock");
     requestAnimationFrame(function(){ overlay.classList.add("open"); });
 
-    // ── Космический фон робота: гиф — основной, картинки сменяются раз в 10 минут ──
-    (function initBotBg(){
-      var host=overlay.querySelector("#b3mPhotos"); if(!host) return;
-      var LIST=[
-        "img/bot-bg/space-main.gif",                                  // основной — анимированный гиф
-        "img/bot-bg/space-01.jpg","img/bot-bg/space-02.jpg",
-        "img/bot-bg/space-03.jpg","img/bot-bg/space-04.jpg",
-        "img/bot-bg/space-05.jpg","img/bot-bg/space-06.jpg"
-      ];
-      var slides=LIST.map(function(src,i){
-        var d=document.createElement("div");
-        d.className="b3m-photo"+(i===0?" on":"");
-        if(i===0) d.style.backgroundImage="url('"+src+"')";        // основной грузим сразу
-        host.appendChild(d);
-        return d;
-      });
-      var idx=0;
-      function show(n){
-        n=(n+slides.length)%slides.length;
-        if(n===idx) return;
-        var s=slides[n];
-        if(!s.style.backgroundImage) s.style.backgroundImage="url('"+LIST[n]+"')"; // ленивая подгрузка
-        slides[idx].classList.remove("on");
-        s.classList.add("on");
-        idx=n;
-      }
-      // Каждые 10 минут — плавно следующий фон. Таймер живёт на overlay,
-      // чистится в closeBot3D (в т.ч. при закрытии из голосового сценария).
-      overlay._bgTimer=setInterval(function(){ show(idx+1); }, 10*60*1000);
-    })();
+    // Фон робота — одна статичная картинка (reception.webp), задаётся в CSS
+    // через класс .bot3d-lightbg. Космическая ротация убрана.
 
     // ── Туманность (рисуется кодом, статично — без нагрузки на кадр) ──
     function hexA(hex,a){ var n=parseInt(hex.slice(1),16); return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")"; }
