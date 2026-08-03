@@ -3117,11 +3117,7 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
 }
 
 /* реальное преломление фона — только там, где браузер это умеет (Chromium/RED OS) */
-@supports (backdrop-filter:url(#liquidGlass)){
-  .tab-bar{
-    backdrop-filter:url(#liquidGlass) blur(6px) saturate(1.9) brightness(1.05);
-  }
-}
+/* SVG-преломление удалено: на Android давало мерцающие «кубики» и лаги. */
 
 /* --- Капля активного пункта: линза внутри стекла --- */
 .tb-pill{
@@ -3184,9 +3180,7 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
   box-shadow:0 14px 34px rgba(0,0,0,.42),inset 0 1.5px 1px rgba(255,255,255,.22),inset 0 -6px 12px rgba(255,255,255,.06) !important;
 }
 /* прозрачнее и чётче искажение на Chromium (RED OS) */
-@supports (backdrop-filter:url(#liquidGlass)){
-  .tab-bar{ backdrop-filter:url(#liquidGlass) blur(4px) saturate(1.75) brightness(1.12); }
-}
+/* SVG-преломление удалено: на Android давало мерцающие «кубики» и лаги. */
 
 /* глянцевый блик, скользящий по стеклу — «отполированное» стекло ловит свет */
 .tab-bar::before{
@@ -3293,3 +3287,341 @@ video::-webkit-media-controls,video::-webkit-media-controls-start-playback-butto
   #backTop,#offlineBar,.theme-fade,.hdr-holiday-emo,.tb svg,.tb.active svg{transition:none !important;animation:none !important;}
   #navProgress{display:none;}
 }
+
+/* ═══════════════ v16: 3D-робот в отдельном окне бота ═══════════════ */
+/* Кнопка «Открыть 3D-версию» в чате бота */
+.bot3d-open{display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 0;padding:12px 14px;border:none;cursor:pointer;
+  border-radius:16px;text-align:left;color:#fff;font-family:inherit;
+  background:linear-gradient(135deg,#1f9a94,#0f6060);
+  box-shadow:0 8px 22px rgba(15,76,76,.28),inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .15s;-webkit-tap-highlight-color:transparent;}
+.bot3d-open:active{transform:scale(.98);}
+.b3o-ico{font-size:26px;flex-shrink:0;}
+.b3o-txt{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.b3o-txt b{font-size:14.5px;font-weight:800;}
+.b3o-txt span{font-size:12px;opacity:.85;}
+.b3o-arr{font-size:22px;opacity:.8;}
+
+/* Приписка «в разработке: голосовой ИИ» */
+.bot-soon{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:9px;padding:10px 12px;border-radius:13px;
+  background:rgba(232,197,124,.14);border:1px dashed rgba(200,150,40,.4);}
+.bs-badge{flex-shrink:0;font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#8a6412;
+  background:rgba(232,197,124,.5);padding:3px 8px;border-radius:8px;}
+.bs-txt{font-size:12.5px;color:var(--text-secondary);line-height:1.4;flex:1;min-width:0;}
+.dark .bot-soon{background:rgba(232,197,124,.10);border-color:rgba(200,150,40,.3);}
+.dark .bs-badge{color:#e8c57c;background:rgba(232,197,124,.18);}
+.bot-soon.in-modal{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);}
+.bot-soon.in-modal .bs-txt{color:rgba(255,255,255,.9);}
+.bot-soon.in-modal .bs-badge{color:#fff;background:rgba(232,197,124,.4);}
+
+/* Модальное окно 3D */
+.bot3d-modal{position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;
+  background:radial-gradient(120% 80% at 50% 20%,#1f8f88 0%,#0f6060 55%,#0a3d3d 100%);
+  opacity:0;transition:opacity .3s ease;}
+.bot3d-modal.open{opacity:1;}
+.dark .bot3d-modal{background:radial-gradient(120% 80% at 50% 20%,#14514e 0%,#0c3535 55%,#07201f 100%);}
+body.bot3d-lock{overflow:hidden;}
+.b3m-bar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:calc(12px + env(safe-area-inset-top)) 16px 12px;color:#fff;}
+.b3m-bar b{font-size:16px;font-weight:800;}
+.b3m-x{width:38px;height:38px;flex-shrink:0;border-radius:12px;border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.14);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;-webkit-tap-highlight-color:transparent;}
+.b3m-x:active{transform:scale(.9);}
+.b3m-stage{flex:1;position:relative;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px;}
+.b3m-holder{position:relative;width:100%;max-width:520px;height:100%;}
+.b3m-foot{flex-shrink:0;padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;align-items:center;}
+.b3m-hint{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.85);text-align:center;}
+.bot3d-fallback{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  height:52%;max-height:260px;object-fit:contain;border-radius:24px;transition:opacity .5s ease;}
+.bot3d-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;
+  cursor:grab;opacity:0;transition:opacity .55s ease;-webkit-tap-highlight-color:transparent;touch-action:none;}
+.bot3d-canvas.show{opacity:1;}
+.bot3d-canvas:active{cursor:grabbing;}
+@media (prefers-reduced-motion:reduce){.bot3d-fallback{animation:none;}}
+
+/* ═══════════════════════════════════════════════════════════
+   v17: облегчённый режим для слабых устройств/Android + адаптация
+   Гасит тяжёлые анимации и упрощает стекло — источник лагов/мерцания.
+   ═══════════════════════════════════════════════════════════ */
+
+/* --- Отключаем дорогие анимации --- */
+.perf-lite .hdr-aurora{animation:none !important;filter:none !important;opacity:.55;}
+.perf-lite .hdr-sheen::before{display:none !important;}
+.perf-lite .tab-bar::before{display:none !important;}
+.perf-lite .hdr-snow{display:none !important;}
+.perf-lite .hdr-holiday-emo{animation:none !important;}
+.perf-lite .hdr-status.is-open .hdr-status-dot,
+.perf-lite .hdr-status.is-soon .hdr-status-dot{animation:none !important;}
+.perf-lite .vk-skeleton::after,
+.perf-lite .pl-skel-card::after,
+.perf-lite [class*="shimmer"]::after{animation:none !important;}
+.perf-lite .like-burst{display:none !important;}
+
+/* --- Появления карточек — мгновенно (без пер-кадровой нагрузки) --- */
+.perf-lite .rv-init{opacity:1 !important;transform:none !important;transition:none !important;}
+.perf-lite .view-swap{animation:none !important;}
+
+/* --- Упрощаем стекло: меньше blur, плотнее фон → меньше нагрузка и мерцания --- */
+.perf-lite .tab-bar{
+  -webkit-backdrop-filter:blur(6px) !important;backdrop-filter:blur(6px) !important;
+  background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.4)) !important;
+}
+.perf-lite.dark .tab-bar,.perf-lite .dark .tab-bar{
+  background:linear-gradient(135deg,rgba(28,38,58,.7),rgba(22,30,48,.6)) !important;
+}
+.perf-lite .actions{-webkit-backdrop-filter:blur(6px) !important;backdrop-filter:blur(6px) !important;background:rgba(255,255,255,.7) !important;}
+.perf-lite.dark .actions,.perf-lite .dark .actions{background:rgba(15,18,30,.75) !important;}
+.perf-lite .hdr-sheet-ovl,.perf-lite .vk-fs-ovl{-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+/* стабилизация композитинга — убирает «мигающие плитки» на Android */
+.perf-lite .tab-bar,.perf-lite .hdr,.perf-lite .tb-pill{backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+
+/* ── Адаптация под все размеры ── */
+/* очень узкие телефоны */
+@media (max-width:340px){
+  .hdr-name{font-size:17px;}
+  .hdr-ico-btn,.hdr-avatar{width:34px;height:34px;}
+  .hdr-right{gap:5px;}
+  .tb span{font-size:10px;}
+}
+/* планшеты/десктоп: приложение остаётся телефонной колонкой по центру (это мобильный UI),
+   но модальное 3D-окно и шторки растягиваются во весь экран корректно */
+@media (min-width:560px){
+  .bot3d-modal,.hdr-sheet-ovl,.vk-fs-ovl{max-width:none;}
+}
+/* альбомная ориентация: 3D-окно не сплющивается */
+@media (orientation:landscape) and (max-height:480px){
+  .b3m-bar{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px;}
+  .b3m-foot{padding-bottom:calc(8px + env(safe-area-inset-bottom));gap:6px;}
+  .b3m-foot .bot-soon{display:none;} /* в узкой альбомной прячем длинную приписку */
+}
+/* поддержка динамической высоты (мобильные адресные строки) */
+@supports (height:100dvh){
+  .bot3d-modal{height:100dvh;}
+}
+
+/* ═══════════════ v18: кнопки масштаба 3D-робота ═══════════════ */
+.b3m-zoom{position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:3;
+  display:flex;flex-direction:column;gap:8px;}
+.b3z-btn{width:42px;height:42px;border-radius:13px;border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.16);color:#fff;font-size:22px;font-weight:700;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s,background .2s;
+  -webkit-tap-highlight-color:transparent;}
+.b3z-btn:active{transform:scale(.9);background:rgba(255,255,255,.26);}
+.perf-lite .b3z-btn{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(20,60,60,.55);}
+
+/* ═══════════════════════════════════════════════════════════
+   v19: фон 3D-робота (Гармония / Космос) + фасад голосового ИИ
+   ═══════════════════════════════════════════════════════════ */
+.b3m-bg{position:absolute;inset:0;z-index:0;overflow:hidden;}
+.bot3d-modal .b3m-bar,.bot3d-modal .b3m-stage,.bot3d-modal .b3m-foot{position:relative;z-index:1;}
+
+/* центральное свечение под роботом — глубина, «не в воздухе» */
+.b3m-glow{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
+  width:min(78vw,420px);height:min(78vw,420px);border-radius:50%;
+  background:radial-gradient(closest-side,rgba(120,230,215,.28),rgba(120,230,215,0) 70%);
+  filter:blur(6px);animation:b3glow 6s ease-in-out infinite;}
+@keyframes b3glow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.85;}50%{transform:translate(-50%,-50%) scale(1.08);opacity:1;}}
+/* «подставка»-тень, чтобы робот стоял, а не летел */
+.b3m-bg::after{content:"";position:absolute;left:50%;bottom:20%;transform:translateX(-50%);
+  width:200px;height:34px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.28),transparent);filter:blur(5px);}
+
+/* — Тема «Гармония»: тёплое бирюзовое сияние — */
+.theme-garmoniya .b3m-bg{background:
+  radial-gradient(120% 80% at 50% 14%,#2aa79f 0%,#137a76 46%,#0b4f4d 100%);}
+.theme-garmoniya .b3m-bg::before{content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(30% 24% at 20% 30%,rgba(232,197,124,.18),transparent 70%),
+    radial-gradient(34% 26% at 82% 24%,rgba(160,240,225,.20),transparent 70%),
+    radial-gradient(40% 30% at 70% 84%,rgba(255,255,255,.10),transparent 70%);}
+.theme-garmoniya .b3m-stars{display:none;}
+
+/* — Тема «Космос»: тёмная туманность со звёздами — */
+.theme-cosmos .b3m-bg{background:
+  radial-gradient(120% 90% at 50% 10%,#1b2b4a 0%,#0f1730 45%,#070a18 100%);}
+.theme-cosmos .b3m-bg::before{content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(38% 30% at 22% 26%,rgba(90,120,255,.22),transparent 70%),
+    radial-gradient(40% 32% at 82% 30%,rgba(180,90,220,.20),transparent 72%),
+    radial-gradient(46% 34% at 60% 88%,rgba(30,200,190,.16),transparent 72%);}
+.theme-cosmos .b3m-glow{background:radial-gradient(closest-side,rgba(120,180,255,.25),transparent 70%);}
+.b3m-stars i{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 4px rgba(255,255,255,.6);
+  animation:starTwinkle 3s ease-in-out infinite;}
+@keyframes starTwinkle{0%,100%{opacity:.25;transform:scale(.8);}50%{opacity:1;transform:scale(1);}}
+
+/* — Кнопки в шапке окна — */
+.b3m-bar-actions{display:flex;gap:8px;align-items:center;}
+.b3m-theme{width:38px;height:38px;flex-shrink:0;border-radius:12px;border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.14);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;-webkit-tap-highlight-color:transparent;}
+.b3m-theme:active{transform:scale(.9);}
+
+/* — Фасад голосового ИИ (заглушки) — */
+.ai-console{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.ai-eq{display:flex;align-items:flex-end;gap:3px;height:22px;}
+.ai-eq i{width:3px;height:5px;border-radius:2px;background:rgba(255,255,255,.5);
+  animation:eqIdle 1.4s ease-in-out infinite;animation-delay:calc(var(--i)*0.1s);}
+@keyframes eqIdle{0%,100%{height:5px;opacity:.5;}50%{height:11px;opacity:.85;}}
+.ai-listening .ai-eq i{background:#2fd6c8;animation:eqLive .5s ease-in-out infinite;animation-delay:calc(var(--i)*0.07s);}
+@keyframes eqLive{0%,100%{height:5px;}50%{height:22px;}}
+.ai-mic{position:relative;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#2aa79f,#0f6060);color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 22px rgba(15,76,76,.4),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .15s;-webkit-tap-highlight-color:transparent;}
+.ai-mic:active{transform:scale(.92);}
+.ai-listening .ai-mic{background:linear-gradient(135deg,#34d399,#0f9a86);}
+.ai-mic::before,.ai-mic::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid rgba(52,211,153,.6);opacity:0;pointer-events:none;}
+.ai-listening .ai-mic::before{animation:micRing 1.6s ease-out infinite;}
+.ai-listening .ai-mic::after{animation:micRing 1.6s ease-out infinite .6s;}
+@keyframes micRing{0%{opacity:.7;transform:scale(1);}100%{opacity:0;transform:scale(1.8);}}
+.ai-state{font-size:12px;font-weight:600;color:rgba(255,255,255,.82);}
+.ai-listening .ai-state{color:#7dffe9;}
+.ai-chips{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:2px;}
+.ai-chip{border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.12);color:#fff;
+  font:inherit;font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:11px;cursor:pointer;
+  transition:transform .15s,background .2s;-webkit-tap-highlight-color:transparent;}
+.ai-chip:active{transform:scale(.94);background:rgba(255,255,255,.22);}
+
+/* облегчённый режим: гасим анимации фона/ИИ */
+.perf-lite .b3m-glow,.perf-lite .b3m-stars i,.perf-lite .ai-eq i,
+.perf-lite .ai-listening .ai-mic::before,.perf-lite .ai-listening .ai-mic::after{animation:none !important;}
+@media (prefers-reduced-motion:reduce){
+  .b3m-glow,.b3m-stars i,.ai-eq i,.ai-mic::before,.ai-mic::after{animation:none !important;}
+}
+/* очень низкие экраны — прячем длинную приписку, чтобы всё влезло */
+@media (max-height:640px){ .bot3d-modal .bot-soon.in-modal{display:none;} }
+
+/* ═══════════════════════════════════════════════════════════
+   v20: 3D-окно — красивые кнопки, единая панель ИИ, богатый фон
+   ═══════════════════════════════════════════════════════════ */
+
+/* — Кнопки шапки и масштаба: единый стеклянный стиль — */
+.b3m-x,.b3m-theme,.b3z-btn{
+  border:1px solid rgba(255,255,255,.22) !important;
+  background:rgba(255,255,255,.10) !important;
+  -webkit-backdrop-filter:blur(12px) saturate(1.4);backdrop-filter:blur(12px) saturate(1.4);
+  box-shadow:0 6px 16px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.28) !important;
+  color:#fff;border-radius:14px;transition:transform .15s,background .2s;
+}
+.b3m-x:active,.b3m-theme:active,.b3z-btn:active{transform:scale(.9);background:rgba(255,255,255,.2) !important;}
+.b3m-theme{font-size:18px;}
+/* масштаб — вертикальная стеклянная «пилюля» */
+.b3m-zoom{gap:0 !important;padding:4px;border-radius:18px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:0 8px 20px rgba(0,0,0,.22);}
+.b3m-zoom .b3z-btn{border:none !important;background:transparent !important;box-shadow:none !important;
+  -webkit-backdrop-filter:none;backdrop-filter:none;width:40px;height:40px;border-radius:13px;}
+.b3m-zoom .b3z-btn:active{background:rgba(255,255,255,.18) !important;}
+.b3m-zoom .b3z-btn:first-child{border-bottom:1px solid rgba(255,255,255,.14) !important;border-radius:13px 13px 6px 6px;}
+.b3m-zoom .b3z-btn:last-child{border-radius:6px 6px 13px 13px;}
+
+/* — Единая панель голосового помощника (одно место) — */
+.b3m-foot{padding-top:0;}
+.ai-panel{width:100%;max-width:460px;margin:0 auto;
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+  padding:14px 16px 16px;border-radius:22px;
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));
+  border:1px solid rgba(255,255,255,.18);
+  -webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);
+  box-shadow:0 -6px 30px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.25);}
+.ai-panel-hd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:#fff;letter-spacing:.2px;}
+.ai-live-dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 0 0 rgba(52,211,153,.5);}
+.ai-listening .ai-live-dot{animation:aiDot 1.2s ease-in-out infinite;}
+@keyframes aiDot{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.5);}50%{box-shadow:0 0 0 6px rgba(52,211,153,0);}}
+.ai-soon-tag{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;
+  color:#f0d79a;background:rgba(232,197,124,.18);border:1px solid rgba(232,197,124,.35);
+  padding:2px 7px;border-radius:7px;}
+.ai-mic{width:64px;height:64px;margin-top:2px;}
+.ai-eq{height:18px;}
+.ai-state{font-size:12.5px;font-weight:600;}
+.ai-chips{margin-top:0;}
+.ai-chip{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22);}
+
+/* — Богатый фон: медленное движение туманности + частицы — */
+.b3m-bg::before{animation:nebulaDrift 26s ease-in-out infinite alternate;transform-origin:center;}
+@keyframes nebulaDrift{0%{transform:scale(1.05) translate(-2%,-1%);}50%{transform:scale(1.15) translate(3%,2%);}100%{transform:scale(1.08) translate(-1%,3%);}}
+/* второй слой глубины */
+.b3m-bg{position:absolute;}
+.theme-cosmos .b3m-bg,.theme-garmoniya .b3m-bg{background-attachment:fixed;}
+/* в «Гармонии» звёзды становятся мягкими бирюзово-золотыми частицами (не прячем) */
+.theme-garmoniya .b3m-stars{display:block;}
+.theme-garmoniya .b3m-stars i{background:radial-gradient(closest-side,rgba(180,240,225,.9),rgba(180,240,225,0));
+  box-shadow:none;filter:blur(.5px);}
+.theme-garmoniya .b3m-stars i:nth-child(3n){background:radial-gradient(closest-side,rgba(232,197,124,.9),rgba(232,197,124,0));}
+/* усиленное свечение-«ореол» вокруг робота для объёма */
+.b3m-glow{width:min(86vw,460px);height:min(86vw,460px);}
+.theme-cosmos .b3m-glow{background:radial-gradient(closest-side,rgba(120,180,255,.30),rgba(90,120,255,.06) 55%,transparent 72%);}
+.theme-garmoniya .b3m-glow{background:radial-gradient(closest-side,rgba(140,240,225,.32),rgba(232,197,124,.08) 55%,transparent 72%);}
+
+/* облегчённый режим: гасим движение фона */
+.perf-lite .b3m-bg::before,.perf-lite .ai-listening .ai-live-dot{animation:none !important;}
+@media (prefers-reduced-motion:reduce){ .b3m-bg::before{animation:none !important;} }
+
+/* ═══════════════════════════════════════════════════════════
+   v21: панель голосового помощника «как референс»
+   — волна-эквалайзер вокруг микрофона + крупные плитки-действия
+   ═══════════════════════════════════════════════════════════ */
+.ai-panel{gap:11px;padding:16px 16px 18px;}
+.ai-panel-hd{font-size:14px;}
+.ai-soon-tag{font-size:10px;}
+
+/* волна вокруг микрофона */
+.ai-wave-wrap{position:relative;width:100%;height:104px;display:flex;align-items:center;justify-content:center;}
+.ai-wave{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:3px;pointer-events:none;}
+.ai-wave i{width:3px;border-radius:3px;transform-origin:center;
+  height:calc(8px + var(--amp) * 74px);
+  background:linear-gradient(180deg,#7ff3e6,#1B8585);
+  box-shadow:0 0 7px rgba(47,214,200,.55);
+  transform:scaleY(.42);
+  animation:waveIdle 1.7s ease-in-out infinite;
+  animation-delay:calc(var(--i) * -0.045s);}
+@keyframes waveIdle{0%,100%{transform:scaleY(.34);}50%{transform:scaleY(.72);}}
+.ai-listening .ai-wave i{animation-duration:.5s;box-shadow:0 0 10px rgba(52,231,205,.8);}
+.ai-listening .ai-wave i{animation-name:waveLive;}
+@keyframes waveLive{0%,100%{transform:scaleY(.35);}50%{transform:scaleY(1);}}
+/* микрофон крупный, с двойным кольцом */
+.ai-mic{position:relative;z-index:2;width:78px;height:78px;border-radius:50%;border:none;cursor:pointer;
+  background:radial-gradient(circle at 50% 38%,#2fb3a6,#0f6060);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 10px 28px rgba(15,76,76,.5),0 0 0 8px rgba(20,60,60,.35),inset 0 2px 0 rgba(255,255,255,.3);
+  transition:transform .15s;-webkit-tap-highlight-color:transparent;}
+.ai-mic:active{transform:scale(.93);}
+.ai-mic::before{content:"";position:absolute;inset:-8px;border-radius:50%;border:1.5px solid rgba(52,231,205,.5);opacity:0;pointer-events:none;}
+.ai-listening .ai-mic::before{animation:micRing 1.6s ease-out infinite;}
+.ai-listening .ai-mic{background:radial-gradient(circle at 50% 38%,#34e7cd,#0f9a86);}
+
+.ai-state{font-size:13px;font-weight:600;color:rgba(255,255,255,.8);}
+.ai-listening .ai-state{color:#7dffe9;}
+
+/* крупные плитки-действия */
+.ai-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%;margin-top:2px;}
+.ai-tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px 12px;cursor:pointer;
+  border-radius:16px;border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+  color:#fff;font-family:inherit;transition:transform .15s,background .2s,border-color .2s;
+  -webkit-tap-highlight-color:transparent;}
+.ai-tile:active{transform:scale(.96);background:rgba(255,255,255,.16);border-color:rgba(120,240,225,.4);}
+.ai-tile-ico{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:#7ff3e6;background:radial-gradient(circle at 50% 40%,rgba(47,214,200,.28),rgba(15,96,96,.32));
+  border:1px solid rgba(120,240,225,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.2);}
+.ai-tile-lbl{font-size:11.5px;font-weight:700;line-height:1.25;text-align:center;color:rgba(255,255,255,.92);}
+
+/* облегчённый режим: гасим анимации волны/кольца */
+.perf-lite .ai-wave i{animation:none !important;transform:scaleY(.5);}
+.perf-lite .ai-listening .ai-mic::before{animation:none !important;}
+@media (prefers-reduced-motion:reduce){ .ai-wave i,.ai-mic::before{animation:none !important;} }
+@media (max-width:360px){ .ai-tile-lbl{font-size:10.5px;} .ai-mic{width:70px;height:70px;} .ai-wave-wrap{height:92px;} }
+
+/* ═══════════════ v22: canvas-туманность + точечная волна ═══════════════ */
+.b3m-nebula{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;}
+.b3m-bg .b3m-glow{z-index:1;}
+/* CSS-подложка остаётся базой под нарисованной туманностью */
+.ai-wave-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;}
+/* старые полоски-волны больше не используются */
+.ai-wave{display:none;}
+
+/* отключаем старые CSS-облака — теперь туманность на canvas */
+.b3m-bg::before{content:none !important;}

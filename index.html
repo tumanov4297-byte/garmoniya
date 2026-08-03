@@ -3,6 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script>
+/* Облегчённый режим для слабых устройств и Android: отключает тяжёлые
+   анимации/фильтры (источник лагов и мерцания), применяется до отрисовки. */
+(function(){try{
+  var w=window,n=navigator,ua=(n.userAgent||"");
+  var lite = /Android/i.test(ua)
+    || (n.hardwareConcurrency && n.hardwareConcurrency<4)
+    || (n.deviceMemory && n.deviceMemory<4)
+    || (w.matchMedia && w.matchMedia("(prefers-reduced-motion:reduce)").matches);
+  if(lite) document.documentElement.classList.add("perf-lite");
+}catch(e){}})();
+</script>
 <meta name="theme-color" content="#1B8585">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,24 +23,20 @@
 <link rel="apple-touch-icon" href="img/logo-icon.png">
 <title>Гармония — помощник ЦСОН</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css?v=20260721f">
+<link rel="stylesheet" href="css/enhance.css?v=20260802c">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Leaflet больше не грузится в <head> (блокировал первую отрисовку).
+     Карта маршрута такси подгружает его по требованию — см. ensureLeaflet(). -->
 </head>
 <body>
 <div class="bloom bloom-1" aria-hidden="true"></div>
 <div class="bloom bloom-2" aria-hidden="true"></div>
 <div class="bloom bloom-3" aria-hidden="true"></div>
 
-<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true">
-  <filter id="liquidGlass" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-    <feTurbulence type="fractalNoise" baseFrequency="0.010 0.014" numOctaves="2" seed="7" result="noise"/>
-    <feGaussianBlur in="noise" stdDeviation="1.4" result="softNoise"/>
-    <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="22" xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
-</svg>
 <div class="app-splash" id="appSplash" aria-hidden="true">
   <div class="splash-core">
     <span class="splash-ring"></span>
@@ -92,7 +100,7 @@
   </div>
 
   <div class="asst-fs-hdr gone" id="asstFsHdr">
-    <span class="asst-fs-title">🤖 Чат-бот «Гармония»</span>
+    <span class="asst-fs-title">Чат-бот «Гармония»</span>
     <button class="asst-fs-close" onclick="closeAssistantFullscreen()" aria-label="Закрыть чат-бот">✕</button>
   </div>
 
@@ -147,15 +155,19 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="assertive"></div>
+<script src="js/enhance.js?v=20260802a"></script>
 <script src="js/data.js?v=20260721f"></script>
 <script src="js/booking.js?v=20260721f"></script>
 <script src="js/db.js?v=20260721f"></script>
 <script src="js/extras.js?v=20260721f"></script>
 <script src="js/features.js?v=20260721f"></script>
 <script src="js/admin.js?v=20260721f"></script>
-<script src="js/app.js?v=20260721f"></script>
+<script src="js/app.js?v=20260802b"></script>
 <script src="js/header.js?v=20260721f"></script>
 <script src="js/polish.js?v=20260721f"></script>
 <script src="js/extra.js?v=20260721f"></script>
+<script src="js/mascot3d.js?v=20260802c"></script>
+<script src="js/tabdrag.js?v=20260802a"></script>
+<script src="js/navfix.js?v=20260802b"></script>
 </body>
 </html>

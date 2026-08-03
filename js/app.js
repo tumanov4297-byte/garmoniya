@@ -78,7 +78,7 @@ function showTyping(cb,delay=360){
   const b=document.createElement("div");b.className="typing-bbl";b.setAttribute("aria-label","Печатает...");
   b.innerHTML='<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
   r.appendChild(b);chatEl.appendChild(r);
-  setTimeout(()=>{document.getElementById("typing")?.remove();cb();},delay);
+  setTimeout(()=>{document.getElementById("typing")?.remove();if(window.garmVT)window.garmVT(cb);else cb();},delay);
 }
 function showToast(msg,dur=2800){
   const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
@@ -123,7 +123,18 @@ function flyToCart(sourceEl){
 }
 function setNav(showBack){document.getElementById("backBtn").classList.toggle("gone",!showBack);}
 function pushNav(fn){navHistory.push(fn);}
-function goBack(){var _n=document.getElementById("tabBar");if(_n)_n.classList.remove("nav-hidden");if(navHistory.length>0){const fn=navHistory.pop();fn();}}
+function goBack(){
+  var _n=document.getElementById("tabBar");if(_n)_n.classList.remove("nav-hidden");
+  if(navHistory.length>0){const fn=navHistory.pop();fn();return;}
+  // Стек пуст (раздел открыт напрямую — с Главной, из поиска, по ссылке):
+  // раньше кнопка молча не работала. Уходим на разумный экран по умолчанию.
+  var fallback=(typeof showMainMenu==="function")?showMainMenu:null;
+  var bt=document.querySelector(".tb.active");
+  var isMenuTab=bt&&/tabGo\(['"]menu['"]\)/.test(bt.getAttribute("onclick")||"");
+  if(isMenuTab&&typeof showMenuPage==="function")fallback=showMenuPage;
+  if(!fallback)return;
+  if(window.garmVT)window.garmVT(fallback);else fallback();
+}
 function exitAssistantFullscreenMode(){
   document.getElementById("shell").classList.remove("assistant-mode");
   document.getElementById("asstFsHdr").classList.add("gone");
@@ -139,6 +150,7 @@ function openAssistantFullscreen(){
   requestAnimationFrame(()=>{c.scrollTop=0;});
 }
 function closeAssistantFullscreen(){
+  if(typeof window.closeBot3D==="function") window.closeBot3D();
   exitAssistantFullscreenMode();
   showMainMenu();
 }
@@ -1317,7 +1329,12 @@ function taxiConfirmBooking(tariffIdx,isFree){
 }
 function taxiInitRouteMap(from,to){
   const el=document.getElementById("taxiRouteMap");
-  if(!el||typeof L==="undefined")return;
+  if(!el)return;
+  if(typeof L==="undefined"){
+    // Leaflet больше не в <head> — подгружаем по требованию и перерисовываем.
+    if(window.ensureLeaflet){window.ensureLeaflet().then(function(){taxiInitRouteMap(from,to);}).catch(function(){});}
+    return;
+  }
   try{
     const map=L.map(el,{zoomControl:false,attributionControl:false}).setView([(from.lat+to.lat)/2,(from.lon+to.lon)/2],13);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(map);
@@ -2344,11 +2361,17 @@ function tabGo(t){
   document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");});
   event.currentTarget.classList.add("active");
   movePillTo(event.currentTarget);
-  if(t==="home")showMainMenu();
-  else if(t==="menu")showMenuPage();
-  else if(t==="cart")openCart();
-  else if(t==="orders")openOrdersPanel();
-  else if(t==="profile")openProfilePanel();
+  var _run=function(){
+    if(t==="home")showMainMenu();
+    else if(t==="menu")showMenuPage();
+    else if(t==="cart")openCart();
+    else if(t==="orders")openOrdersPanel();
+    else if(t==="profile")openProfilePanel();
+  };
+  // Плавный переход только для экранов, меняющих #chat (Главная/Услуги);
+  // панели (корзина/заявки/профиль) открываются своей анимацией слайда.
+  if((t==="home"||t==="menu")&&window.garmVT)window.garmVT(_run);
+  else _run();
 }
 window.addEventListener("resize",()=>{
   const active=document.querySelector(".tb.active");

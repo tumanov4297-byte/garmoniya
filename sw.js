@@ -2,13 +2,14 @@
    Стратегия network-first: всегда сначала сеть (никогда не отдаёт устаревшее,
    пока есть интернет), кэш — только резерв для офлайна. Это безопасно при
    частых обновлениях сайта: свежие файлы подхватываются сразу. */
-var CACHE = "garmoniya-v1";
+var CACHE = "garmoniya-v2";
 var CORE = [
   "./","./index.html",
   "./css/styles.css",
   "./js/data.js","./js/booking.js","./js/db.js","./js/extras.js",
   "./js/features.js","./js/admin.js","./js/app.js","./js/header.js",
-  "./js/polish.js","./js/extra.js",
+  "./js/polish.js","./js/extra.js","./js/mascot3d.js",
+  "./css/enhance.css","./js/enhance.js","./js/tabdrag.js","./js/navfix.js",
   "./manifest.json","./img/logo-icon.png"
 ];
 

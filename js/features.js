@@ -590,6 +590,7 @@ function showAssistant(){
   document.getElementById("searchBar").classList.add("gone");
   const nm=asstName();
   addMsg(`<div class="asst-live"><img src="img/bot-live.webp" alt=""></div>Здравствуйте${nm?", "+nm:""}! 👋 Я чат-бот «Гармония». Теперь я умею записывать сразу к нужному специалисту: скажите, например, «запиши меня к психологу», «нужен логопед», «хочу в соляную комнату» или «оформить 3-НДФЛ» — и я открою запись по этому направлению.`,true);
+  addMsg(`<button type="button" class="bot3d-open" onclick="openBot3D()"><span class="b3o-ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z"/><path d="M12 2v18M4 6.5l8 4.5 8-4.5"/></svg></span><span class="b3o-txt"><b>Открыть 3D-помощника</b><span>Покрутить робота · голосовой ассистент</span></span><span class="b3o-arr">›</span></button>`,true);
   setTimeout(()=>{
     clearActions();
     const wrap=document.createElement("div");wrap.className="asst-wrap";
