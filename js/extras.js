@@ -29,19 +29,16 @@ function changeFontSize(dir){
 }
 applyFontSize();
 
-let darkMode=localStorage.getItem("darkMode")==="1";
+/* Тёмная тема удалена: приложение всегда в светлом оформлении «Гармония IT».
+   Имена darkMode/applyTheme/toggleDarkTheme оставлены как заглушки,
+   чтобы старый код и сохранённые ссылки ничего не сломали. */
+const darkMode=false;
+try{ localStorage.removeItem("darkMode"); localStorage.removeItem("themeManual"); }catch(e){}
 function applyTheme(){
-  document.getElementById("shell")?.classList.toggle("dark",darkMode);
-  document.body.classList.toggle("dark-body",darkMode);
-  document.body.classList.toggle("dark",darkMode);
-  const btn=document.getElementById("themeBtn");
-  if(btn)btn.textContent=darkMode?"☀️":"🌙";
+  document.getElementById("shell")?.classList.remove("dark");
+  document.body.classList.remove("dark-body","dark");
 }
-function toggleDarkTheme(){
-  darkMode=!darkMode;
-  localStorage.setItem("darkMode",darkMode?"1":"0");
-  applyTheme();
-}
+function toggleDarkTheme(){ applyTheme(); }
 
 document.addEventListener("DOMContentLoaded",applyTheme);
 setTimeout(applyTheme,0);
@@ -242,17 +239,17 @@ const I18N={
     sec_services:"Услуги и информация",sec_cabinet:"Кабинет",
     ask_helper:"Спросить чат-бот",ask_helper_sub:"Задайте вопрос — подскажу нужный раздел",
     btn_close:"Закрыть",btn_back:"← Назад",btn_home:"🏠 Главная",
-    cart_title:"🛒 Корзина заявки",cart_empty:"🛒 Корзина пуста",
+    cart_title:"Корзина заявки",cart_empty:"Корзина пуста",
     cart_send:"📧 Отправить заявку",cart_clear:"🗑 Очистить корзину",
-    profile_title:"👤 Личный кабинет",profile_name:"Получатель",profile_phone:"Телефон",
+    profile_title:"Личный кабинет",profile_name:"Получатель",profile_phone:"Телефон",
     tab_orders:"Заявки",tab_bookings:"Записи",tab_fav:"Избр.",tab_docs:"Док-ты",
     stat_title:"📊 Популярные услуги",stat_hint:"Что чаще добавляют в корзину",
     profiles_title:"👨‍👩‍👦 Профили получателей",profiles_hint:"Переключайтесь между получателями",
     profiles_add:"➕ Добавить получателя",profiles_active:"Активен",
     switched_to:"📍 Переключено на",how_help:"Чем могу помочь?",
     lang_name:"Русский",
-    tb_home:"Главная",tb_menu:"Услуги",tb_cart:"Корзина",tb_orders:"Заявки",tb_profile:"Профиль",
-    orders_title:"📋 Мои заявки",orders_filter_all:"Все",orders_filter_orders:"🛒 Заявки",orders_filter_bookings:"📅 Записи",orders_filter_taxi:"🚕 Такси",
+    tb_home:"Главная",tb_menu:"Услуги",tb_cart:"Корзина",tb_orders:"Заявки",
+    orders_title:"Мои заявки",orders_filter_all:"Все",orders_filter_orders:"Заявки",orders_filter_bookings:"Записи",orders_filter_taxi:"Такси",
     orders_empty_title:"Пока нет заявок и записей",orders_empty_orders:"Нет заявок на услуги",orders_empty_bookings:"Нет записей к специалистам",
     close_and_return:"Закрыть и вернуться",
     services_title:"Записаться на услуги",services_search_ph:"Поиск услуги по названию...",
@@ -267,7 +264,7 @@ const I18N={
     feedback_comment_ph:"Напишите пожелания или замечания…",feedback_send:"📧 Отправить отзыв",
     gallery_title:"🖼️ Фотогалерея центра",gallery_empty:"Пока нет фотографий",
     settings_title:"Настройки",settings_appearance:"Внешний вид",settings_data:"Мои данные",
-    settings_font:"Размер шрифта",settings_theme:"Тёмная тема",
+    settings_font:"Размер шрифта",
     settings_export:"Экспорт моих данных",settings_reset:"Очистить все данные",
     logout_btn:"🚪 Выйти / Сменить пользователя",
     edit_data:"✏️ Изменить данные",quick_orders:"Мои заявки",quick_services:"Записаться на услуги",
@@ -292,17 +289,17 @@ const I18N={
     sec_services:"Services & Info",sec_cabinet:"Account",
     ask_helper:"Ask assistant",ask_helper_sub:"Ask a question — I'll find the right section",
     btn_close:"Close",btn_back:"← Back",btn_home:"🏠 Home",
-    cart_title:"🛒 Service cart",cart_empty:"🛒 Cart is empty",
+    cart_title:"Service cart",cart_empty:"Cart is empty",
     cart_send:"📧 Send request",cart_clear:"🗑 Clear cart",
-    profile_title:"👤 My account",profile_name:"Recipient",profile_phone:"Phone",
+    profile_title:"My account",profile_name:"Recipient",profile_phone:"Phone",
     tab_orders:"Orders",tab_bookings:"Bookings",tab_fav:"Fav.",tab_docs:"Docs",
     stat_title:"📊 Popular services",stat_hint:"Most frequently added to cart",
     profiles_title:"👨‍👩‍👦 Recipient profiles",profiles_hint:"Switch between recipients",
     profiles_add:"➕ Add recipient",profiles_active:"Active",
     switched_to:"📍 Switched to",how_help:"How can I help?",
     lang_name:"English",
-    tb_home:"Home",tb_menu:"Services",tb_cart:"Cart",tb_orders:"Orders",tb_profile:"Profile",
-    orders_title:"📋 My requests",orders_filter_all:"All",orders_filter_orders:"🛒 Requests",orders_filter_bookings:"📅 Bookings",orders_filter_taxi:"🚕 Taxi",
+    tb_home:"Home",tb_menu:"Services",tb_cart:"Cart",tb_orders:"Orders",
+    orders_title:"My requests",orders_filter_all:"All",orders_filter_orders:"Requests",orders_filter_bookings:"Bookings",orders_filter_taxi:"Taxi",
     orders_empty_title:"No requests or bookings yet",orders_empty_orders:"No service requests",orders_empty_bookings:"No appointments booked",
     close_and_return:"Close and return",
     services_title:"Book services",services_search_ph:"Search services by name...",
@@ -317,7 +314,7 @@ const I18N={
     feedback_comment_ph:"Write your suggestions or comments…",feedback_send:"📧 Send feedback",
     gallery_title:"🖼️ Photo gallery",gallery_empty:"No photos yet",
     settings_title:"Settings",settings_appearance:"Appearance",settings_data:"My data",
-    settings_font:"Font size",settings_theme:"Dark theme",
+    settings_font:"Font size",
     settings_export:"Export my data",settings_reset:"Clear all data",
     logout_btn:"🚪 Log out / Switch user",
     edit_data:"✏️ Edit data",quick_orders:"My requests",quick_services:"Price list",
@@ -356,7 +353,7 @@ function t(key){
 }
 
 function applyTabBarLabels(){
-  const map={tbLblHome:"tb_home",tbLblMenu:"tb_menu",tbLblCart:"tb_cart",tbLblOrders:"tb_orders",tbLblProfile:"tb_profile"};
+  const map={tbLblHome:"tb_home",tbLblMenu:"tb_menu",tbLblCart:"tb_cart",tbLblOrders:"tb_orders"};
   Object.keys(map).forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.textContent=t(map[id]);

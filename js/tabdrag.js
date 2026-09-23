@@ -96,7 +96,8 @@
       if(!measure()) return;
       down=true; moved=false;
       downX=e.clientX; lastX=e.clientX; pointerId=e.pointerId;
-      try{ bar.setPointerCapture(e.pointerId); }catch(_){}
+      // Захват указателя НЕ ставим здесь: с мышью он перенаправляет click
+      // на сам таб-бар, и onclick кнопки-вкладки не срабатывает.
     });
 
     bar.addEventListener("pointermove",function(e){
@@ -106,6 +107,7 @@
         if(Math.abs(e.clientX-downX) < THRESHOLD) return; // ещё тап, не тянем
         moved=true;
         pill.classList.add("tb-pill-drag");
+        try{ bar.setPointerCapture(e.pointerId); }catch(_){}  // захват — только для перетаскивания
       }
       setPill(e.clientX);
       highlight(e.clientX);

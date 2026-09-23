@@ -44,33 +44,7 @@
     if(typeof window[n]==="function"){ var o=window[n]; window[n]=function(){ progStart(); return o.apply(this,arguments); }; }
   });
 
-  /* ─────────── 4. Плавный кросс-фейд смены темы + автотема ─────────── */
-  if(typeof window.toggleDarkTheme==="function"){
-    var origTheme=window.toggleDarkTheme;
-    window.toggleDarkTheme=function(){
-      try{ localStorage.setItem("themeManual","1"); }catch(e){}
-      if(reduce){ return origTheme.apply(this,arguments); }
-      var ov=document.createElement("div"); ov.className="theme-fade"; document.body.appendChild(ov);
-      requestAnimationFrame(function(){ ov.classList.add("show"); });
-      setTimeout(function(){ origTheme.call(window); },170);
-      setTimeout(function(){ ov.classList.remove("show"); },330);
-      setTimeout(function(){ if(ov.parentNode) ov.remove(); },700);
-    };
-  }
-  (function autoTheme(){
-    try{
-      if(localStorage.getItem("themeManual")==="1") return;   // пользователь выбрал сам — не трогаем
-      if(typeof darkMode==="undefined"||typeof applyTheme!=="function") return;
-      var h=new Date().getHours();
-      var wantDark=(h>=20 || h<7);                            // тёмная после заката
-      if(wantDark!==darkMode){
-        darkMode=wantDark;
-        localStorage.setItem("darkMode",wantDark?"1":"0");
-        applyTheme();
-        if(typeof window.hdrRefresh==="function") window.hdrRefresh();
-      }
-    }catch(e){}
-  })();
+  /* 4. Тёмная тема и автотема по времени суток удалены. */
 
   /* ─────────── 5. Копирование телефона/адреса по тапу ─────────── */
   document.addEventListener("click",function(e){

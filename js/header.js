@@ -224,10 +224,16 @@
 
   /* ─────────── Поиск ─────────── */
   function openSearch(){
-    var bar=$("searchBar"); if(!bar) return;
+    // Поиск один — тот, что на странице услуг. Верхнюю строку не показываем,
+    // чтобы два одинаковых поля не занимали место.
+    var bar=$("searchBar"); if(bar) bar.classList.add("gone");
     if(typeof showServices==="function") showServices();
-    bar.classList.remove("gone");
-    var inp=$("searchInp"); if(inp){ inp.focus(); }
+    var tries=0;
+    (function focusPl(){
+      var inp=$("plSearchInp");
+      if(inp){ inp.focus(); inp.scrollIntoView({block:"nearest"}); return; }
+      if(++tries<12) setTimeout(focusPl,80);
+    })();
   }
 
   /* ─────────── Пасхалка: подмигивание логотипа ─────────── */

@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Оформление «Гармония IT» для чат-бота «Гармония».
+   Подключается ПОСЛЕДНИМ. Меняет только внешний вид: цвета, шрифт,
+   фоны, тени, скругления. Разметка, JS и данные не затрагиваются.
+   Тёмной темы нет — всегда светлое оформление.
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  color-scheme:light;
+  /* палитра IT-сайта */
+  --it-bg:#F4F9F7; --it-bg2:#E4EFEC; --it-surface:#FFFFFF; --it-surface2:#F0F7F4;
+  --it-ink:#2B6570; --it-muted:#5F8A8C; --it-faint:#98B6B4; --it-line:#DCEAE6;
+  --it-accent:#3F8F87; --it-accent-soft:#E1F1EC;
+  --it-amber:#E8C57A; --it-amber-ink:#5B4312; --it-red:#D0795C; --it-green:#58A889; --it-green-soft:#E4F3EB;
+  --it-brand:linear-gradient(135deg,#5BAA93 0%,#3F8F87 45%,#2B6570 100%);
+  --it-gold:linear-gradient(135deg,#FCF6BA 0%,#EECD86 100%);
+  --it-shadow:0 1px 2px rgba(43,101,112,.06),0 14px 34px -18px rgba(43,101,112,.28);
+  --it-shadow-lg:0 34px 80px -34px rgba(43,101,112,.45);
+
+  /* переменные приложения → палитра IT */
+  --teal-dark:#2B6570; --teal:#3F8F87; --teal-mid:#5BAA93;
+  --teal-light:#E1F1EC; --teal-xlight:#F0F7F4; --teal-bg:#F4F9F7;
+  --teal-glow:rgba(43,101,112,.16);
+  --gold:#8A6A1F; --gold-mid:#D9AE5C; --gold-bright:#E8C57A;
+  --gold-light:#FFF8DA; --gold-glow:rgba(232,197,122,.30);
+  --green:#58A889; --green-mid:#6DB597; --green-light:#E4F3EB;
+  --red:#D0795C; --red-light:#FBEDE6;
+  --text-primary:#2B6570; --text-secondary:#3D6F77; --text-tertiary:#5F8A8C;
+  --border:#DCEAE6;
+  --focus:#3F8F87;
+  --r-sm:14px; --r-md:22px; --r-lg:22px; --r-xl:32px;
+  --shadow-sm:0 1px 2px rgba(43,101,112,.06),0 8px 20px -14px rgba(43,101,112,.28);
+  --shadow-md:0 1px 2px rgba(43,101,112,.06),0 14px 34px -18px rgba(43,101,112,.28);
+  --shadow-lg:0 34px 80px -34px rgba(43,101,112,.45);
+}
+
+/* ── Шрифт Onest, как на IT-сайте ── */
+html body, html body #shell, html body button, html body input, html body select, html body textarea{
+  font-family:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif !important;
+}
+html body{-webkit-font-smoothing:antialiased;color:var(--it-ink)}
+html body [style*="Plus Jakarta"], html body .hdr-name, html body .splash-name{font-family:"Onest",system-ui,sans-serif !important}
+
+/* ── Фон: светлая мята + мягкие пятна (как body::before у IT) ── */
+html, html body{background:var(--it-bg) !important}
+html body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(900px 520px at -8% -6%,rgba(252,246,186,.55),transparent 62%),
+  radial-gradient(800px 520px at 108% -4%,rgba(182,214,213,.55),transparent 60%),
+  radial-gradient(700px 500px at 50% 108%,rgba(188,215,180,.30),transparent 65%)}
+html body .bloom, html body .shell-blobs, html body .hdr-aurora, html body .hdr-snow,
+html body .hdr-sheen, html body .hdr-blobs, html body .prof-blobs{display:none !important}
+html body .shell{background:transparent !important;box-shadow:0 0 0 1px var(--it-line),var(--it-shadow-lg) !important}
+@media (max-width:480px){ html body .shell{box-shadow:none !important} }
+html body .chat{background:transparent !important}
+
+/* ── Шапка: светлая полупрозрачная, как .top у IT ── */
+html body .hdr, html body .hdr.hdr-morning, html body .hdr.hdr-day,
+html body .hdr.hdr-evening, html body .hdr.hdr-night{
+  background:rgba(244,249,247,.9) !important;
+  backdrop-filter:saturate(1.4) blur(14px) !important;-webkit-backdrop-filter:saturate(1.4) blur(14px) !important;
+  border-bottom:1px solid var(--it-line) !important;box-shadow:none !important;color:var(--it-ink) !important;
+}
+html body .hdr-logo{background:transparent !important;box-shadow:none !important;border:0 !important}
+html body .hdr-logo img{object-fit:contain}
+html body .hdr-name{color:var(--it-ink) !important;text-shadow:none !important;font-weight:700 !important;letter-spacing:-.01em !important}
+html body .hdr-city, html body .hdr-city *{color:var(--it-muted) !important;text-shadow:none !important}
+html body .hdr-city{background:transparent !important;border:0 !important}
+html body .hdr-ico-btn{background:var(--it-surface) !important;color:var(--it-ink) !important;border:0 !important;box-shadow:var(--it-shadow) !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+html body .hdr-avatar{background:var(--it-brand) !important;color:#fff !important;border:0 !important;box-shadow:0 8px 18px -10px rgba(43,101,112,.55) !important}
+html body .hdr-avatar *{color:#fff !important;text-shadow:none !important}
+html body .hdr-bell-badge{background:var(--it-gold) !important;color:var(--it-amber-ink) !important;border:0 !important;box-shadow:none !important}
+html body .hdr-status{background:var(--it-surface) !important;color:var(--it-ink) !important;border:0 !important;box-shadow:var(--it-shadow) !important;text-shadow:none !important;backdrop-filter:none !important}
+html body .hdr-status *{color:inherit;text-shadow:none !important}
+html body .hdr-call{background:var(--it-brand) !important;color:#fff !important;border:0 !important;box-shadow:0 8px 18px -10px rgba(43,101,112,.55) !important;text-shadow:none !important}
+html body .hdr-next-chip{background:var(--it-surface) !important;color:var(--it-ink) !important;border:1px solid var(--it-line) !important;box-shadow:var(--it-shadow) !important;text-shadow:none !important}
+html body .hdr-next-chip *{text-shadow:none !important}
+
+/* ── Нижняя навигация: белая «таблетка», активный пункт — фирменный градиент ── */
+html body .tab-bar, html body.perf-lite .tab-bar, html.perf-lite body .tab-bar{
+  background:#fff !important;border:1px solid var(--it-line) !important;
+  box-shadow:0 6px 20px -14px rgba(43,101,112,.35) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+}
+html body .tb{color:var(--it-muted) !important;text-shadow:none !important}
+html body .tb.active{color:var(--it-ink) !important;text-shadow:none !important}
+html body .tb.active svg{stroke:var(--it-accent) !important;filter:none !important}
+html body .tb-pill, html body .tb-pill-drag{background:var(--it-accent-soft) !important;border:0 !important;box-shadow:none !important;border-radius:18px !important;filter:none !important}
+html body .tb-pill::before, html body .tb-pill::after,
+html body .tab-bar::before, html body .tab-bar::after{display:none !important;content:none !important}
+html body .tb-badge{background:var(--it-gold) !important;color:var(--it-amber-ink) !important;border:0 !important}
+html body .actions{background:rgba(244,249,247,.9) !important;border-top:1px solid var(--it-line) !important;backdrop-filter:saturate(1.4) blur(14px) !important;-webkit-backdrop-filter:saturate(1.4) blur(14px) !important}
+
+/* ── Сообщения чата ── */
+html body .bubble.bot{background:var(--it-surface) !important;color:var(--it-ink) !important;border:0 !important;box-shadow:var(--it-shadow) !important;backdrop-filter:none !important}
+html body .bubble.usr{background:var(--it-brand) !important;color:#fff !important;border:0 !important;box-shadow:0 12px 26px -14px rgba(43,101,112,.7) !important}
+html body .bubble .note, html body .msg-time{color:var(--it-faint) !important}
+
+/* ── Кнопки ── */
+html body .act-btn{border-radius:999px !important;font-weight:700 !important;text-shadow:none !important}
+html body .act-btn.teal, html body .auth-btn, html body .svc-book-btn{background:var(--it-brand) !important;color:#fff !important;border:0 !important;box-shadow:0 12px 26px -14px rgba(43,101,112,.7),inset 0 1px 0 rgba(255,255,255,.25) !important}
+html body .act-btn.green{background:linear-gradient(135deg,#7BBE9F,#58A889) !important;color:#fff !important;box-shadow:0 12px 26px -14px rgba(88,168,137,.7) !important}
+html body .act-btn.gold{background:var(--it-gold) !important;color:var(--it-amber-ink) !important;box-shadow:0 12px 26px -14px rgba(200,160,70,.6) !important}
+html body .act-btn.red{background:linear-gradient(135deg,#E9A27F,#D0795C) !important;color:#fff !important}
+html body .act-btn.outline{background:var(--it-surface2) !important;color:var(--it-ink) !important;border:0 !important;box-shadow:none !important}
+html body .act-btn.logout{background:#FBEDE6 !important;color:var(--it-red) !important;border:0 !important}
+html body .panel-close-btn{background:var(--it-surface2) !important;color:var(--it-ink) !important;border:0 !important;border-radius:999px !important;box-shadow:none !important}
+
+/* ── Карточки: белые, мягкая тень, крупные скругления ── */
+html body .news-card, html body .bot-btn, html body .pcard, html body .card,
+html body .svc-row, html body .faq-item, html body .cart-item, html body .history-item{
+  background:var(--it-surface) !important;border:0 !important;box-shadow:var(--it-shadow) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+}
+html body .news-card, html body .pcard, html body .card{border-radius:22px !important}
+html body .bot-btn{border-radius:22px !important}
+html body .news-tabs{background:var(--it-surface) !important;border:0 !important;box-shadow:var(--it-shadow) !important;border-radius:999px !important}
+html body .news-tab-btn{color:var(--it-muted) !important;border-radius:999px !important}
+html body .news-tab-btn.active{background:var(--it-brand) !important;color:#fff !important;box-shadow:0 8px 18px -10px rgba(43,101,112,.55) !important}
+html body .news-sec-title, html body .sec-title{color:var(--it-ink) !important}
+html body .news-title, html body .card-ttl, html body .svc-name, html body .faq-q{color:var(--it-ink) !important}
+html body .news-text, html body .card-sub{color:var(--it-muted) !important}
+
+/* Приветственная карточка на главной — как «герой» IT-сайта */
+html body .greet-anim{background:linear-gradient(135deg,#FCF6BA 0%,#F3E9C2 28%,#DDEFEA 65%,#C6E1DE 100%) !important;box-shadow:var(--it-shadow) !important;border:0 !important;border-radius:32px !important}
+html body .greet-anim .ga-blob-field, html body .greet-anim .ga-rings{display:none !important}
+html body .greet-anim, html body .greet-anim .ga-body, html body .greet-anim .ga-body *{color:var(--it-ink) !important;text-shadow:none !important}
+html body .greet-anim .ga-sub{color:var(--it-muted) !important}
+html body .greet-anim .ga-name-accent{background:var(--it-brand) !important}
+
+/* ── Панели (корзина, заявки, профиль) ── */
+html body .cart-panel, html body .orders-panel, html body .profile-panel{background:var(--it-bg) !important}
+html body .cart-hdr, html body .ord-hdr{background:transparent !important;border-bottom:1px solid var(--it-line) !important;color:var(--it-ink) !important}
+html body .cart-hdr h2, html body .ord-hdr h2, html body .prof-sec-title{color:var(--it-ink) !important;letter-spacing:-.02em}
+html body .cart-x, html body .prof-close{background:var(--it-surface) !important;color:var(--it-ink) !important;border:0 !important;box-shadow:var(--it-shadow) !important}
+html body .of-btn{background:var(--it-surface) !important;color:var(--it-ink) !important;border:0 !important;box-shadow:var(--it-shadow) !important;border-radius:999px !important}
+html body .of-btn.active{background:var(--it-brand) !important;color:#fff !important}
+html body .pset-btn, html body .pquick-btn{background:var(--it-surface2) !important;color:var(--it-ink) !important;border:0 !important;box-shadow:none !important}
+html body .pswitch.on{background:var(--it-brand) !important}
+
+/* ── Поля ввода ── */
+html body .search-inp, html body .book-inp, html body .book-sel, html body .fb-inp,
+html body .asst-input, html body .pset-select, html body .auth-inp{
+  background:var(--it-surface2) !important;border:2px solid transparent !important;border-radius:14px !important;color:var(--it-ink) !important;box-shadow:none !important
+}
+html body .search-inp:focus, html body .book-inp:focus, html body .book-sel:focus, html body .fb-inp:focus,
+html body .asst-input:focus, html body .pset-select:focus, html body .auth-inp:focus{
+  border-color:var(--it-accent) !important;background:var(--it-surface) !important;outline:none !important
+}
+html body .search-bar{background:rgba(244,249,247,.9) !important;border-bottom:1px solid var(--it-line) !important}
+
+/* ── Тост и заставка ── */
+html body .toast{background:var(--it-brand) !important;color:#fff !important;border:0 !important;text-shadow:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;box-shadow:0 12px 26px -14px rgba(43,101,112,.7) !important;border-radius:14px !important}
+html body .app-splash{background:var(--it-bg) !important}
+html body .app-splash .splash-name{color:var(--it-ink) !important;text-shadow:none !important}
+html body .app-splash .splash-sub{color:var(--it-muted) !important;text-shadow:none !important}
+
+:focus-visible{outline:3px solid var(--it-accent) !important;outline-offset:2px}
+
+/* ── Профиль: обложка в стиле hero-блока IT ── */
+html body .prof-cover{background:linear-gradient(135deg,#FCF6BA 0%,#F3E9C2 28%,#DDEFEA 65%,#C6E1DE 100%) !important;box-shadow:none !important}
+html body .prof-cover-bg{display:none !important}
+html body .prof-ava{background:var(--it-brand) !important;border:3px solid #fff !important;box-shadow:0 0 0 3px rgba(238,205,134,.7),var(--it-shadow) !important}
+html body .prof-ava-init{color:#fff !important;text-shadow:none !important}
+html body .prof-name{color:var(--it-ink) !important;text-shadow:none !important}
+html body .prof-name-accent{background:var(--it-brand) !important}
+html body .prof-phone{background:rgba(255,255,255,.75) !important;border:0 !important;color:var(--it-ink) !important}
+html body .prof-chip{background:var(--it-surface) !important;border:0 !important;box-shadow:var(--it-shadow) !important}
+html body .prof-chip b{color:var(--it-ink) !important}
+html body .prof-chip span{color:var(--it-muted) !important}
+html body .prof-nav-row{background:var(--it-surface) !important;border:0 !important;box-shadow:var(--it-shadow) !important;border-radius:22px !important}
+html body .prof-nav-txt b, html body .prof-nav-txt strong{color:var(--it-ink) !important}
+html body .prof-nudge{background:linear-gradient(135deg,rgba(252,246,186,.55),rgba(225,241,236,.95)) !important;border:1px solid #F2E3B0 !important;box-shadow:none !important}
+
+/* ── Полноэкранный чат-бот: светлая шапка ── */
+html body .asst-fs-hdr{background:rgba(244,249,247,.92) !important;color:var(--it-ink) !important;border-bottom:1px solid var(--it-line) !important;box-shadow:none !important;backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px)}
+html body .asst-fs-title{color:var(--it-ink) !important}
+html body .asst-fs-close{background:var(--it-surface) !important;color:var(--it-ink) !important;box-shadow:var(--it-shadow) !important}
+
+/* ── Модальные окна и вход: подложка как у IT ── */
+html body .mo, html body .auth-ovl{background:rgba(43,101,112,.28) !important;backdrop-filter:blur(8px) !important;-webkit-backdrop-filter:blur(8px) !important}
+html body .auth-card, html body .mo .mc{background:var(--it-surface) !important;border-radius:30px !important;box-shadow:var(--it-shadow-lg) !important;border:0 !important}
+html body .auth-card h1, html body .auth-card h2, html body .auth-card h3{color:var(--it-ink) !important}
+html body .auth-skip{color:var(--it-accent) !important}
+html body .mo-info{background:var(--it-surface2) !important}
+
+/* ═══════ Современный слой: единая типографика, чипы, карточки ═══════ */
+
+/* Заголовки — плотнее и без «прыгающих» размеров */
+html body h1, html body h2, html body h3,
+html body .pl-page h2, html body .prof-sec-title, html body .sec-title,
+html body .cart-hdr h2, html body .ord-hdr h2{
+  letter-spacing:-.02em !important;font-weight:700 !important;color:var(--it-ink) !important;
+}
+/* Длинные ФИО переносятся по-человечески */
+html body .prof-name, html body .ga-name, html body .greet-anim b, html body .hdr-name{
+  overflow-wrap:break-word;word-break:normal;hyphens:none;line-height:1.22 !important;
+}
+/* Длинное ФИО на главной: чуть мельче шрифт и компактнее робот — слово не рвётся */
+html body .ga-name{font-size:clamp(16px,4.3vw,20px) !important;text-shadow:none !important}
+html body .ga-bot-wrap{width:96px !important;height:96px !important}
+html body .ga-bot-img, html body .ga-bot-video{width:96px !important;height:96px !important;box-shadow:0 0 0 3px #fff,var(--it-shadow) !important}
+html body .ga-bot-halo, html body .ga-bot-ring{display:none !important}
+html body .prof-name{font-size:clamp(17px,4.6vw,21px) !important}
+
+/* Единые иконки-чипы вместо разноцветных плашек */
+html body .sp-ico, html body .sp-g-i, html body .pl-catcard-ico,
+html body .prof-nav-ico, html body .pcard-item-ico, html body .nva-ico{
+  background:var(--it-accent-soft) !important;
+  box-shadow:inset 0 0 0 1px rgba(63,143,135,.12) !important;
+  color:var(--it-ink) !important;border:0 !important;border-radius:14px !important;
+}
+html body .sp-g-i{border-radius:16px !important}
+html body .sp-taxi-badge, html body .nva-badge{background:var(--it-gold) !important;color:var(--it-amber-ink) !important;box-shadow:none !important}
+
+/* Карточки и строки — один радиус, одна тень, аккуратные разделители */
+html body .sp-item, html body .sp-g, html body .pl-catcard, html body .pl-svc-row,
+html body .pcard-item, html body .prof-nav-row, html body .set-card{
+  background:var(--it-surface) !important;border:0 !important;border-radius:18px !important;
+  box-shadow:var(--it-shadow) !important;
+}
+html body .sp-item:active, html body .sp-g:active, html body .pl-catcard:active,
+html body .prof-nav-row:active, html body .act-btn:active, html body .bot-btn:active{transform:scale(.985)}
+html body .sp-arr, html body .pl-catcard-arr, html body .prof-nav-arr{color:var(--it-faint) !important}
+html body .sp-txt b, html body .pl-catcard-txt b{color:var(--it-ink) !important}
+html body .sp-txt span, html body .pl-catcard-txt span{color:var(--it-muted) !important}
+
+/* Цены и «плюсы» в прейскуранте */
+html body .pl-price{color:var(--it-ink) !important;font-weight:700 !important}
+html body .pl-add{background:var(--it-brand) !important;color:#fff !important;border:0 !important;box-shadow:0 8px 18px -10px rgba(43,101,112,.55) !important}
+
+/* Пустые состояния */
+html body .empty-title, html body .hist-empty b{color:var(--it-ink) !important}
+html body .empty-sub, html body .hist-empty span{color:var(--it-muted) !important}
+
+/* Разделители и мелкий текст по всему приложению */
+html body hr, html body .pcard-item + .pcard-item, html body .svc-row{border-color:var(--it-line) !important}
+html body .note, html body .sub, html body .muted{color:var(--it-muted) !important}
+
+/* Корзина и итоги */
+html body .cart-item{background:var(--it-surface) !important;border:0 !important;border-radius:18px !important;box-shadow:var(--it-shadow) !important;padding:12px 14px !important;margin-bottom:10px !important}
+html body .ci-name{color:var(--it-ink) !important;font-weight:600 !important}
+html body .ci-price{color:var(--it-ink) !important;font-weight:700 !important}
+html body .qty-btn{background:var(--it-accent-soft) !important;color:var(--it-ink) !important;border:0 !important;border-radius:12px !important;box-shadow:none !important}
+html body .qty-val{color:var(--it-ink) !important;font-weight:700 !important}
+html body .cart-total{color:var(--it-ink) !important}
+html body .cart-note, html body .cart-save{background:var(--it-surface2) !important;border:0 !important;border-left:3px solid var(--it-accent) !important;border-radius:14px !important;color:var(--it-muted) !important}
+
+/* Тост — под шапкой, не закрывает заголовки и кнопки */
+html body .toast{top:calc(env(safe-area-inset-top,0px) + 76px) !important;bottom:auto !important}

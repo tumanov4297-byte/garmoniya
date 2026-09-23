@@ -86,7 +86,7 @@ function showToast(msg,dur=2800){
 }
 function showSuccessAnim(text){
   const ovl=document.createElement("div");ovl.className="success-anim-ovl";
-  const colors=["#1B8585","#26b0a8","#ffe8b8","#ffffff","#22a5a0"];
+  const colors=["#3F8F87","#26b0a8","#ffe8b8","#ffffff","#22a5a0"];
   let confetti="";
   for(let i=0;i<24;i++){
     const c=colors[i%colors.length];
@@ -501,11 +501,11 @@ function timeOfDayClass(){
 }
 function emptyIllustration(){
   return `<svg class="empty-illust" viewBox="0 0 120 100" aria-hidden="true">
-    <ellipse cx="60" cy="88" rx="38" ry="7" fill="#1B8585" opacity=".08"/>
-    <rect x="24" y="34" width="72" height="46" rx="12" fill="none" stroke="#1B8585" stroke-width="2.5" stroke-dasharray="6 6" opacity=".35"/>
-    <path class="empty-illust-heart" d="M60 46c5 3 9 8 9 14 0 7-6 12-13 12 6 0 10-4 10-10 0-8-6-14-15-16 3-1 6-1 9 0z" fill="#1B8585" opacity=".55"/>
+    <ellipse cx="60" cy="88" rx="38" ry="7" fill="#3F8F87" opacity=".08"/>
+    <rect x="24" y="34" width="72" height="46" rx="12" fill="none" stroke="#3F8F87" stroke-width="2.5" stroke-dasharray="6 6" opacity=".35"/>
+    <path class="empty-illust-heart" d="M60 46c5 3 9 8 9 14 0 7-6 12-13 12 6 0 10-4 10-10 0-8-6-14-15-16 3-1 6-1 9 0z" fill="#3F8F87" opacity=".55"/>
     <circle class="empty-illust-dot" cx="86" cy="30" r="3" fill="#ffb84d" opacity=".7"/>
-    <circle class="empty-illust-dot2" cx="30" cy="26" r="2.4" fill="#1B8585" opacity=".5"/>
+    <circle class="empty-illust-dot2" cx="30" cy="26" r="2.4" fill="#3F8F87" opacity=".5"/>
   </svg>`;
 }
 
@@ -590,9 +590,9 @@ function showMainMenu(){
 }
 
 const CAT_GRADIENTS=[
-  "linear-gradient(135deg,#1B8585,#2A9D9D)","linear-gradient(135deg,#f59e0b,#d97706)",
-  "linear-gradient(135deg,#10b981,#059669)","linear-gradient(135deg,#0F6060,#1B8585)",
-  "linear-gradient(135deg,#2A9D9D,#166565)","linear-gradient(135deg,#B07A00,#D4920A)",
+  "linear-gradient(135deg,#3F8F87,#5BAA93)","linear-gradient(135deg,#f59e0b,#d97706)",
+  "linear-gradient(135deg,#10b981,#059669)","linear-gradient(135deg,#2B6570,#3F8F87)",
+  "linear-gradient(135deg,#5BAA93,#166565)","linear-gradient(135deg,#B07A00,#D4920A)",
   "linear-gradient(135deg,#f43f5e,#e11d48)","linear-gradient(135deg,#14b8a6,#0d9488)",
   "linear-gradient(135deg,#E8A020,#D4920A)","linear-gradient(135deg,#D4920A,#E8A020)",
   "linear-gradient(135deg,#D4920A,#B07A00)","linear-gradient(135deg,#22c55e,#16a34a)"
@@ -1342,7 +1342,7 @@ function taxiInitRouteMap(from,to){
     const toIcon=L.divIcon({className:"taxi-map-pin taxi-map-pin-to",html:"🏁",iconSize:[26,26]});
     L.marker([from.lat,from.lon],{icon:fromIcon}).addTo(map);
     L.marker([to.lat,to.lon],{icon:toIcon}).addTo(map);
-    L.polyline([[from.lat,from.lon],[to.lat,to.lon]],{color:"#1B8585",weight:3,dashArray:"6 6"}).addTo(map);
+    L.polyline([[from.lat,from.lon],[to.lat,to.lon]],{color:"#3F8F87",weight:3,dashArray:"6 6"}).addTo(map);
     map.fitBounds([[from.lat,from.lon],[to.lat,to.lon]],{padding:[24,24]});
   }catch(e){/* карта не критична — молча пропускаем, если Leaflet недоступен офлайн */}
 }
@@ -1617,7 +1617,7 @@ function showContacts(){
   html+='<div class="pinfo-row"><span class="pinfo-ico"><img src="img/vk-icon.png" style="width:20px;height:20px;border-radius:5px;object-fit:contain"></span><span class="pinfo-txt"><span class="pinfo-lbl">Группа ВКонтакте</span><span class="pinfo-val"><a href="'+VK_GROUP.url+'" target="_blank" rel="noopener">'+VK_GROUP.url.replace(/^https?:\/\//,"")+'</a></span></span></div>';
   html+='</div>';
   html+='<div class="pquick-grid contacts-actions"><button class="pquick-btn" onclick="location.href=\'tel:+'+cd.phoneRaw+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#10b981,#059669)">📞</span><span>Позвонить</span></button>'
-      +'<button class="pquick-btn" onclick="location.href=\'mailto:'+cd.email+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#1B8585,#2A9D9D)">✉️</span><span>Написать</span></button>'
+      +'<button class="pquick-btn" onclick="location.href=\'mailto:'+cd.email+'\'"><span class="pquick-ico" style="background:linear-gradient(135deg,#3F8F87,#5BAA93)">✉️</span><span>Написать</span></button>'
       +'<button class="pquick-btn" onclick="window.open(\''+VK_GROUP.url+'\',\'_blank\',\'noopener\')"><span class="pquick-ico sp-g-i-vk"><img src="img/vk-icon.png" style="width:20px;height:20px;object-fit:contain"></span><span>Группа ВК</span></button></div>';
   w.innerHTML=html;
   chatEl.appendChild(w);
@@ -1641,7 +1641,7 @@ function showEmergency(){
     psychologists.forEach(function(p,i){
       const ini=p.name.split(" ").slice(0,2).map(function(x){return x[0];}).join("").toUpperCase();
       const ph=p.ext?cd.phone+" доб. "+p.ext:cd.phone;
-      html+='<div class="pinfo-row"'+(i===0?' style="padding-top:0"':'')+'><span class="pinfo-ico" style="background:linear-gradient(135deg,#0F6060,#1B8585);color:#fff">'+ini+'</span><span class="pinfo-txt"><span class="pinfo-val">'+p.name+'</span><span class="pinfo-lbl">'+p.pos+' · 📞 '+ph+(p.email?' · ✉️ '+p.email:'')+'</span></span></div>';
+      html+='<div class="pinfo-row"'+(i===0?' style="padding-top:0"':'')+'><span class="pinfo-ico" style="background:linear-gradient(135deg,#2B6570,#3F8F87);color:#fff">'+ini+'</span><span class="pinfo-txt"><span class="pinfo-val">'+p.name+'</span><span class="pinfo-lbl">'+p.pos+' · 📞 '+ph+(p.email?' · ✉️ '+p.email:'')+'</span></span></div>';
     });
     html+='</div>';
   }else{
@@ -1985,7 +1985,6 @@ function renderProfilePanel(){
         <span class="prof-name-accent"></span>
         <div class="prof-phone">${clientPhone} · ${cityPrefixed(currentCityName)}</div>
       </div>
-      <img src="img/bot-live.webp" class="prof-cover-bot" alt="">
     </div>
 
     <div class="prof-stat-chips">
@@ -2004,22 +2003,17 @@ function renderProfilePanel(){
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('personal')">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#1B8585,#2A9D9D)">🧑‍💼</span>
+        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#3F8F87,#5BAA93)">🧑‍💼</span>
         <span class="prof-nav-txt"><b>Личные данные и анкета</b><span>${anketaDone?"Заполнена":"Не заполнена"}</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
-      <button class="prof-nav-row" onclick="showProfileSection('documents')">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📁</span>
-        <span class="prof-nav-txt"><b>Документы</b><span>Заявления, согласия, памятки</span></span>
-        <span class="prof-nav-arr">›</span>
-      </button>
       <button class="prof-nav-row" onclick="openProfileSwitcher()">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#0F6060,#1B8585)">👨‍👩‍👦</span>
+        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#2B6570,#3F8F87)">👨‍👩‍👦</span>
         <span class="prof-nav-txt"><b>Профили</b><span>Переключение между пользователями</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="showCartStats()">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#2A9D9D,#166565)">📊</span>
+        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#5BAA93,#166565)">📊</span>
         <span class="prof-nav-txt"><b>Статистика</b><span>Ваша активность в приложении</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
@@ -2030,7 +2024,7 @@ function renderProfilePanel(){
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('settings')">
         <span class="prof-nav-ico" style="background:linear-gradient(135deg,#3d6b6b,#2d5252)">⚙️</span>
-        <span class="prof-nav-txt"><b>Настройки</b><span>Тема, шрифт, филиал, язык, данные</span></span>
+        <span class="prof-nav-txt"><b>Настройки</b><span>Шрифт, филиал, язык, данные</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
     </div>
@@ -2048,7 +2042,7 @@ function showProfileSection(section){
     const favHtml=fav.length===0
       ?'<div class="hist-empty">'+emptyIllustration()+'<div class="empty-title">Нет избранных</div><div class="empty-sub">Нажмите ★ у любой услуги в прейскуранте</div></div>'
       :fav.map(f=>`<div class="pcard-item"><div class="pcard-item-txt"><b>${f.n}</b><span>${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString()} ₽</span></div><button class="pcard-item-act" onclick="addFavToCart('${f.id}')">🛒</button></div>`).join("");
-    body.innerHTML=back+`<h2 class="prof-sec-title">⭐ Избранное</h2><div class="pcard">${favHtml}</div>`;
+    body.innerHTML=back+`<h2 class="prof-sec-title">Избранное</h2><div class="pcard">${favHtml}</div>`;
     return;
   }
 
@@ -2057,21 +2051,10 @@ function showProfileSection(section){
     const taxiHtml=th.length===0
       ?'<div class="hist-empty">'+emptyIllustration()+'<div class="empty-title">Пока нет заказов такси</div><div class="empty-sub">Закажите поездку в разделе «Такси»</div></div>'
       :th.map(tx=>`<div class="pcard-item"><div class="pcard-item-txt"><b>${tx.isFree?"Бесплатно 🎁":tx.price+" ₽"} · ${tx.date} ${tx.time}</b><span>${tx.from} → ${tx.to}</span></div></div>`).join("");
-    body.innerHTML=back+`<h2 class="prof-sec-title">🚕 Мои поездки</h2><div class="pcard">${taxiHtml}</div>`;
+    body.innerHTML=back+`<h2 class="prof-sec-title">Мои поездки</h2><div class="pcard">${taxiHtml}</div>`;
     return;
   }
 
-  if(section==="documents"){
-    const docsHtml=`<div class="pcard-doclist">
-      <button class="pcard-doc" onclick="downloadDoc('application')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#1B8585,#2A9D9D)">📄</span><span class="pcard-doc-txt"><b>Заявление на обслуживание</b><span>Заявление на получение социальных услуг</span></span><span class="pcard-doc-dl">⬇</span></button>
-      <button class="pcard-doc" onclick="downloadDoc('consent')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🔒</span><span class="pcard-doc-txt"><b>Согласие на обработку данных</b><span>Персональные данные (ФЗ-152)</span></span><span class="pcard-doc-dl">⬇</span></button>
-      <button class="pcard-doc" onclick="downloadDoc('moroshka')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#10b981,#059669)"><img src="img/moroshka-logo.jpg" class="pcard-doc-img" alt=""></span><span class="pcard-doc-txt"><b>Памятка «Морошка»</b><span>Как оформить и использовать карту</span></span><span class="pcard-doc-dl">⬇</span></button>
-      <button class="pcard-doc" onclick="downloadDoc('rights')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#2A9D9D,#166565)">📋</span><span class="pcard-doc-txt"><b>Права получателя услуг</b><span>Перечень прав получателя соц. услуг</span></span><span class="pcard-doc-dl">⬇</span></button>
-      <button class="pcard-doc" onclick="downloadDoc('complaint')"><span class="pcard-doc-ico" style="background:linear-gradient(135deg,#0F6060,#1B8585)">📝</span><span class="pcard-doc-txt"><b>Бланк жалобы / предложения</b><span>Обращение в администрацию центра</span></span><span class="pcard-doc-dl">⬇</span></button>
-    </div>`;
-    body.innerHTML=back+`<h2 class="prof-sec-title">📁 Документы</h2><div class="pcard">${docsHtml}</div>`;
-    return;
-  }
 
   if(section==="personal"){
     let userProfile={};try{userProfile=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
@@ -2082,7 +2065,7 @@ function showProfileSection(section){
         ${userProfile.address?`<div class="pinfo-row"><span class="pinfo-ico">🏠</span><span class="pinfo-txt"><span class="pinfo-lbl">Адрес</span><span class="pinfo-val">${userProfile.address}</span></span></div>`:""}
         ${userProfile.contactName?`<div class="pinfo-row"><span class="pinfo-ico">👤</span><span class="pinfo-txt"><span class="pinfo-lbl">Контактное лицо</span><span class="pinfo-val">${userProfile.contactName}${userProfile.contactPhone?" · "+userProfile.contactPhone:""}</span></span></div>`:""}`
       :`<button class="pinfo-fill-btn" onclick="editQuestionnaire()">📋 Заполнить анкету получателя <span class="pinfo-fill-arr">→</span></button>`;
-    body.innerHTML=back+`<h2 class="prof-sec-title">🧑‍💼 Личные данные</h2>
+    body.innerHTML=back+`<h2 class="prof-sec-title">Личные данные</h2>
       <div class="pcard">
         <div class="pcard-hdr">Основные данные <button class="pcard-hdr-edit" onclick="editMyData()">✏️ Изменить</button></div>
         ${clientSnils&&clientSnils!=="—"&&clientSnils!==""?`<div class="pinfo-row"><span class="pinfo-ico">🪪</span><span class="pinfo-txt"><span class="pinfo-lbl">СНИЛС</span><span class="pinfo-val">${clientSnils}</span></span></div>`:""}
@@ -2099,21 +2082,20 @@ function showProfileSection(section){
     const cities=[["gubkin","Губкинский"],["purpe","мкр. Пурпе"],["muravlenko","Муравленко"],["noyabrsk","Ноябрьск"],["tarko","Тарко-Сале"],["urengoy","Уренгой"]];
     const cityOpts=cities.map(c=>`<option value="${c[0]}"${currentCity===c[0]?" selected":""}>${c[1]}</option>`).join("");
     const langOpts=[["ru","Русский"],["en","English"]].map(l=>`<option value="${l[0]}"${currentLang===l[0]?" selected":""}>${l[1]}</option>`).join("");
-    body.innerHTML=back+`<h2 class="prof-sec-title">⚙️ Настройки</h2>
+    body.innerHTML=back+`<h2 class="prof-sec-title">Настройки</h2>
       <div class="pcard">
         <div class="pcard-hdr">Внешний вид</div>
-        <div class="pset-row"><span class="pset-lbl">🔤 Размер шрифта</span><div class="pset-btns"><button class="pset-btn" onclick="changeFontSize(-1)">А−</button><button class="pset-btn" onclick="changeFontSize(1)">А+</button></div></div>
-        <div class="pset-row"><span class="pset-lbl">🌙 Тёмная тема</span><button class="pswitch ${darkMode?"on":""}" onclick="toggleDarkTheme();this.classList.toggle('on')" role="switch" aria-checked="${darkMode}"><span class="pswitch-knob"></span></button></div>
+        <div class="pset-row"><span class="pset-lbl">Размер шрифта</span><div class="pset-btns"><button class="pset-btn" onclick="changeFontSize(-1)">А−</button><button class="pset-btn" onclick="changeFontSize(1)">А+</button></div></div>
       </div>
       <div class="pcard">
         <div class="pcard-hdr">Регион и язык</div>
-        <div class="pset-row"><span class="pset-lbl">📍 Филиал</span><select class="pset-select" onchange="selectCity(this.value)" aria-label="Выбор филиала">${cityOpts}</select></div>
-        <div class="pset-row"><span class="pset-lbl">🌐 Язык интерфейса</span><select class="pset-select" onchange="switchLang(this.value)" aria-label="Язык интерфейса">${langOpts}</select></div>
+        <div class="pset-row"><span class="pset-lbl">Филиал</span><select class="pset-select" onchange="selectCity(this.value)" aria-label="Выбор филиала">${cityOpts}</select></div>
+        <div class="pset-row"><span class="pset-lbl">Язык интерфейса</span><select class="pset-select" onchange="switchLang(this.value)" aria-label="Язык интерфейса">${langOpts}</select></div>
       </div>
       <div class="pcard">
         <div class="pcard-hdr">Мои данные</div>
-        <div class="pset-row"><span class="pset-lbl">⬇️ Экспорт моих данных</span><button class="pset-btn wide" onclick="exportMyData()">Скачать</button></div>
-        <div class="pset-row"><span class="pset-lbl">🗑 Очистить все данные</span><button class="pset-btn wide danger" onclick="if(confirm('Удалить все данные?')){localStorage.clear();location.reload();}">Сброс</button></div>
+        <div class="pset-row"><span class="pset-lbl">Экспорт моих данных</span><button class="pset-btn wide" onclick="exportMyData()">Скачать</button></div>
+        <div class="pset-row"><span class="pset-lbl">Очистить все данные</span><button class="pset-btn wide danger" onclick="if(confirm('Удалить все данные?')){localStorage.clear();location.reload();}">Сброс</button></div>
       </div>`;
     return;
   }
@@ -2184,21 +2166,6 @@ function saveMyData(){
   renderProfilePanel();
 }
 
-function downloadDoc(type){
-  const templates={
-    application:`ЗАЯВЛЕНИЕ\nна предоставление социальных услуг\n\nВ ГБУ ЯНАО «ЦСОН Гармония»\nг. ${currentCityName}\n\nот ___________________________________\n(фамилия, имя, отчество)\n\nДата рождения: __.__.____\nАдрес: ___________________________________\nТелефон: ___________________________________\nСНИЛС: ___________________________________\n\nПрошу предоставить мне следующие социальные услуги:\n___________________________________\n___________________________________\n___________________________________\n\nС порядком и условиями предоставления услуг ознакомлен(а).\n\nДата: __.__.____\nПодпись: ___________`,
-    consent:`СОГЛАСИЕ\nна обработку персональных данных\n\nЯ, ___________________________________,\nдата рождения __.__.____,\nадрес ___________________________________,\nдокумент ___________________________________,\n\nдаю согласие ГБУ ЯНАО «ЦСОН Гармония» на обработку\nмоих персональных данных: ФИО, дата рождения, адрес,\nтелефон, СНИЛС, данные о состоянии здоровья, сведения\nо доходах — в целях предоставления социальных услуг.\n\nСогласие действует до момента письменного отзыва.\n\nДата: __.__.____\nПодпись: ___________`,
-    moroshka:`ПАМЯТКА\nКарта «Морошка» — единая карта жителя ЯНАО\n\n1. Что это? Электронная карта, подтверждающая проживание в ЯНАО.\n\n2. Как оформить?\n   - В МФЦ (с паспортом и СНИЛС)\n   - На сайте государственных услуг ЯНАО\n\n3. Что даёт в центре «Гармония»?\n   - Скидка 5% на все платные услуги\n   - Скидка применяется автоматически при предъявлении карты\n\n4. Как активировать?\n   Покажите карту специалисту центра или укажите при входе\n   в онлайн-помощник (тумблер «🍊 Морошка» в шапке).`,
-    rights:`ПРАВА ПОЛУЧАТЕЛЯ СОЦИАЛЬНЫХ УСЛУГ\n(извлечение из ФЗ №442)\n\n1. Уважительное и гуманное отношение.\n2. Выбор поставщика социальных услуг.\n3. Информация о своих правах и обязанностях.\n4. Информация о видах, сроках и условиях предоставления услуг.\n5. Отказ от предоставления социальных услуг.\n6. Обеспечение условий пребывания, соответствующих санитарно-гигиеническим требованиям.\n7. Свободное посещение законными представителями, адвокатами, нотариусами.\n8. Защита своих прав и законных интересов.\n9. Социальное сопровождение.\n\nПо вопросам — обращайтесь к специалисту центра.`,
-    complaint:`ОБРАЩЕНИЕ\nв ГБУ ЯНАО «ЦСОН Гармония»\nг. ${currentCityName}\n\nот ___________________________________\n(фамилия, имя, отчество)\nТелефон: ___________________________________\n\nТип обращения: [ ] Жалоба  [ ] Предложение  [ ] Благодарность\n\nСодержание обращения:\n___________________________________\n___________________________________\n___________________________________\n___________________________________\n___________________________________\n\nДата: __.__.____\nПодпись: ___________`
-  };
-  const text=templates[type];if(!text)return;
-  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  a.download=type+".txt";a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  showToast("📄 Документ скачан");
-}
 
 function doLogout(btn){
 
@@ -2382,20 +2349,20 @@ function showMenuPage(){
   var w=document.createElement("div");w.className="svc-page";
   w.innerHTML=
     '<h2>Все разделы</h2>'+
-    '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#1B8585,#0d6b6b)">📋</span><div class="sp-txt"><b>Записаться на услуги</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#3F8F87,#0d6b6b)">📋</span><div class="sp-txt"><b>Записаться на услуги</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-item sp-item-taxi" data-a="taxi"><span class="sp-ico sp-ico-taxi" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🚕</span><div class="sp-txt"><b>Такси</b><span>Заказать поездку</span></div><span class="sp-taxi-badge">Новое</span><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-tablet.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Чат-бот</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-more">Услуги и информация</div>'+
     '<div class="sp-grid">'+
     '<div class="sp-g" data-a="booking"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📅</span><b>Записаться</b></div>'+
     '<div class="sp-g" data-a="staff"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">👥</span><b>Сотрудники</b></div>'+
-    '<div class="sp-g" data-a="callback"><span class="sp-g-i" style="background:linear-gradient(135deg,#1B8585,#14b8a6)">📞</span><b>Обратная связь</b></div>'+
+    '<div class="sp-g" data-a="callback"><span class="sp-g-i" style="background:linear-gradient(135deg,#3F8F87,#14b8a6)">📞</span><b>Обратная связь</b></div>'+
     '<div class="sp-g" data-a="events"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🎟️</span><b>События</b></div>'+
     '<div class="sp-g" data-a="news"><span class="sp-g-i" style="background:linear-gradient(135deg,#D4920A,#E8A020)">📰</span><b>Новости</b></div>'+
     '<div class="sp-g" data-a="contacts"><span class="sp-g-i" style="background:linear-gradient(135deg,#B07A00,#D4920A)">📍</span><b>Контакты</b></div>'+
     '<div class="sp-g" data-a="moroshka"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><img src="img/moroshka-logo.jpg" style="width:22px;height:22px;object-fit:contain"></span><b>Морошка</b></div>'+
     '<div class="sp-g" data-a="vk"><span class="sp-g-i sp-g-i-vk"><img src="img/vk-icon.png" style="width:24px;height:24px;border-radius:6px;object-fit:contain"></span><b>Группа ВК</b></div>'+
-    '<div class="sp-g" data-a="gallery"><span class="sp-g-i" style="background:linear-gradient(135deg,#166565,#0F6060)">🖼️</span><b>Фотогалерея</b></div>'+
+    '<div class="sp-g" data-a="gallery"><span class="sp-g-i" style="background:linear-gradient(135deg,#166565,#2B6570)">🖼️</span><b>Фотогалерея</b></div>'+
     '<div class="sp-g" data-a="feedback"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">⭐</span><b>Отзыв</b></div>'+
     '</div>';
   chatEl.appendChild(w);

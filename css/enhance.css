@@ -99,7 +99,7 @@
    ───────────────────────────────────────────── */
 #tabBar{ touch-action: none; }
 .tb-pill-drag{
-  box-shadow:0 10px 24px rgba(15,76,76,.28),
+  box-shadow:0 10px 24px rgba(43,101,112,.28),
              inset 0 1px 0 rgba(255,255,255,.95),
              inset 0 -1px 0 rgba(255,255,255,.30) !important;
   filter:saturate(1.05);
@@ -114,162 +114,92 @@
 .ai-soon-tag{ display:none !important; }
 
 /* Микрофон крупнее — главный акцент экрана и удобная цель для пальца. */
-.ai-mic{
-  width:80px !important; height:80px !important;
-  box-shadow:0 10px 30px rgba(15,96,96,.4), inset 0 1px 0 rgba(255,255,255,.35);
-}
-.ai-mic svg{ width:32px; height:32px; }
+
+
 
 /* В покое кнопка мягко «дышит» — приглашает нажать. */
 @keyframes garmMicBreathe{
-  0%,100%{ transform:scale(1);   box-shadow:0 10px 30px rgba(15,96,96,.4); }
+  0%,100%{ transform:scale(1);   box-shadow:0 10px 30px rgba(43,101,112,.4); }
   50%    { transform:scale(1.04);box-shadow:0 14px 38px rgba(47,214,200,.42); }
 }
-@media (prefers-reduced-motion: no-preference){
-  html:not(.perf-lite) .ai-mic{ animation:garmMicBreathe 3.4s ease-in-out infinite; }
-  html:not(.perf-lite) .ai-listening .ai-mic{ animation:none; }
-}
+
 
 /* Подпись состояния — крупнее и читаемее (аудитория часто пожилая). */
-.ai-state{
-  font-size:14.5px !important; line-height:1.35;
-  text-align:center; min-height:20px;
-}
+
 
 /* Распознанные слова — «речевое облачко» под микрофоном. */
-.ai-heard{
-  min-height:0; max-width:92%; margin:0 auto;
-  font-size:15px; font-weight:600; line-height:1.4; text-align:center;
-  color:#eafffb; text-wrap:balance;
-  transition:opacity .2s ease;
-}
-.ai-heard:not(:empty){
-  padding:10px 14px; border-radius:16px;
-  background:rgba(255,255,255,.1);
-  border:1px solid rgba(125,255,233,.28);
-  box-shadow:0 6px 20px rgba(0,0,0,.22);
-}
+
+
 
 /* Пока слушаем — панель слегка подсвечивается изнутри. */
-.ai-listening .ai-panel{
-  border-color:rgba(125,255,233,.4);
-  box-shadow:0 0 0 1px rgba(125,255,233,.16), 0 12px 34px rgba(0,0,0,.3);
-}
+
 
 /* Больше воздуха: панель без плиток не должна казаться пустой. */
-.ai-panel{ gap:13px; }
+
 
 /* ═══════════════════════════════════════════════════════
    6. КОСМИЧЕСКИЙ ФОН РОБОТА (гиф + авто-смена раз в 10 мин)
    ═══════════════════════════════════════════════════════ */
-.b3m-photos{position:absolute;inset:0;z-index:0;overflow:hidden;}
-.b3m-photo{
-  position:absolute;inset:0;
-  background-size:cover;background-position:center;background-repeat:no-repeat;
-  opacity:0;transition:opacity 1.3s ease;will-change:opacity;
-}
-.b3m-photo.on{opacity:1;}
+
+
+
 
 /* Активный фон медленно «дышит» — кадр живёт, а не стоит колом. */
 @keyframes b3mBgDrift{
   from{ transform:scale(1.03); }
   to  { transform:scale(1.1); }
 }
-@media (prefers-reduced-motion: no-preference){
-  html:not(.perf-lite) .b3m-photo.on{ animation:b3mBgDrift 42s ease-in-out infinite alternate; }
-}
+
 
 /* Когда активны фото — рисованную туманность прячем, фото чистые. */
-.bot3d-photos .b3m-nebula{ display:none !important; }
-.bot3d-photos .b3m-bg::before{ display:none !important; }
+
+
 
 /* Затемняющий слой: края темнее для читаемости шапки и голосовой панели,
    центр светлее — робот в фокусе. */
-.b3m-scrim{
-  position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:
-    radial-gradient(115% 55% at 50% 40%, transparent 42%, rgba(6,8,22,.45) 100%),
-    linear-gradient(to bottom,
-      rgba(6,8,22,.55) 0%, rgba(6,8,22,.12) 20%,
-      transparent 46%, transparent 58%,
-      rgba(6,8,22,.5) 82%, rgba(6,8,22,.68) 100%);
-}
+
 
 /* Свечение под роботом оставляем — оно связывает фигуру с фоном. */
-.bot3d-photos .b3m-glow{ opacity:.85; }
+
 
 /* ═══════════════════════════════════════════════════════
    7. ПЛАШКА «ДЕМО» В ОКНЕ РОБОТА
    Явно сообщаем: модель и голос — демонстрация, в разработке.
    ═══════════════════════════════════════════════════════ */
-.b3m-demo-badge{
-  position:absolute;z-index:4;top:10px;left:50%;transform:translateX(-50%);
-  font-size:11px;font-weight:800;letter-spacing:.6px;white-space:nowrap;text-transform:uppercase;
-  padding:6px 14px;border-radius:999px;color:#3a2600;pointer-events:none;
-  background:linear-gradient(135deg,#ffd675,#e8a020);
-  border:1px solid rgba(255,255,255,.55);
-  box-shadow:0 6px 18px rgba(180,120,0,.4),inset 0 1px 0 rgba(255,255,255,.6);
-}
-.b3m-demo-note{
-  position:absolute;z-index:4;left:0;right:0;bottom:8px;margin:0 auto;max-width:86%;
-  text-align:center;font-size:12px;line-height:1.35;font-weight:600;pointer-events:none;
-  color:rgba(255,255,255,.94);text-shadow:0 1px 6px rgba(0,0,0,.6);
-}
+
+
 /* На светлой рисованной теме (не фото) подпись должна остаться читаемой. */
-.bot3d-modal:not(.bot3d-photos) .b3m-demo-note{ color:rgba(20,40,40,.8);text-shadow:0 1px 4px rgba(255,255,255,.6); }
+
 
 /* ═══════════════════════════════════════════════════════
    8. СВЕТЛЫЙ ФОН РОБОТА (reception.webp) + светлая тема UI
    Космическая ротация убрана; одна статичная картинка,
    текст и панели перекрашены под тёмный для читаемости.
    ═══════════════════════════════════════════════════════ */
-.bot3d-lightbg #b3mPhotos{
-  background:url('../img/bot-bg/reception.webp') center center / cover no-repeat;
-}
-.bot3d-lightbg .b3m-glow{ display:none !important; }
-.bot3d-lightbg .b3m-theme{ display:none !important; }   /* переключатель тем больше не нужен */
+
+
+   /* переключатель тем больше не нужен */
 
 /* Мягкое высветление сверху и снизу — под тёмный текст шапки и панели */
-.bot3d-lightbg .b3m-scrim{
-  background:linear-gradient(to bottom,
-    rgba(255,255,255,.60) 0%, rgba(255,255,255,.10) 20%,
-    rgba(255,255,255,0) 46%, rgba(255,255,255,0) 54%,
-    rgba(255,255,255,.55) 84%, rgba(255,255,255,.80) 100%) !important;
-}
+
 
 /* Шапка */
-.bot3d-lightbg .b3m-bar{ color:#0f4c4c; }
-.bot3d-lightbg .b3m-bar b{ color:#0f4c4c; text-shadow:0 1px 2px rgba(255,255,255,.6); }
+
+
 
 /* Кнопки шапки и зума — светлые */
-.bot3d-lightbg .b3m-x,
-.bot3d-lightbg .b3z-btn{
-  color:#0f4c4c; background:rgba(255,255,255,.74) !important;
-  border-color:rgba(15,96,96,.22) !important;
-  box-shadow:0 4px 12px rgba(20,80,80,.14);
-}
+
 
 /* Голосовая панель — светлое стекло, тёмный текст */
-.bot3d-lightbg .ai-panel{
-  background:rgba(255,255,255,.76);
-  border-color:rgba(15,96,96,.16);
-  box-shadow:0 12px 34px rgba(20,80,80,.16), inset 0 1px 0 rgba(255,255,255,.85);
-}
-.bot3d-lightbg .ai-panel-hd{ color:#0f4c4c; }
-.bot3d-lightbg .ai-state{ color:#2e5050 !important; }
-.bot3d-lightbg .ai-listening .ai-state{ color:#127a6c !important; }
-.bot3d-lightbg .ai-heard{ color:#173d3d; text-shadow:none; }
-.bot3d-lightbg .ai-heard:not(:empty){
-  background:rgba(15,96,96,.06);
-  border-color:rgba(15,96,96,.18);
-  box-shadow:0 4px 14px rgba(20,80,80,.1);
-}
+
+
+
+
+
+
 
 /* Подпись «демо» — тёмная на светлом фоне */
-.bot3d-lightbg .b3m-demo-note{
-  color:rgba(20,55,55,.85) !important;
-  text-shadow:0 1px 3px rgba(255,255,255,.7) !important;
-}
+
 
 /* ═══════════════════════════════════════════════════════
    9. ЖИДКОЕ СТЕКЛО НА ПАНЕЛЯХ РОБОТА (светлый фон)
@@ -280,52 +210,19 @@
    ═══════════════════════════════════════════════════════ */
 
 /* Голосовая панель */
-.bot3d-lightbg .ai-panel{
-  background:rgba(255,255,255,.5);
-  border:1px solid rgba(255,255,255,.66);
-  -webkit-backdrop-filter:blur(16px) saturate(1.5);
-  backdrop-filter:blur(16px) saturate(1.5);
-  box-shadow:0 18px 46px rgba(20,80,80,.22),
-             inset 0 1px 0 rgba(255,255,255,.95),
-             inset 0 -1px 0 rgba(255,255,255,.4);
-}
-html:not(.perf-lite) .bot3d-lightbg .ai-panel{
-  backdrop-filter:url(#botLiquid) blur(3px) saturate(1.55) brightness(1.04);
-}
+
+
 
 /* Кнопки шапки и зума — стеклянные пилюли */
-.bot3d-lightbg .b3m-x,
-.bot3d-lightbg .b3z-btn{
-  background:rgba(255,255,255,.5) !important;
-  border:1px solid rgba(255,255,255,.72) !important;
-  -webkit-backdrop-filter:blur(12px) saturate(1.4);
-  backdrop-filter:blur(12px) saturate(1.4);
-  box-shadow:0 6px 16px rgba(20,80,80,.16), inset 0 1px 0 rgba(255,255,255,.9) !important;
-}
-html:not(.perf-lite) .bot3d-lightbg .b3m-x,
-html:not(.perf-lite) .bot3d-lightbg .b3z-btn{
-  backdrop-filter:url(#botLiquid) blur(2px) saturate(1.5);
-}
+
+
 
 /* Распознанные слова — стеклянное облачко */
-html:not(.perf-lite) .bot3d-lightbg .ai-heard:not(:empty){
-  -webkit-backdrop-filter:blur(10px) saturate(1.4);
-  backdrop-filter:url(#botLiquid) blur(2px) saturate(1.4);
-  background:rgba(255,255,255,.42);
-}
+
 
 /* Микрофон — премиальный глянец и мягкое свечение */
-.bot3d-lightbg .ai-mic{
-  box-shadow:0 12px 30px rgba(15,120,110,.4),
-             inset 0 2px 5px rgba(255,255,255,.55),
-             inset 0 -4px 9px rgba(0,60,55,.32),
-             0 0 0 6px rgba(47,214,200,.12);
-}
-.bot3d-lightbg .ai-mic::after{
-  content:"";position:absolute;left:0;right:0;top:0;bottom:0;border-radius:50%;
-  background:linear-gradient(158deg,rgba(255,255,255,.6),rgba(255,255,255,.05) 52%,transparent 70%);
-  pointer-events:none;
-}
+
+
 
 /* «Дышащий» ореол вокруг микрофона на светлом фоне */
-.bot3d-lightbg .ai-wave-wrap{ filter:drop-shadow(0 8px 20px rgba(20,120,110,.18)); }
+

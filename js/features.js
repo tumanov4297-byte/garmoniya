@@ -61,7 +61,7 @@ const ASST_INTENTS=[
   {kw:["мои заявки","мои записи","история заявок","история записей","статус заявки","статус записи","мои талоны"],
    answer:"Открываю ваши заявки и записи — там же можно отменить запись или повторить заявку.",actions:[{label:"📋 Мои заявки",fn:"openOrdersPanel",cl:"teal"}]},
   {kw:["открой кабинет","личный кабинет","мой профиль","мои данные","изменить данные","моё избранное","загрузить фото","фото профиля"],
-   answer:"Открываю личный кабинет — там данные, избранное, документы и настройки.",actions:[{label:"👤 Личный кабинет",fn:"openProfilePanel",cl:"teal"}]},
+   answer:"Открываю личный кабинет — там данные, избранное и настройки.",actions:[{label:"👤 Личный кабинет",fn:"openProfilePanel",cl:"teal"}]},
   {kw:["открой новост","что нового в центре","покажи анонсы"],
    answer:"Вот новости и анонсы центра.",actions:[{label:"📰 Новости",fn:"showNews",cl:"teal"}]},
   {kw:["открой мероприят","афиша событий","что за мероприятия"],
@@ -131,7 +131,7 @@ const ASST_INTENTS=[
    actions:[{label:"👤 Открыть кабинет",fn:"openProfilePanel",cl:"teal"}]},
   {kw:["жалоб","недоволен","плохое обслуживан","претензи","некачественн"],
    answer:"Жалобу или предложение можно оставить через бланк обращения в документах, либо напрямую написать оператору.",
-   actions:[{label:"📁 Бланк обращения",fn:"openProfilePanel",cl:"teal"},{label:"💬 Написать оператору",fn:"showLiveChat",cl:"blue"}]},
+   actions:[{label:"💬 Написать оператору",fn:"showLiveChat",cl:"blue"}]},
   {kw:["оценит работу","оставить отзыв","поставить оценку","как оценить","обратная связь"],
    answer:"Буду рад вашей оценке! Форма обратной связи откроется ниже.",
    actions:[{label:"⭐ Оставить отзыв",fn:"showFeedback",cl:"gold"}]},
@@ -590,7 +590,6 @@ function showAssistant(){
   document.getElementById("searchBar").classList.add("gone");
   const nm=asstName();
   addMsg(`<div class="asst-live"><img src="img/bot-live.webp" alt=""></div>Здравствуйте${nm?", "+nm:""}! 👋 Я чат-бот «Гармония». Теперь я умею записывать сразу к нужному специалисту: скажите, например, «запиши меня к психологу», «нужен логопед», «хочу в соляную комнату» или «оформить 3-НДФЛ» — и я открою запись по этому направлению.`,true);
-  addMsg(`<button type="button" class="bot3d-open" onclick="openBot3D()"><span class="b3o-ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z"/><path d="M12 2v18M4 6.5l8 4.5 8-4.5"/></svg></span><span class="b3o-txt"><b>Открыть 3D-помощника</b><span>Покрутить робота · голосовой ассистент</span></span><span class="b3o-arr">›</span></button>`,true);
   setTimeout(()=>{
     clearActions();
     const wrap=document.createElement("div");wrap.className="asst-wrap";

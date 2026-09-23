@@ -15,19 +15,21 @@
   if(lite) document.documentElement.classList.add("perf-lite");
 }catch(e){}})();
 </script>
-<meta name="theme-color" content="#1B8585">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F4F9F7">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Гармония">
 <link rel="apple-touch-icon" href="img/logo-icon.png">
 <title>Гармония — помощник ЦСОН</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20260721f">
-<link rel="stylesheet" href="css/enhance.css?v=20260802f">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=20260923b">
+<link rel="stylesheet" href="css/enhance.css?v=20260923b">
+<link rel="stylesheet" href="css/it-theme.css?v=20260923b">
 
 <!-- Leaflet больше не грузится в <head> (блокировал первую отрисовку).
      Карта маршрута такси подгружает его по требованию — см. ensureLeaflet(). -->
@@ -116,12 +118,11 @@
     <button class="tb" onclick="tabGo('menu')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span id="tbLblMenu">Услуги</span></button>
     <button class="tb" id="tb_cart" onclick="tabGo('cart')"><div class="tb-cart-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><span class="tb-badge gone" id="tbCartBadge">0</span></div><span id="tbLblCart">Корзина</span></button>
     <button class="tb" onclick="tabGo('orders')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span id="tbLblOrders">Заявки</span></button>
-    <button class="tb" onclick="tabGo('profile')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span id="tbLblProfile">Профиль</span></button>
   </nav>
 
   <div class="cart-panel" id="cartPanel" role="dialog" aria-modal="true" aria-label="Корзина заявки">
     <div class="cart-hdr">
-      <h2 id="cartTitleH2">🛒 Корзина заявки</h2>
+      <h2 id="cartTitleH2">Корзина заявки</h2>
       <button class="cart-x" onclick="closeCart()" aria-label="Закрыть корзину">✕</button>
     </div>
     <div class="cart-body" id="cartBody"></div>
@@ -131,14 +132,14 @@
 
   <div class="orders-panel" id="ordersPanel" role="dialog" aria-modal="true" aria-label="Мои заявки">
     <div class="ord-hdr">
-      <h2 id="ordersTitleH2">📋 Мои заявки</h2>
+      <h2 id="ordersTitleH2">Мои заявки</h2>
       <button class="cart-x" onclick="closeOrdersPanel()" aria-label="Закрыть">✕</button>
     </div>
     <div class="ord-filters" id="ordFilters">
       <button class="of-btn active" data-f="all" onclick="ordFilter('all',this)" id="ordFilterAll">Все</button>
-      <button class="of-btn" data-f="orders" onclick="ordFilter('orders',this)" id="ordFilterOrders">🛒 Заявки</button>
-      <button class="of-btn" data-f="bookings" onclick="ordFilter('bookings',this)" id="ordFilterBookings">📅 Записи</button>
-      <button class="of-btn" data-f="taxi" onclick="ordFilter('taxi',this)" id="ordFilterTaxi">🚕 Такси</button>
+      <button class="of-btn" data-f="orders" onclick="ordFilter('orders',this)" id="ordFilterOrders">Заявки</button>
+      <button class="of-btn" data-f="bookings" onclick="ordFilter('bookings',this)" id="ordFilterBookings">Записи</button>
+      <button class="of-btn" data-f="taxi" onclick="ordFilter('taxi',this)" id="ordFilterTaxi">Такси</button>
     </div>
     <div class="ord-body" id="ordBody"></div>
     <div class="panel-close-bar"><button class="panel-close-btn" onclick="closeOrdersPanel()"><span class="pcb-arrow">←</span> <span id="ordersCloseLbl">Закрыть и вернуться</span></button></div>
@@ -155,19 +156,18 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="assertive"></div>
-<script src="js/enhance.js?v=20260802a"></script>
-<script src="js/data.js?v=20260721f"></script>
-<script src="js/booking.js?v=20260721f"></script>
-<script src="js/db.js?v=20260721f"></script>
-<script src="js/extras.js?v=20260721f"></script>
-<script src="js/features.js?v=20260721f"></script>
-<script src="js/admin.js?v=20260721f"></script>
-<script src="js/app.js?v=20260802b"></script>
-<script src="js/header.js?v=20260721f"></script>
-<script src="js/polish.js?v=20260721f"></script>
-<script src="js/extra.js?v=20260721f"></script>
-<script src="js/mascot3d.js?v=20260802f"></script>
-<script src="js/tabdrag.js?v=20260802a"></script>
-<script src="js/navfix.js?v=20260802b"></script>
+<script src="js/enhance.js?v=20260923b"></script>
+<script src="js/data.js?v=20260923b"></script>
+<script src="js/booking.js?v=20260923b"></script>
+<script src="js/db.js?v=20260923b"></script>
+<script src="js/extras.js?v=20260923b"></script>
+<script src="js/features.js?v=20260923b"></script>
+<script src="js/admin.js?v=20260923b"></script>
+<script src="js/app.js?v=20260923b"></script>
+<script src="js/header.js?v=20260923b"></script>
+<script src="js/polish.js?v=20260923b"></script>
+<script src="js/extra.js?v=20260923b"></script>
+<script src="js/tabdrag.js?v=20260923b"></script>
+<script src="js/navfix.js?v=20260923b"></script>
 </body>
 </html>
