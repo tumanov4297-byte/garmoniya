@@ -45,7 +45,7 @@
       localStorage.setItem("adminOverrides",JSON.stringify(ov));
       return true;
     }catch(e){
-      showToast("⚠️ Не удалось сохранить — слишком много данных (например, тяжёлые фото). Уменьшите количество или размер фото в новостях и попробуйте снова.");
+      showToast("Не удалось сохранить — слишком много данных (например, тяжёлые фото). Уменьшите количество или размер фото в новостях и попробуйте снова.");
       console.error("saveOverrides failed:",e);
       return false;
     }
@@ -119,7 +119,7 @@
         sessionStorage.setItem("adminAuthed","1");
         ovl.remove();
         openFullPanel();
-      }else{showToast("❌ Неверный email или пароль");}
+      }else{showToast("Неверный email или пароль");}
     };
     ovl.querySelector("#admGo").onclick=go;
     pw.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
@@ -261,7 +261,7 @@
         if(inp.dataset.cf==="openH"||inp.dataset.cf==="openM")v=parseInt(v)||0;
         cityData[editCity][inp.dataset.cf]=v;
       });
-      saveOverrides();showToast("💾 Контакты сохранены");
+      saveOverrides();showToast("Контакты сохранены");
     };
   }
 
@@ -323,7 +323,7 @@
       openCats[ci]=!openCats[ci];
       renderServices(body);
     });
-    body.querySelector("#saveSvc").onclick=()=>{collect();saveOverrides();showToast("💾 Услуги сохранены");refreshActive();};
+    body.querySelector("#saveSvc").onclick=()=>{collect();saveOverrides();showToast("Услуги сохранены");refreshActive();};
     body.querySelector("#addCat").onclick=()=>{collect();const id=Math.max(0,...svc.map(c=>c.id||0))+1;svc.push({id,name:"Новая категория",icon:"📦",rating:4.8,items:[]});openCats[svc.length-1]=true;saveOverrides();renderServices(body);};
     body.querySelectorAll("[data-additem]").forEach(b=>b.onclick=()=>{collect();svc[+b.dataset.additem].items.push({n:"Новая услуга",p:100,m:null});saveOverrides();renderServices(body);});
     body.querySelectorAll("[data-delcat]").forEach(b=>b.onclick=()=>{if(confirm("Удалить категорию целиком?")){collect();svc.splice(+b.dataset.delcat,1);saveOverrides();renderServices(body);}});
@@ -390,7 +390,7 @@
       openDepts[d]=!openDepts[d];
       renderStaff(body);
     });
-    body.querySelector("#saveSt").onclick=()=>{collect();saveOverrides();showToast("💾 Сотрудники сохранены");refreshActive();};
+    body.querySelector("#saveSt").onclick=()=>{collect();saveOverrides();showToast("Сотрудники сохранены");refreshActive();};
     body.querySelector("#addSt").onclick=()=>{collect();staff.push({dept:"",name:"Новый сотрудник",pos:"",ext:"",email:""});saveOverrides();renderStaff(body);};
     body.querySelectorAll("[data-adddeptst]").forEach(b=>b.onclick=()=>{
       const dept=b.dataset.adddeptst;
@@ -398,7 +398,7 @@
       staff.push({dept:dept,name:"Новый сотрудник",pos:"",ext:"",email:""});
       openDepts[dept]=true;
       saveOverrides();
-      showToast("👤 Сотрудник добавлен в «"+dept+"»");
+      showToast("Сотрудник добавлен в «"+dept+"»");
       renderStaff(body);
     });
     body.querySelectorAll("[data-delst]").forEach(b=>b.onclick=()=>{collect();staff.splice(+b.dataset.delst,1);saveOverrides();renderStaff(body);});
@@ -482,7 +482,7 @@
         eventsData.push(obj);
       });
     };
-    body.querySelector("#saveNews").onclick=()=>{collectNews();collectEvents();if(saveOverrides())showToast("💾 Новости и мероприятия сохранены");};
+    body.querySelector("#saveNews").onclick=()=>{collectNews();collectEvents();if(saveOverrides())showToast("Новости и мероприятия сохранены");};
     body.querySelector("#addNews").onclick=()=>{collectNews();collectEvents();newsData.push({date:new Date().toISOString().split("T")[0],tag:"Новость",title:"",text:""});saveOverrides();renderNews(body);};
     body.querySelector("#addEvt").onclick=()=>{collectNews();collectEvents();eventsData.push({id:"ev"+(eventsData.length+1),date:new Date().toISOString().split("T")[0],title:"",place:"",desc:"",seats:0});saveOverrides();renderNews(body);};
     body.querySelectorAll("[data-delnews]").forEach(b=>b.onclick=()=>{collectNews();collectEvents();newsData.splice(+b.dataset.delnews,1);saveOverrides();renderNews(body);});
@@ -495,7 +495,7 @@
         delete newsData[i].image;
         newsData[i].images.push(dataUrl);
         const ok=saveOverrides();
-        if(ok)showToast("💾 Фото добавлено и сохранено");
+        if(ok)showToast("Фото добавлено и сохранено");
         renderNews(body);
       },480);
     });
@@ -547,14 +547,14 @@
       pickAndResizeImage(dataUrl=>{
         galleryData.push({id:"ph"+Date.now(),url:dataUrl,caption:""});
         saveOverrides();
-        showToast("📷 Фото добавлено");
+        showToast("Фото добавлено");
         renderGallery(body);
       },900);
     };
     const saveBtn=body.querySelector("#saveGallery");
     if(saveBtn)saveBtn.onclick=()=>{
       body.querySelectorAll("[data-gi]").forEach(inp=>{galleryData[+inp.dataset.gi].caption=inp.value;});
-      saveOverrides();showToast("💾 Подписи сохранены");
+      saveOverrides();showToast("Подписи сохранены");
     };
     body.querySelectorAll("[data-delphoto]").forEach(b=>b.onclick=()=>{
       body.querySelectorAll("[data-gi]").forEach(inp=>{galleryData[+inp.dataset.gi].caption=inp.value;});
@@ -595,7 +595,7 @@
         if(!emailTemplates[key])emailTemplates[key]={subject:"",intro:""};
         emailTemplates[key][f]=inp.value;
       });
-      saveOverrides();showToast("💾 Шаблоны сохранены");
+      saveOverrides();showToast("Шаблоны сохранены");
     };
     body.querySelector("#resetTemplates").onclick=()=>{
       if(!confirm("Вернуть тексты писем к значениям по умолчанию?"))return;
@@ -659,7 +659,7 @@
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);
     a.download="garmoniya_data.json";a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    showToast("⬇️ Файл выгружен");
+    showToast("Файл выгружен");
   }
   function importJSON(file){
     if(!file)return;
@@ -669,9 +669,9 @@
         const ov=JSON.parse(r.result);
         localStorage.setItem("adminOverrides",JSON.stringify(ov));
         applyOverrides();refreshActive();
-        showToast("✅ Данные загружены");
+        showToast("Данные загружены");
         renderShell(document.getElementById("adminFs"));
-      }catch(e){showToast("❌ Ошибка чтения файла");}
+      }catch(e){showToast("Ошибка чтения файла");}
     };
     r.readAsText(file);
   }

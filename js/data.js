@@ -570,6 +570,44 @@ function getTaxiTariffs(){
   })};
 }
 
+// ═══ ПРАВИЛА СОЦИАЛЬНОГО ТАКСИ ═══
+// Заявку принимают в день, предшествующий поездке, с 08:30 до 12:30.
+// Машина работает с 08:30 до 18:00 — позже подачи нет.
+const TAXI_RULES={orderFrom:"08:30",orderTo:"12:30",rideFrom:"08:30",rideTo:"18:00"};
+function taxiMinutes(hhmm){var p=String(hhmm||"").split(":");return parseInt(p[0]||0)*60+parseInt(p[1]||0);}
+function taxiIso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+// Открыт ли сейчас приём заявок (08:30–12:30).
+function taxiOrderWindowOpen(){
+  var n=new Date(),m=n.getHours()*60+n.getMinutes();
+  return m>=taxiMinutes(TAXI_RULES.orderFrom)&&m<=taxiMinutes(TAXI_RULES.orderTo);
+}
+// Самая ранняя дата поездки: завтра, если успеваем подать заявку до 12:30, иначе послезавтра.
+function taxiEarliestRideDate(){
+  var n=new Date(),m=n.getHours()*60+n.getMinutes();
+  var shift=(m<=taxiMinutes(TAXI_RULES.orderTo))?1:2;
+  var d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+shift);
+  return taxiIso(d);
+}
+// Проверка даты и времени поездки по всем правилам.
+function taxiCheckRide(date,time){
+  if(!date)return {ok:false,code:"date",message:"Укажите дату поездки"};
+  var min=taxiEarliestRideDate();
+  if(date<min)return {ok:false,code:"early",min:min,
+    message:"Заявку принимают накануне поездки с "+TAXI_RULES.orderFrom+" до "+TAXI_RULES.orderTo+
+            ". Ближайшая доступная дата — "+min.split("-").reverse().slice(0,2).join(".")};
+  if(!time)return {ok:false,code:"time",message:"Укажите время подачи"};
+  var t=taxiMinutes(time);
+  if(t<taxiMinutes(TAXI_RULES.rideFrom)||t>taxiMinutes(TAXI_RULES.rideTo))
+    return {ok:false,code:"hours",message:"Машина работает с "+TAXI_RULES.rideFrom+" до "+TAXI_RULES.rideTo+" — выберите время в этом промежутке"};
+  return {ok:true,min:min};
+}
+// Слоты подачи по 30 минут от 08:30 до 18:00.
+function taxiTimeSlots(){
+  var out=[],a=taxiMinutes(TAXI_RULES.rideFrom),b=taxiMinutes(TAXI_RULES.rideTo);
+  for(var m=a;m<=b;m+=30)out.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
+  return out;
+}
+
 // ═══ Бесплатное такси — лимит 96 поездок в год на человека ═══
 const FREE_TAXI_ANNUAL_LIMIT=96;
 // Категории, имеющие право на БЕСПЛАТНУЮ (не льготную) поездку.

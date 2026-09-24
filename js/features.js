@@ -589,7 +589,7 @@ function showAssistant(){
   clearActions();setNav(true);
   document.getElementById("searchBar").classList.add("gone");
   const nm=asstName();
-  addMsg(`<div class="asst-live"><img src="img/bot-live.webp" alt=""></div>Здравствуйте${nm?", "+nm:""}! 👋 Я чат-бот «Гармония». Теперь я умею записывать сразу к нужному специалисту: скажите, например, «запиши меня к психологу», «нужен логопед», «хочу в соляную комнату» или «оформить 3-НДФЛ» — и я открою запись по этому направлению.`,true);
+  addMsg(`<div class="asst-live"><img src="img/bot-live.webp" alt=""></div>Здравствуйте${nm?", "+nm:""}! 👋 Я чат-бот «Гармония». Теперь я умею записывать сразу к нужному специалисту: скажите, например, «запиши меня к психологу», «нужен логопед», «хочу в соляную комнату» или «оформить 3-НДФЛ» — и я открою запись по этому направлению. А ещё оформлю заявку на услугу или закажу социальное такси прямо здесь.`+(typeof cfHints==="function"?cfHints():""),true);
   setTimeout(()=>{
     clearActions();
     const wrap=document.createElement("div");wrap.className="asst-wrap";
@@ -649,11 +649,11 @@ function showNews(){
       const imgs=(n.images&&n.images.length)?n.images:(n.image?[n.image]:[]);
       let mediaHtml="";
       if(imgs.length===1){
-        mediaHtml=`<img src="${imgs[0]}" class="news-img" alt="">`;
+        mediaHtml=`<img src="${imgs[0]}" class="news-img" alt="" loading="lazy" decoding="async">`;
       }else if(imgs.length>1){
         mediaHtml=`<div class="news-carousel" id="newsCarousel${ni}">
           <div class="news-carousel-track" id="newsTrack${ni}">
-            ${imgs.map(src=>`<img src="${src}" class="news-carousel-img" alt="" draggable="false">`).join("")}
+            ${imgs.map(src=>`<img src="${src}" class="news-carousel-img" alt="" draggable="false" loading="lazy" decoding="async">`).join("")}
           </div>
           <div class="news-carousel-counter"><span class="ncc-cur">1</span>/${imgs.length}</div>
           <div class="news-carousel-dots">${imgs.map((_,di)=>`<span class="news-dot${di===0?" active":""}" data-di="${di}" onclick="newsCarouselGoById('newsTrack${ni}',${di})"></span>`).join("")}</div>
@@ -699,7 +699,7 @@ function newsIsLiked(n){return !!(newsGetLikes()[newsId(n)]&&newsGetLikes()[news
 
 function newsPostHeader(n,dateStr){
   return `<div class="news-post-hdr">
-    <img src="img/logo-round.jpg" class="news-post-ava" alt="" onerror="this.style.display='none'">
+    <img src="img/logo-round.jpg" class="news-post-ava" alt="" onerror="this.style.display='none'" loading="lazy" decoding="async">
     <div class="news-post-hdr-txt"><b>Гармония</b><span>${dateStr}${n.tag?" · "+n.tag:""}</span></div>
     ${n.tag?`<span class="news-tag-vk">${n.tag}</span>`:""}
   </div>`;
@@ -741,7 +741,7 @@ function shareNewsItem(id){
   if(!n)return;
   const data={title:"«Гармония» — новости центра",text:n.title,url:location.href};
   if(navigator.share){navigator.share(data).catch(()=>{});}
-  else{navigator.clipboard?.writeText(n.title+" — "+location.href);if(typeof showToast==="function")showToast("📋 Новость скопирована!");}
+  else{navigator.clipboard?.writeText(n.title+" — "+location.href);if(typeof showToast==="function")showToast("Новость скопирована!");}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -749,7 +749,7 @@ function shareNewsItem(id){
 // ═══════════════════════════════════════════════════════════════
 function newsTabsHtml(prefix,activeIsVk){
   return `<div class="news-tabs" id="newsTabs${prefix}">
-    <button class="news-tab-btn${activeIsVk?"":" active"}" onclick="newsTabSwitch('${prefix}','center',this)">📰 Новости центра</button>
+    <button class="news-tab-btn${activeIsVk?"":" active"}" onclick="newsTabSwitch('${prefix}','center',this)">${ico("news")} Новости центра</button>
     <button class="news-tab-btn${activeIsVk?" active":""}" onclick="newsTabSwitch('${prefix}','vk',this)">
       <img src="img/vk-icon.png" class="news-tab-vk-ico" alt="">Группа ВК
     </button>
@@ -893,7 +893,7 @@ function newsCarouselGoById(trackId,idx){
 }
 
 function esiaLogin(){
-  showToast("🔐 Скоро...");
+  showToast("Скоро...");
 
 }
 
@@ -912,12 +912,12 @@ function showCallback(){
     topic.placeholder="Тема обращения (необязательно)";topic.setAttribute("aria-label","Тема обращения");
     const send=document.createElement("button");send.type="button";send.className="book-send";send.textContent="📞 Заказать звонок";
     send.onclick=()=>{
-      const ph=phone.value.trim();if(ph.replace(/\D/g,"").length<7){showToast("⚠️ Укажите телефон");return;}
+      const ph=phone.value.trim();if(ph.replace(/\D/g,"").length<7){showToast("Укажите телефон");return;}
       const body=`${emailTemplates.callback.intro}\nИмя: ${clientName}\nТелефон: ${ph}\nУдобное время: ${time.value}\nТема: ${topic.value||"—"}\nФилиал: г. ${currentCityName}`;
       window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.callback.subject,{name:clientName}))}&body=${encodeURIComponent(body)}`;
       window.GarmoniyaDB?.saveOrder?.({clientName,clientPhone:ph,cityName:currentCityName,total:0,items:[{name:"Обратный звонок ("+time.value+")",qty:1,price:0}]});
       addMsg("✅ Заявка на звонок сформирована. Мы перезвоним в указанное время!",true);
-      showToast("✅ Звонок заказан");
+      showToast("Звонок заказан");
     };
     [["Телефон",phone],["Удобное время",time],["Тема",topic]].forEach(([lbl,el])=>{
       const fld=document.createElement("div");fld.className="book-field";
@@ -940,7 +940,7 @@ function showEvents(){
   }else{
     html+='<div class="ev-list">';
     items.forEach(function(e){
-      html+='<div class="ev-card">'+(e.image?'<img src="'+e.image+'" class="ev-img" alt="">':'')
+      html+='<div class="ev-card">'+(e.image?'<img src="'+e.image+'" class="ev-img" alt="" loading="lazy" decoding="async">':'')
           +'<div class="ev-top"><span class="ev-date">🗓 '+e.date+'</span><span class="ev-seats">мест: '+e.seats+'</span></div>'
           +'<div class="ev-title">'+e.title+'</div><div class="ev-place">📍 '+e.place+'</div><div class="ev-desc">'+e.desc+'</div>'
           +'<button type="button" class="ev-signup-btn" onclick="signupEvent(\''+e.id+'\')">✅ Записаться</button></div>';
@@ -957,5 +957,5 @@ function signupEvent(id){
   window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.event.subject,{title:e.title}))}&body=${encodeURIComponent(body)}`;
   window.GarmoniyaDB?.saveBooking?.({num:"МЕР-"+id,clientName,clientPhone,cityName:currentCityName,dept:"Мероприятие",spec:e.title,visitDate:e.date,visitTime:"",comment:e.place});
   addMsg(`✅ Заявка на участие в «${e.title}» отправлена!`,true);
-  showToast("✅ Вы записаны");
+  showToast("Вы записаны");
 }

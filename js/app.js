@@ -55,7 +55,7 @@ function addMsg(html,isBot=true){
   const r=document.createElement("div");r.className="msg-row "+(isBot?"bot":"usr")+" msg-enter";
   if(isBot){
     const av=document.createElement("div");av.className="msg-avatar";
-    av.innerHTML='<img src="'+randomBotPose()+'" alt="" class="av-img">';
+    av.innerHTML='<img src="'+randomBotPose()+'" alt="" class="av-img" loading="lazy" decoding="async">';
     r.appendChild(av);
   }
   const b=document.createElement("div");b.className="bubble "+(isBot?"bot":"usr");
@@ -81,8 +81,10 @@ function showTyping(cb,delay=360){
   setTimeout(()=>{document.getElementById("typing")?.remove();if(window.garmVT)window.garmVT(cb);else cb();},delay);
 }
 function showToast(msg,dur=2800){
-  const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),dur);
+  const t=document.getElementById("toast");if(!t)return;
+  clearTimeout(t._hideTimer);            // прошлый таймер снимаем, иначе подсказка зависает
+  t.textContent=msg;t.classList.add("show");
+  t._hideTimer=setTimeout(()=>t.classList.remove("show"),dur);
 }
 function showSuccessAnim(text){
   const ovl=document.createElement("div");ovl.className="success-anim-ovl";
@@ -179,7 +181,7 @@ function bindRatings(){
       e.stopPropagation();
       const nr=parseInt(this.dataset.r),sid=this.dataset.sid;
       serviceRatings[sid]=nr;localStorage.setItem("serviceRatings",JSON.stringify(serviceRatings));
-      showToast(`⭐ Спасибо за оценку: ${nr}/5`);
+      showToast(`Спасибо за оценку: ${nr}/5`);
     };
   });
 }
@@ -230,7 +232,7 @@ function addToCart(id,name,price,btn,base,mor){
   saveCart();updateBadge();renderCart();
   if(btn){btn.classList.add("added");btn.textContent="✓";btn.setAttribute("aria-label","Добавлено");
     setTimeout(()=>{btn.classList.remove("added");btn.textContent="+";btn.setAttribute("aria-label","Добавить в корзину");},900);}
-  showToast("✅ Добавлено в корзину");
+  showToast("Добавлено в корзину");
   var cartBtn=document.querySelector(".icb-wrap .icb");
   if(cartBtn){cartBtn.classList.add("cart-pulse");setTimeout(function(){cartBtn.classList.remove("cart-pulse");},600);}
 }
@@ -251,8 +253,8 @@ function isFav(id){return favorites.some(f=>f.id===id);}
 function toggleFav(ev,id,n,p,m,cat){
   if(ev){ev.stopPropagation();}
   const i=favorites.findIndex(f=>f.id===id);
-  if(i>=0){favorites.splice(i,1);showToast("☆ Удалено из избранного");}
-  else{favorites.push({id,n,p,m:(m===null?null:m),cat});showToast("⭐ Добавлено в избранное");}
+  if(i>=0){favorites.splice(i,1);showToast("Удалено из избранного");}
+  else{favorites.push({id,n,p,m:(m===null?null:m),cat});showToast("Добавлено в избранное");}
   saveFav();
   if(ev&&ev.target){ev.target.classList.toggle("on",isFav(id));}
 }
@@ -274,7 +276,7 @@ function repeatOrder(idx){
   document.querySelector(".mo")?.remove();
   document.getElementById("ordersPanel").classList.remove("open");
   openCart();
-  showToast("🛒 Услуги добавлены в корзину");
+  showToast("Услуги добавлены в корзину");
 }
 
 function cancelBooking(idx){
@@ -428,14 +430,14 @@ function doSendOrder(){
   cart=[];saveCart();updateBadge();renderCart();closeCart();
   showSuccessAnim("Заявка отправлена!");
   addMsg("✅ Почтовый клиент открыт. Нажмите «Отправить» — заявка уйдёт специалисту!",true);
-  showToast("✅ Заявка сформирована!");
+  showToast("Заявка сформирована!");
   if(typeof showRating==="function")showRating("order");
 }
 
 function tryShare(){
   const data={title:"Гармония — ЦСОН ЯНАО",text:"Чат-бот социального центра «Гармония» (ЯНАО). Услуги, запись, контакты.",url:location.href};
   if(navigator.share){navigator.share(data).catch(()=>{});}
-  else{navigator.clipboard?.writeText(location.href);showToast("📋 Ссылка скопирована!");}
+  else{navigator.clipboard?.writeText(location.href);showToast("Ссылка скопирована!");}
 }
 
 function initSearch(){
@@ -555,7 +557,7 @@ function showMainMenu(){
       }else if(imgs.length>1){
         mediaHtml='<div class="news-carousel" id="homeNewsCarousel'+ni+'">'
           +'<div class="news-carousel-track" id="homeNewsTrack'+ni+'">'
-          +imgs.map(function(src){return '<img src="'+src+'" class="news-carousel-img" alt="" draggable="false">';}).join("")
+          +imgs.map(function(src){return '<img src="'+src+'" class="news-carousel-img" alt="" draggable="false" loading="lazy" decoding="async">';}).join("")
           +'</div>'
           +'<div class="news-carousel-counter"><span class="ncc-cur">1</span>/'+imgs.length+'</div>'
           +'<div class="news-carousel-dots">'+imgs.map(function(_,di){return '<span class="news-dot'+(di===0?" active":"")+'" onclick="newsCarouselGoById(\'homeNewsTrack'+ni+'\','+di+')"></span>';}).join("")+'</div>'
@@ -810,7 +812,7 @@ function showTaxi(keepState,prefillTo){
   chatEl.appendChild(w);
 
   attachAddressAutocomplete(document.getElementById("taxiFrom"),document.getElementById("taxiFromSuggest"));
-  if(!keepState&&prefillTo)showToast("📍 Адрес назначения подставлен из чата — проверьте и уточните при необходимости");
+  if(!keepState&&prefillTo)showToast("Адрес назначения подставлен из чата — проверьте и уточните при необходимости");
   attachAddressAutocomplete(document.getElementById("taxiTo"),document.getElementById("taxiToSuggest"));
   document.querySelectorAll("#taxiQuickDest .taxi-chip").forEach(function(chip){
     chip.onclick=function(){
@@ -838,7 +840,7 @@ function showTaxi(keepState,prefillTo){
   document.getElementById("taxiNextBtn").onclick=function(){
     const from=document.getElementById("taxiFrom").value.trim();
     const to=document.getElementById("taxiTo").value.trim();
-    if(!from||!to){showToast("⚠️ Укажите адрес отправления и назначения");return;}
+    if(!from||!to){showToast("Укажите адрес отправления и назначения");return;}
     taxiState.from=from;taxiState.to=to;
     showTaxiTariff(tariffs);
   };
@@ -1005,26 +1007,39 @@ function taxiRenderDateTimePicker(){
   const monthNames=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
   const days=[];
   const now=new Date();
-  // Заявки на соцтакси принимаются заранее — не позднее чем за день до поездки,
-  // поэтому доступные даты начинаются с завтрашнего дня.
-  for(let i=1;i<=14;i++){
-    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);
+  // Заявку принимают накануне поездки с 08:30 до 12:30, поэтому первая доступная
+  // дата — завтра, а если приём на сегодня уже закрыт (после 12:30) — послезавтра.
+  const firstIso=taxiEarliestRideDate();
+  const first=new Date(firstIso+"T00:00:00");
+  for(let i=0;i<14;i++){
+    const d=new Date(first.getFullYear(),first.getMonth(),first.getDate()+i);
     days.push(d);
   }
   if(!document.getElementById("taxiPreNote")){
-    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">🕐 Заявки на поездку принимаются заранее — не позднее чем за день до поездки, единое время подачи — 08:30. Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для уточнения деталей.</div>');
+    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">Заявку принимают накануне поездки с '+TAXI_RULES.orderFrom+' до '+TAXI_RULES.orderTo+'. Машина работает с '+TAXI_RULES.rideFrom+' до '+TAXI_RULES.rideTo+'. Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для уточнения деталей.</div>');
   }
   dateScroll.innerHTML=days.map(function(d,i){
     const iso=d.toISOString().split("T")[0];
-    const lbl=i===0?"Завтра":dayNames[d.getDay()];
+    const tomorrowIso=(function(){var n=new Date();var t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);return taxiIso(t);})();
+    const lbl=(iso===tomorrowIso)?"Завтра":dayNames[d.getDay()];
     return '<button type="button" class="taxi-date-chip'+(i===0?" sel":"")+'" data-iso="'+iso+'"><span class="taxi-date-chip-dow">'+lbl+'</span><span class="taxi-date-chip-num">'+d.getDate()+' '+monthNames[d.getMonth()]+'</span></button>';
   }).join("");
   dateHidden.value=days[0].toISOString().split("T")[0];
 
   function renderTimeGrid(selectedIso){
-    // Время подачи такси фиксировано для всех филиалов — 08:30, единственный слот.
-    timeGrid.innerHTML='<button type="button" class="taxi-time-chip sel" data-time="08:30">08:30</button>';
-    timeHidden.value="08:30";
+    // Машина работает с 08:30 до 18:00 — показываем слоты по 30 минут.
+    const slots=taxiTimeSlots();
+    const cur=slots.indexOf(timeHidden.value)>=0?timeHidden.value:slots[0];
+    timeGrid.innerHTML=slots.map(function(t){
+      return '<button type="button" class="taxi-time-chip'+(t===cur?" sel":"")+'" data-time="'+t+'">'+t+'</button>';
+    }).join("");
+    timeHidden.value=cur;
+    timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(b){
+      b.onclick=function(){
+        timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(x){x.classList.remove("sel");});
+        b.classList.add("sel");timeHidden.value=b.dataset.time;
+      };
+    });
   }
   renderTimeGrid(dateHidden.value);
 
@@ -1220,8 +1235,8 @@ function taxiFetchSuggestionsOSM(query,suggestEl,inputEl){
   tryVariant(0);
 }
 function taxiUseMyLocation(inputEl){
-  if(!navigator.geolocation){showToast("⚠️ Геолокация не поддерживается браузером");return;}
-  showToast("📍 Определяю местоположение…");
+  if(!navigator.geolocation){showToast("Геолокация не поддерживается браузером");return;}
+  showToast("Определяю местоположение…");
   navigator.geolocation.getCurrentPosition(function(pos){
     const lat=pos.coords.latitude,lon=pos.coords.longitude;
     if(YANDEX_MAPS_API_KEY){
@@ -1229,23 +1244,54 @@ function taxiUseMyLocation(inputEl){
     }else{
       taxiReverseGeocodeOSM(lat,lon,inputEl);
     }
-  },function(){showToast("⚠️ Доступ к геолокации не разрешён");},{timeout:8000});
+  },function(){showToast("Доступ к геолокации не разрешён");},{timeout:8000});
 }
 function taxiReverseGeocodeYandex(lat,lon,inputEl){
   const url="https://geocode-maps.yandex.ru/1.x/?apikey="+encodeURIComponent(YANDEX_MAPS_API_KEY)+"&geocode="+lon+","+lat+"&format=json&lang=ru_RU&results=1";
   fetch(url).then(function(r){return r.json();}).then(function(data){
     const member=data&&data.response&&data.response.GeoObjectCollection&&data.response.GeoObjectCollection.featureMember;
     const text=member&&member[0]&&member[0].GeoObject&&member[0].GeoObject.metaDataProperty&&member[0].GeoObject.metaDataProperty.GeocoderMetaData&&member[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
-    if(text){inputEl.value=cleanAddressLabel(text);showToast("📍 Адрес определён");}
+    if(text){inputEl.value=cleanAddressLabel(text);showToast("Адрес определён");}
     else taxiReverseGeocodeOSM(lat,lon,inputEl);
   }).catch(function(){taxiReverseGeocodeOSM(lat,lon,inputEl);});
 }
 function taxiReverseGeocodeOSM(lat,lon,inputEl){
   const url="https://nominatim.openstreetmap.org/reverse?format=json&lat="+lat+"&lon="+lon+"&addressdetails=1";
   fetch(url,{headers:{"Accept-Language":"ru"}}).then(function(r){return r.json();}).then(function(data){
-    if(data&&data.display_name){inputEl.value=cleanAddressLabel(data.display_name);showToast("📍 Адрес определён");}
-    else showToast("⚠️ Не удалось определить адрес");
-  }).catch(function(){showToast("⚠️ Не удалось определить адрес");});
+    if(data&&data.display_name){inputEl.value=cleanAddressLabel(data.display_name);showToast("Адрес определён");}
+    else showToast("Не удалось определить адрес");
+  }).catch(function(){showToast("Не удалось определить адрес");});
+}
+
+/* Ядро оформления заказа такси — используется и экраном такси, и чат-ботом.
+   Принимает готовые данные, шлёт письмо, пишет историю и возвращает талон. */
+function taxiSubmitOrder(o){
+  const t=o.tariff, isFree=!!o.isFree;
+  if(isFree)useFreeTaxiTrip();
+  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
+  const ticketNum="ТАК-"+String(ticketCounter).padStart(4,"0");
+  const price=isFree?0:(o.price!=null?o.price:t.base);
+  const cd=cityData[currentCity]||cityData.gubkin;
+  const passengerNames=o.passengerNames||[];
+  const body=`Заказ социального такси\nТалон: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси "+ticketNum+" — "+clientName)}&body=${encodeURIComponent(body)}`;
+  const taxiHistory=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
+  taxiHistory.unshift({
+    num:ticketNum,tariff:t.label,duration:t.duration,price:price,isFree:isFree,from:o.from,to:o.to,
+    pax:o.pax||1,passengerNames:passengerNames,date:o.date,time:o.time,comment:o.comment||"",
+    createdAt:new Date().toISOString(),cityName:currentCityName,status:"new"
+  });
+  localStorage.setItem("taxiHistory",JSON.stringify(taxiHistory));
+  return {ticketNum:ticketNum,price:price,tariff:t,isFree:isFree,
+          freeQuotaAfter:isFree?getFreeTaxiQuota():null};
+}
+
+/* Проверка правила «за сутки»: возвращает часы до подачи и флаг предупреждения. */
+function taxiLeadTimeCheck(date,time){
+  const dt=new Date(date+"T"+(time||"00:00")+":00");
+  if(isNaN(dt))return {ok:false,invalid:true,hours:0};
+  const hours=(dt-Date.now())/36e5;
+  return {ok:hours>=24,hours:Math.round(hours),past:hours<0,invalid:false};
 }
 
 function taxiConfirmBooking(tariffIdx,isFree){
@@ -1267,43 +1313,31 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const pax1Name=(document.getElementById("taxiPax1Name")?.value||clientName||"").trim();
   const pax2Name=pax>1?(document.getElementById("taxiPax2Name")?.value||"").trim():"";
   const passengerNames=[pax1Name,pax2Name].filter(Boolean);
-  if(!from||!to){showToast("⚠️ Укажите адрес отправления и назначения");return;}
-  if(!date||!time){showToast("⚠️ Укажите дату и время поездки");return;}
+  if(!from||!to){showToast("Укажите адрес отправления и назначения");return;}
+  if(!date||!time){showToast("Укажите дату и время поездки");return;}
+  const rules=taxiCheckRide(date,time);
+  if(!rules.ok){showToast(rules.message);return;}
   const existingTaxi=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   const timeConflict=existingTaxi.find(function(o){return o.date===date&&o.time===time&&o.status!=="cancelled";});
   if(timeConflict){
-    showToast("⚠️ На это время у вас уже есть заказ такси ("+timeConflict.num+") — выберите другое время");
+    showToast("На это время у вас уже есть заказ такси ("+timeConflict.num+") — выберите другое время");
     return;
   }
   if(isFree){
     const elig=checkFreeTaxiEligibility();
-    if(!elig.eligible){showToast("⚠️ "+elig.message);return;}
+    if(!elig.eligible){showToast(""+elig.message);return;}
     const q=getFreeTaxiQuota();
-    if(q.remaining<=0){showToast("⚠️ Лимит бесплатных поездок на этот год исчерпан");return;}
+    if(q.remaining<=0){showToast("Лимит бесплатных поездок на этот год исчерпан");return;}
   }
 
-  if(isFree)useFreeTaxiTrip();
-
-  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-  const ticketNum="ТАК-"+String(ticketCounter).padStart(4,"0");
-  const useMor=taxiState.moroshkaView&&t.moroshka!=null;
-  const price=useMor?t.moroshka:t.base;
-  const cd=cityData[currentCity]||cityData.gubkin;
-
-  const body=`Заказ социального такси\nТалон: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${pax} (${passengerNames.join(", ")||"—"})\nОткуда: ${from}\nКуда: ${to}\nДата подачи: ${date}, время: ${time}\nКомментарий: ${comment||"—"}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
-  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси "+ticketNum+" — "+clientName)}&body=${encodeURIComponent(body)}`;
-
-  const taxiHistory=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
-  taxiHistory.unshift({
-    num:ticketNum,tariff:t.label,duration:t.duration,price:price,isFree:!!isFree,from:from,to:to,pax:pax,passengerNames:passengerNames,
-    date:date,time:time,comment:comment,
-    createdAt:new Date().toISOString(),cityName:currentCityName,status:"new"
-  });
-  localStorage.setItem("taxiHistory",JSON.stringify(taxiHistory));
+  const useMor0=taxiState.moroshkaView&&t.moroshka!=null;
+  const res=taxiSubmitOrder({tariff:t,isFree:isFree,price:useMor0?t.moroshka:t.base,
+    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames});
+  const ticketNum=res.ticketNum, price=res.price;
 
   chatEl.innerHTML="";
   showSuccessAnim("Заявка на такси отправлена!");
-  const freeQuotaAfter=isFree?getFreeTaxiQuota():null;
+  const freeQuotaAfter=res.freeQuotaAfter;
   const hasRouteCoords=taxiCoords.from&&taxiCoords.to;
   const w=document.createElement("div");w.className="taxi-page";
   w.innerHTML=`
@@ -1370,7 +1404,7 @@ function showServiceBookingItem(catId){
   const bookingMatch=SERVICE_BOOKING_MAP.find(m=>catNameLower.indexOf(m.match)>=0);
   if(!bookingMatch)return;
   const specialists=staffData.filter(s=>s.pos.toLowerCase().indexOf(bookingMatch.pos)>=0);
-  if(!specialists.length){showToast("⚠️ Специалисты этого профиля сейчас недоступны");return;}
+  if(!specialists.length){showToast("Специалисты этого профиля сейчас недоступны");return;}
 
   clearActions();setNav(true);
   bkState={catKey:cat.id,catId:cat.id,catName:cat.name,serviceItem:null,spec:null,date:null,time:null,comment:"",flow:"service",specialists:specialists};
@@ -1526,7 +1560,7 @@ function showBookingTime(){
 
 function doSendBooking(){
   bkState.comment=(document.getElementById("bkComment")||{}).value||"";
-  if(!bkState.spec||!bkState.date||!bkState.time){showToast("⚠️ Заполните все поля");return;}
+  if(!bkState.spec||!bkState.date||!bkState.time){showToast("Заполните все поля");return;}
   ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
   const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
   const cd2=cityData[currentCity]||cityData.gubkin;
@@ -1552,7 +1586,7 @@ function doSendBooking(){
   chatEl.innerHTML="";
   showSuccessAnim("Запись оформлена!");
   addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${bkState.date}</b> в <b>${bkState.time}</b><br>👤 ${bkState.spec}<br>🏷️ ${bkState.catName}`,true);
-  showToast("✅ Талон "+ticketNum+" сохранён!");
+  showToast("Талон "+ticketNum+" сохранён!");
   clearActions();
   const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
   calBtn.style.width="100%";
@@ -1663,7 +1697,7 @@ function showMoroshkaInfo(){
     addMsg(`<b>Что даёт карта?</b><br>✅ Скидка ~5% на услуги центра<br>✅ Льготы в транспорте и торговле ЯНАО<br>✅ Привилегии в учреждениях региона<br><br><b>Как получить?</b><br>📍 В любом МФЦ ЯНАО<br>🌐 На портале «Госуслуги ЯНАО»<br>📞 МФЦ: 8-800-200-82-00 (бесплатно)<br><span class="note">Оформление бесплатно для жителей ЯНАО</span>`,true);
     const tog=document.createElement("button");tog.className="act-btn gold";
     tog.innerHTML=hasMoroshka?"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Морошка уже активирована ✓":"<img src=\"img/moroshka-logo.jpg\" class=\"moroshka-ico-sm\" alt=\"\"> Активировать скидку";
-    if(!hasMoroshka){tog.onclick=()=>{hasMoroshka=true;localStorage.setItem("hasMoroshka","true");updateMToggle();addMsg('<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Льготные цены активированы!',true);showToast("🍊 Морошка ON");};}
+    if(!hasMoroshka){tog.onclick=()=>{hasMoroshka=true;localStorage.setItem("hasMoroshka","true");updateMToggle();addMsg('<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Льготные цены активированы!',true);showToast("Морошка ON");};}
     else{tog.style.opacity="0.6";tog.disabled=true;}
     actionsEl.appendChild(tog);
   },200);
@@ -1750,14 +1784,14 @@ function showFeedback(){
     };
   });
   w.querySelector("#fbSendBtn").onclick=()=>{
-    if(!fbRating){showToast("⚠️ Поставьте оценку от 1 до 5");return;}
+    if(!fbRating){showToast("Поставьте оценку от 1 до 5");return;}
     const cInp=w.querySelector("#fbComment");
     const body=`${emailTemplates.feedback.intro}\nОценка: ${fbRating}/5 ${"★".repeat(fbRating)}\nТеги: ${fbTags.join(", ")||"—"}\nКомментарий: ${cInp.value||"—"}\n\nОтправитель: ${clientName}\nТелефон: ${clientPhone}\nФилиал: г. ${currentCityName}`;
     window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.feedback.subject,{name:clientName}))}&body=${encodeURIComponent(body)}`;
     chatEl.innerHTML="";
     showSuccessAnim("Спасибо за отзыв!");
     addMsg(`✅ Спасибо за отзыв! ${"⭐".repeat(fbRating)}`,true);
-    showToast("💬 Отзыв отправлен!");
+    showToast("Отзыв отправлен!");
     fbRating=0;fbTags=[];
     clearActions();
   };
@@ -1946,7 +1980,7 @@ function handlePhotoChange(e){
       localStorage.setItem("profilePhoto",dataUrl);
       renderProfilePanel();
       if(typeof window.hdrRefresh==="function")window.hdrRefresh();
-      showToast("📸 Фото обновлено");
+      showToast("Фото обновлено");
     };
     img.src=ev.target.result;
   };
@@ -1994,36 +2028,36 @@ function renderProfilePanel(){
       <button class="prof-chip" onclick="showProfileSection('favorites')"><b>${fav.length}</b><span>Избранное</span></button>
     </div>
 
-    ${!anketaDone?`<button class="prof-nudge" onclick="editQuestionnaire()"><span class="prof-nudge-ico">📋</span><span class="prof-nudge-txt"><b>Заполните анкету получателя</b><span>Данные сами подставятся в заявки и такси</span></span><span class="prof-nudge-arr">→</span></button>`:""}
+    ${!anketaDone?`<button class="prof-nudge" onclick="editQuestionnaire()"><span class="prof-nudge-ico">${ico("list")}</span><span class="prof-nudge-txt"><b>Заполните анкету получателя</b><span>Данные сами подставятся в заявки и такси</span></span><span class="prof-nudge-arr">→</span></button>`:""}
 
     <div class="prof-nav-list">
       <button class="prof-nav-row" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showServices);">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#10b981,#059669)">🛍️</span>
+        <span class="prof-nav-ico">${ico("bag")}</span>
         <span class="prof-nav-txt"><b>Записаться на услуги</b><span>Все услуги центра</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('personal')">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#3F8F87,#5BAA93)">🧑‍💼</span>
+        <span class="prof-nav-ico">${ico("user")}</span>
         <span class="prof-nav-txt"><b>Личные данные и анкета</b><span>${anketaDone?"Заполнена":"Не заполнена"}</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="openProfileSwitcher()">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#2B6570,#3F8F87)">👨‍👩‍👦</span>
+        <span class="prof-nav-ico">${ico("users")}</span>
         <span class="prof-nav-txt"><b>Профили</b><span>Переключение между пользователями</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="showCartStats()">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#5BAA93,#166565)">📊</span>
+        <span class="prof-nav-ico">${ico("chart")}</span>
         <span class="prof-nav-txt"><b>Статистика</b><span>Ваша активность в приложении</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showFeedback);">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#B07A00,#D4920A)">💬</span>
+        <span class="prof-nav-ico">${ico("chat")}</span>
         <span class="prof-nav-txt"><b>Оставить отзыв</b><span>Оценка работы центра</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('settings')">
-        <span class="prof-nav-ico" style="background:linear-gradient(135deg,#3d6b6b,#2d5252)">⚙️</span>
+        <span class="prof-nav-ico">${ico("gear")}</span>
         <span class="prof-nav-txt"><b>Настройки</b><span>Шрифт, филиал, язык, данные</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
@@ -2129,7 +2163,7 @@ function exportMyData(){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
   a.download="my_data_garmoniya.txt";a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  showToast("⬇️ Данные экспортированы");
+  showToast("Данные экспортированы");
 }
 
 function switchTab(which,btn){
@@ -2160,7 +2194,7 @@ function saveMyData(){
   localStorage.setItem("clientName",clientName);
   localStorage.setItem("clientPhone",clientPhone);
   localStorage.setItem("clientSnils",clientSnils);
-  showToast("💾 Данные обновлены");
+  showToast("Данные обновлены");
   document.querySelectorAll(".mo").forEach(function(m){m.remove();});
   if(typeof window.hdrRefresh==="function")window.hdrRefresh();
   renderProfilePanel();
@@ -2208,12 +2242,12 @@ function showAuth(){
     <input type="tel" id="aPhone" class="auth-inp" placeholder="+7 (___) ___-__-__" autocomplete="tel" aria-label="Номер телефона" aria-required="true">
     <label for="aCity" style="position:absolute;opacity:0;pointer-events:none">Филиал</label>
     <select id="aCity" class="auth-inp auth-city-sel" aria-label="Ваш филиал">
-      <option value="gubkin">🏢 г. Губкинский</option>
-      <option value="purpe">🏢 мкр. Пурпе</option>
-      <option value="muravlenko">🏢 г. Муравленко</option>
-      <option value="noyabrsk">🏢 г. Ноябрьск</option>
-      <option value="tarko">🏢 г. Тарко-Сале</option>
-      <option value="urengoy">🏢 пгт. Уренгой</option>
+      <option value="gubkin">г. Губкинский</option>
+      <option value="purpe">мкр. Пурпе</option>
+      <option value="muravlenko">г. Муравленко</option>
+      <option value="noyabrsk">г. Ноябрьск</option>
+      <option value="tarko">г. Тарко-Сале</option>
+      <option value="urengoy">пгт. Уренгой</option>
     </select>
     <div class="cb-row">
       <input type="checkbox" id="aCb" aria-required="true">
@@ -2258,7 +2292,7 @@ function showWelcome(){
       const g=document.createElement("div");g.className="m-grid";
       const yes=document.createElement("button");yes.type="button";yes.className="m-card yes";yes.setAttribute("aria-label","Да, у меня есть карта Морошка");
       yes.innerHTML='<img src="img/moroshka-logo.jpg" class="moroshka-ico-md" alt=""><span>Да, есть карта</span>';
-      yes.onclick=()=>{hasMoroshka=true;localStorage.setItem("hasMoroshka","true");updateMToggle();addMsg('<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Льготные цены активированы!',true);showToast("🍊 Морошка активирована!");setTimeout(showMainMenu,400);};
+      yes.onclick=()=>{hasMoroshka=true;localStorage.setItem("hasMoroshka","true");updateMToggle();addMsg('<img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Льготные цены активированы!',true);showToast("Морошка активирована!");setTimeout(showMainMenu,400);};
       const no=document.createElement("button");no.type="button";no.className="m-card no";no.setAttribute("aria-label","Нет, карты нет");
       no.innerHTML='<img src="img/no-moroshka.jpg" class="moroshka-ico-md" alt=""><span>Нет карты</span>';
       no.onclick=()=>{hasMoroshka=false;localStorage.setItem("hasMoroshka","false");updateMToggle();addMsg("Принято. Базовые цены.",true);setTimeout(showMainMenu,400);};
@@ -2349,21 +2383,21 @@ function showMenuPage(){
   var w=document.createElement("div");w.className="svc-page";
   w.innerHTML=
     '<h2>Все разделы</h2>'+
-    '<div class="sp-item" data-a="services"><span class="sp-ico" style="background:linear-gradient(135deg,#3F8F87,#0d6b6b)">📋</span><div class="sp-txt"><b>Записаться на услуги</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
-    '<div class="sp-item sp-item-taxi" data-a="taxi"><span class="sp-ico sp-ico-taxi" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🚕</span><div class="sp-txt"><b>Такси</b><span>Заказать поездку</span></div><span class="sp-taxi-badge">Новое</span><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item" data-a="services"><span class="sp-ico">'+ico("list")+'</span><div class="sp-txt"><b>Записаться на услуги</b><span>Услуги и цены</span></div><span class="sp-arr">›</span></div>'+
+    '<div class="sp-item sp-item-taxi" data-a="taxi"><span class="sp-ico sp-ico-taxi">'+ico("taxi")+'</span><div class="sp-txt"><b>Такси</b><span>Заказать поездку</span></div><span class="sp-taxi-badge">Новое</span><span class="sp-arr">›</span></div>'+
     '<div class="sp-item" data-a="assistant"><span class="sp-ico sp-ico-photo"><img src="img/bot-tablet.jpg" alt="" class="sp-bot-img"></span><div class="sp-txt"><b>Чат-бот</b><span>Задать вопрос</span></div><span class="sp-arr">›</span></div>'+
     '<div class="sp-more">Услуги и информация</div>'+
     '<div class="sp-grid">'+
-    '<div class="sp-g" data-a="booking"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📅</span><b>Записаться</b></div>'+
-    '<div class="sp-g" data-a="staff"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">👥</span><b>Сотрудники</b></div>'+
-    '<div class="sp-g" data-a="callback"><span class="sp-g-i" style="background:linear-gradient(135deg,#3F8F87,#14b8a6)">📞</span><b>Обратная связь</b></div>'+
-    '<div class="sp-g" data-a="events"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🎟️</span><b>События</b></div>'+
-    '<div class="sp-g" data-a="news"><span class="sp-g-i" style="background:linear-gradient(135deg,#D4920A,#E8A020)">📰</span><b>Новости</b></div>'+
-    '<div class="sp-g" data-a="contacts"><span class="sp-g-i" style="background:linear-gradient(135deg,#B07A00,#D4920A)">📍</span><b>Контакты</b></div>'+
-    '<div class="sp-g" data-a="moroshka"><span class="sp-g-i" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><img src="img/moroshka-logo.jpg" style="width:22px;height:22px;object-fit:contain"></span><b>Морошка</b></div>'+
+    '<div class="sp-g" data-a="booking"><span class="sp-g-i">'+ico("calendar")+'</span><b>Записаться</b></div>'+
+    '<div class="sp-g" data-a="staff"><span class="sp-g-i">'+ico("users")+'</span><b>Сотрудники</b></div>'+
+    '<div class="sp-g" data-a="callback"><span class="sp-g-i">'+ico("phone")+'</span><b>Обратная связь</b></div>'+
+    '<div class="sp-g" data-a="events"><span class="sp-g-i">'+ico("ticket")+'</span><b>События</b></div>'+
+    '<div class="sp-g" data-a="news"><span class="sp-g-i">'+ico("news")+'</span><b>Новости</b></div>'+
+    '<div class="sp-g" data-a="contacts"><span class="sp-g-i">'+ico("pin")+'</span><b>Контакты</b></div>'+
+    '<div class="sp-g" data-a="moroshka"><span class="sp-g-i"><img src="img/moroshka-logo.jpg" style="width:22px;height:22px;object-fit:contain"></span><b>Морошка</b></div>'+
     '<div class="sp-g" data-a="vk"><span class="sp-g-i sp-g-i-vk"><img src="img/vk-icon.png" style="width:24px;height:24px;border-radius:6px;object-fit:contain"></span><b>Группа ВК</b></div>'+
-    '<div class="sp-g" data-a="gallery"><span class="sp-g-i" style="background:linear-gradient(135deg,#166565,#2B6570)">🖼️</span><b>Фотогалерея</b></div>'+
-    '<div class="sp-g" data-a="feedback"><span class="sp-g-i" style="background:linear-gradient(135deg,#10b981,#059669)">⭐</span><b>Отзыв</b></div>'+
+    '<div class="sp-g" data-a="gallery"><span class="sp-g-i">'+ico("image")+'</span><b>Фотогалерея</b></div>'+
+    '<div class="sp-g" data-a="feedback"><span class="sp-g-i">'+ico("star")+'</span><b>Отзыв</b></div>'+
     '</div>';
   chatEl.appendChild(w);
   var acts={services:showServices,booking:showBooking,taxi:showTaxi,staff:showStaff,callback:showCallback,events:showEvents,news:showNews,contacts:showContacts,moroshka:showMoroshkaInfo,feedback:showFeedback,gallery:showGallery};
@@ -2393,7 +2427,7 @@ function selectCity(cityKey,silent){
     // Филиал сменили прямо в кабинете — не выкидываем на главную, обновляем сам кабинет.
     servicesData=branchContent[currentCity].services;staffData=branchContent[currentCity].staff;
     currentCatId=null;currentSvcList=null;
-    showToast(`📍 Филиал: ${cityPrefixed(currentCityName)}`);
+    showToast(`Филиал: ${cityPrefixed(currentCityName)}`);
     if(typeof showProfileSection==="function")showProfileSection("settings");
     return;
   }

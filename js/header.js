@@ -147,7 +147,7 @@
       var a=document.createElement("a"); a.href=url; a.download="zapis-garmoniya.ics";
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function(){ URL.revokeObjectURL(url); },1500);
-      if(typeof showToast==="function")showToast("📅 Событие сохранено в календарь");
+      if(typeof showToast==="function")showToast("Событие сохранено в календарь");
     }catch(e){ if(typeof showToast==="function")showToast("Не удалось создать событие"); }
   }
 

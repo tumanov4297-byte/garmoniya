@@ -1,0 +1,180 @@
+/* ═══════════════════════════════════════════════════════════════
+   «Гармония» — премиальный слой оформления.
+   Подключается последним, меняет только внешний вид.
+   Идея: светлый мятный воздух, белые карточки с тонким контуром,
+   один акцент (бирюза) и золотая волосяная линия как деталь.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --pr-hair:rgba(43,101,112,.09);           /* волосяной контур карточек */
+  --pr-card:0 1px 1px rgba(43,101,112,.04), 0 10px 24px -16px rgba(43,101,112,.30);
+  --pr-card-hi:0 1px 1px rgba(43,101,112,.05), 0 20px 44px -24px rgba(43,101,112,.42);
+  --pr-gold-line:linear-gradient(90deg,rgba(238,205,134,0),#EECD86,rgba(238,205,134,0));
+}
+
+/* ── Общая типографика ── */
+html body{letter-spacing:-.005em}
+html body h2, html body .pl-page h2, html body .cart-hdr h2, html body .ord-hdr h2,
+html body .prof-sec-title{font-size:20px !important;font-weight:700 !important;letter-spacing:-.025em !important}
+html body .sec-title, html body .news-sec-title, html body .sp-sub{
+  font-size:11.5px !important;font-weight:700 !important;letter-spacing:.08em !important;
+  text-transform:uppercase !important;color:var(--it-faint) !important;
+}
+
+/* ── Карточки: волосяной контур + мягкая многослойная тень ── */
+html body .news-card, html body .bot-btn, html body .pcard, html body .card,
+html body .sp-item, html body .sp-g, html body .pl-catcard, html body .cart-item,
+html body .prof-nav-row, html body .prof-chip, html body .set-card, html body .pl-svc-row{
+  border:1px solid var(--pr-hair) !important;box-shadow:var(--pr-card) !important;border-radius:20px !important;
+}
+html body .news-card{border-radius:24px !important;overflow:hidden}
+html body .bot-btn{box-shadow:var(--pr-card-hi) !important}
+
+/* ── Шапка ── */
+html body .hdr{background:rgba(247,251,250,.86) !important;border-bottom:1px solid var(--pr-hair) !important}
+html body .hdr-logo img{width:38px;height:38px}
+html body .hdr-name{font-size:18px !important;font-weight:700 !important;letter-spacing:-.03em !important}
+html body .hdr-city{font-size:12px !important;color:var(--it-faint) !important}
+html body .hdr-ico-btn{box-shadow:0 1px 1px rgba(43,101,112,.05),0 6px 14px -10px rgba(43,101,112,.5) !important;border:1px solid var(--pr-hair) !important}
+html body .hdr-status{border:1px solid var(--pr-hair) !important;font-weight:600 !important}
+html body .hdr-call{box-shadow:0 8px 20px -12px rgba(43,101,112,.75),inset 0 1px 0 rgba(255,255,255,.25) !important}
+
+/* ── Приветственный блок: золотая линия сверху и мягкий свет ── */
+html body .greet-anim{position:relative;border:1px solid var(--pr-hair) !important;border-radius:26px !important;
+  background:linear-gradient(140deg,#FDF8D8 0%,#F2EEC8 22%,#DFF0EA 58%,#C7E2DE 100%) !important;
+  box-shadow:var(--pr-card-hi) !important;overflow:hidden}
+html body .greet-anim::after{content:"";position:absolute;left:18px;right:18px;top:0;height:1px;background:var(--pr-gold-line)}
+html body .ga-hi{color:var(--it-muted) !important;font-weight:600 !important;font-size:12.5px !important}
+html body .ga-name{font-weight:700 !important;letter-spacing:-.03em !important}
+html body .ga-name-accent{height:3px !important;width:40px !important;background:linear-gradient(90deg,#EECD86,rgba(238,205,134,0)) !important}
+html body .ga-sub{color:var(--it-muted) !important}
+
+/* ── Нижнее меню: компактная капсула, ~60px ── */
+html body .tab-bar{
+  background:rgba(255,255,255,.92) !important;backdrop-filter:saturate(1.6) blur(18px) !important;
+  -webkit-backdrop-filter:saturate(1.6) blur(18px) !important;
+  border:1px solid var(--pr-hair) !important;border-radius:18px !important;padding:3px 6px !important;
+  box-shadow:0 1px 1px rgba(43,101,112,.05),0 18px 38px -24px rgba(43,101,112,.55) !important;
+}
+html body .tb::before{display:none !important}
+html body .tb{gap:2px !important;padding:3px 2px 2px !important}
+html body .tb > svg, html body .tb .tb-cart-wrap{
+  width:26px !important;height:26px !important;padding:4.5px !important;border-radius:9px !important;
+  box-sizing:border-box;background:transparent;stroke-width:1.9;
+  transition:background .18s ease,color .18s ease !important;
+}
+html body .tb .tb-cart-wrap > svg{width:18px !important;height:18px !important;padding:0 !important;background:none !important;stroke-width:1.9}
+html body .tb.active > svg, html body .tb.active .tb-cart-wrap{
+  background:var(--it-brand) !important;box-shadow:0 6px 14px -8px rgba(43,101,112,.8) !important;
+}
+html body .tb.active > svg, html body .tb.active .tb-cart-wrap > svg{stroke:#fff !important}
+html body .tb:not(.active) > svg, html body .tb:not(.active) .tb-cart-wrap > svg{stroke:var(--it-muted) !important}
+html body .tb.active{color:var(--it-ink) !important}
+html body .tb span{font-size:9px !important;font-weight:600 !important;line-height:1.25 !important;letter-spacing:-.01em !important}
+html body .tb.active span{font-weight:700 !important}
+html body .tb-badge{top:-4px !important;right:-7px !important;min-width:14px !important;height:14px !important;
+  font-size:8px !important;font-weight:800 !important;border:1.5px solid #fff !important}
+
+/* ── Кнопки ── */
+html body .act-btn.teal, html body .auth-btn, html body .svc-book-btn, html body .cart-send{
+  box-shadow:0 14px 30px -16px rgba(43,101,112,.85),inset 0 1px 0 rgba(255,255,255,.28) !important;
+  letter-spacing:-.01em !important;
+}
+html body .pl-add{width:38px !important;height:38px !important;border-radius:13px !important}
+
+/* ── Списки услуг: волосяные разделители вместо жирных ── */
+html body .pl-svc-row{border-radius:16px !important}
+html body .pl-catcard{padding:13px 14px !important}
+html body .pl-catcard-txt b{font-weight:600 !important;letter-spacing:-.015em !important}
+
+/* ── Панели ── */
+html body .cart-hdr, html body .ord-hdr, html body .prof-hdr{border-bottom:1px solid var(--pr-hair) !important}
+html body .prof-cover{position:relative;border-radius:0 0 28px 28px !important;
+  background:linear-gradient(140deg,#FDF8D8 0%,#F2EEC8 24%,#DFF0EA 60%,#C7E2DE 100%) !important}
+html body .prof-cover::after{content:"";position:absolute;left:24px;right:24px;bottom:0;height:1px;background:var(--pr-gold-line)}
+html body .prof-ava{box-shadow:0 0 0 4px #fff,0 16px 30px -18px rgba(43,101,112,.8) !important;border:0 !important}
+html body .prof-chip{padding:10px 6px !important}
+
+/* ── Сообщения чата ── */
+html body .bubble.bot{border:1px solid var(--pr-hair) !important;box-shadow:var(--pr-card) !important;border-radius:20px 20px 20px 6px !important}
+html body .bubble.usr{border-radius:20px 20px 6px 20px !important}
+
+/* ── Подсказка ── */
+html body .toast{box-shadow:0 16px 34px -18px rgba(43,101,112,.9) !important;padding:11px 18px !important;font-size:13.5px !important;
+  white-space:normal !important;line-height:1.35 !important;word-break:break-word !important}
+
+/* ── Поле ввода в чате ── */
+html body .asst-input-row{box-shadow:var(--pr-card-hi) !important;border-color:var(--pr-hair) !important}
+
+/* ── Аккуратные отступы контента ── */
+html body .chat{padding-left:14px !important;padding-right:14px !important}
+
+/* ── Экран загрузки ── */
+html body .app-splash{
+  background:#F4F9F7 !important;
+  background-image:
+    radial-gradient(760px 460px at -10% -8%,rgba(252,246,186,.75),transparent 60%),
+    radial-gradient(700px 460px at 110% -4%,rgba(182,214,213,.75),transparent 58%),
+    radial-gradient(620px 430px at 50% 112%,rgba(188,215,180,.45),transparent 62%) !important;
+}
+html body .splash-core{width:124px;height:124px}
+html body .splash-ring{border:1.5px solid rgba(63,143,135,.22) !important;inset:-6px !important}
+html body .splash-logo{
+  width:88px !important;height:88px !important;border-radius:26px !important;padding:12px !important;
+  background:#fff !important;box-shadow:0 2px 2px rgba(43,101,112,.04),0 26px 50px -26px rgba(43,101,112,.55) !important;
+}
+html body .splash-name{
+  margin-top:22px !important;color:var(--it-ink) !important;font-weight:700 !important;
+  font-size:27px !important;letter-spacing:-.03em !important;text-shadow:none !important;
+}
+html body .splash-sub{
+  color:var(--it-muted) !important;font-size:12.5px !important;font-weight:600 !important;
+  letter-spacing:.02em !important;text-shadow:none !important;position:relative;padding-bottom:26px;
+}
+/* золотая волосяная линия + бегущий индикатор загрузки */
+html body .splash-sub::before{
+  content:"";position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
+  width:56px;height:1px;background:linear-gradient(90deg,rgba(238,205,134,0),#EECD86,rgba(238,205,134,0));
+}
+html body .splash-sub::after{
+  content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:132px;height:3px;border-radius:3px;background:rgba(63,143,135,.14);overflow:hidden;
+}
+html body .app-splash::after{
+  content:"";position:absolute;left:50%;bottom:calc(50% - 116px);
+  width:132px;height:3px;border-radius:3px;overflow:hidden;
+  background:linear-gradient(90deg,rgba(63,143,135,0) 0%,#5BAA93 35%,#2B6570 65%,rgba(63,143,135,0) 100%);
+  background-size:220% 100%;animation:splashBar 1.25s ease-in-out infinite;
+  transform:translateX(-50%);
+}
+@keyframes splashBar{0%{background-position:120% 0}100%{background-position:-20% 0}}
+@media (prefers-reduced-motion:reduce){html body .app-splash::after{animation:none}}
+
+/* ── Карточки чат-бота: заявка, такси, услуга ── */
+html body .cf-card{
+  margin:10px 0 2px;background:var(--it-surface2);border:1px solid var(--pr-hair);
+  border-radius:16px;padding:12px 14px;
+}
+html body .cf-card-ttl{font-weight:700;color:var(--it-ink);letter-spacing:-.02em;margin-bottom:8px;line-height:1.3}
+html body .cf-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  padding:5px 0;border-top:1px solid var(--pr-hair);font-size:13.5px}
+html body .cf-row:first-child{border-top:0}
+html body .cf-row span{color:var(--it-muted);flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+html body .cf-row b{flex:0 0 auto}
+html body .cf-row b{color:var(--it-ink);text-align:right;font-weight:600}
+html body .cf-total{margin-top:2px}
+html body .cf-total span, html body .cf-total b{font-size:15px;font-weight:700;color:var(--it-ink)}
+html body .cf-mor{color:var(--it-accent);font-size:12.5px}
+html body .cf-warn{
+  background:linear-gradient(135deg,rgba(252,246,186,.75),rgba(238,205,134,.28));
+  border:1px solid #F0DFA8;border-radius:14px;padding:10px 13px;margin:2px 0 10px;
+  font-size:13.5px;line-height:1.45;color:#5B4312;
+}
+html body .cf-warn b{color:#4A3610}
+
+/* Кнопки-варианты в чате: длинные названия услуг переносятся, а не наезжают */
+html body .asst-actions{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+html body .asst-actions .act-btn{
+  white-space:normal !important;height:auto !important;min-height:44px;line-height:1.32 !important;
+  text-align:left !important;padding:11px 16px !important;width:100% !important;font-size:14px !important;
+}
+html body .asst-actions .act-btn.outline{background:var(--it-surface) !important;border:1px solid var(--pr-hair) !important;box-shadow:var(--pr-card) !important}

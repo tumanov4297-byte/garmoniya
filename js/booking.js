@@ -818,6 +818,6 @@ function structPickItem(catId,si,ii){
   }else if(specs.length>1){
     showBookingSpecialist(specs);
   }else{
-    showToast("⚠️ Специалист этого направления сейчас недоступен");
+    showToast("Специалист этого направления сейчас недоступен");
   }
 }

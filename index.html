@@ -21,15 +21,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Гармония">
+<link rel="icon" type="image/png" href="img/logo-icon.png">
 <link rel="apple-touch-icon" href="img/logo-icon.png">
 <title>Гармония — помощник ЦСОН</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20260923b">
-<link rel="stylesheet" href="css/enhance.css?v=20260923b">
-<link rel="stylesheet" href="css/it-theme.css?v=20260923b">
+<link rel="preload" href="fonts/onest-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/onest-cyrillic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/styles.css?v=20260924f">
+<link rel="stylesheet" href="css/enhance.css?v=20260924f">
+<link rel="stylesheet" href="css/it-theme.css?v=20260924f">
+<link rel="stylesheet" href="css/premium.css?v=20260924f">
 
 <!-- Leaflet больше не грузится в <head> (блокировал первую отрисовку).
      Карта маршрута такси подгружает его по требованию — см. ensureLeaflet(). -->
@@ -156,18 +156,7 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="assertive"></div>
-<script src="js/enhance.js?v=20260923b"></script>
-<script src="js/data.js?v=20260923b"></script>
-<script src="js/booking.js?v=20260923b"></script>
-<script src="js/db.js?v=20260923b"></script>
-<script src="js/extras.js?v=20260923b"></script>
-<script src="js/features.js?v=20260923b"></script>
-<script src="js/admin.js?v=20260923b"></script>
-<script src="js/app.js?v=20260923b"></script>
-<script src="js/header.js?v=20260923b"></script>
-<script src="js/polish.js?v=20260923b"></script>
-<script src="js/extra.js?v=20260923b"></script>
-<script src="js/tabdrag.js?v=20260923b"></script>
-<script src="js/navfix.js?v=20260923b"></script>
+<!-- Все скрипты собраны в js/bundle.js (см. build.py). defer — чтобы не блокировать отрисовку. -->
+<script defer src="js/bundle.js?v=20260924f"></script>
 </body>
 </html>

@@ -2,14 +2,14 @@
    Стратегия network-first: всегда сначала сеть (никогда не отдаёт устаревшее,
    пока есть интернет), кэш — только резерв для офлайна. Это безопасно при
    частых обновлениях сайта: свежие файлы подхватываются сразу. */
-var CACHE = "garmoniya-v9";
+var CACHE = "garmoniya-v23";
 var CORE = [
-  "./","./index.html",
+  "./","./index.html","./js/bundle.js",
   "./css/styles.css",
-  "./js/data.js","./js/booking.js","./js/db.js","./js/extras.js",
-  "./js/features.js","./js/admin.js","./js/app.js","./js/header.js",
-  "./js/polish.js","./js/extra.js",
-  "./css/enhance.css","./css/it-theme.css","./js/enhance.js","./js/tabdrag.js","./js/navfix.js",
+  
+  
+  
+  "./css/enhance.css","./css/it-theme.css","./css/premium.css","./fonts/onest-cyrillic-400-normal.woff2","./fonts/onest-latin-400-normal.woff2","./fonts/onest-cyrillic-500-normal.woff2","./fonts/onest-latin-500-normal.woff2","./fonts/onest-cyrillic-600-normal.woff2","./fonts/onest-latin-600-normal.woff2","./fonts/onest-cyrillic-700-normal.woff2","./fonts/onest-latin-700-normal.woff2","./fonts/onest-cyrillic-800-normal.woff2","./fonts/onest-latin-800-normal.woff2",
   "./manifest.json","./img/logo-icon.png"
 ];
 

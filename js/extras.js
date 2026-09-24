@@ -82,7 +82,7 @@ function activateProfile(idx){
   localStorage.setItem("clientPhone",clientPhone);
   localStorage.setItem("clientSnils",clientSnils);
   localStorage.setItem("activeProfile",String(idx));
-  showToast("👤 "+p.name);
+  showToast(""+p.name);
   document.querySelector(".mo")?.remove();
   if(typeof showMainMenu==="function")setTimeout(showMainMenu,200);
 }
@@ -187,7 +187,7 @@ function exportToCalendar(booking){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
   a.download=(booking.num||"visit")+".ics";a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  showToast("📅 Добавлено в календарь");
+  showToast("Добавлено в календарь");
 }
 
 function trackCartAdd(name){
@@ -207,7 +207,7 @@ function getTopServices(n){
 
 function showCartStats(){
   const top=getTopServices(10);
-  if(!top.length){showToast("📊 Пока нет данных");return;}
+  if(!top.length){showToast("Пока нет данных");return;}
   const modal=document.createElement("div");modal.className="mo";modal.setAttribute("role","dialog");
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
   const maxVal=top[0][1];
@@ -374,7 +374,7 @@ function switchLang(lang){
   localStorage.setItem("lang",lang);
   const sel=document.getElementById("langSel");
   if(sel)sel.value=lang;
-  showToast("🌐 "+t("lang_name"));
+  showToast(""+t("lang_name"));
   applyTabBarLabels();
 
   const doc=document;
@@ -626,7 +626,7 @@ function editQuestionnaire(){
     };
     localStorage.setItem("userProfile",JSON.stringify(data));
     localStorage.setItem("questionnaireDone","1");
-    showToast("💾 Анкета сохранена — данные подставятся автоматически");
+    showToast("Анкета сохранена — данные подставятся автоматически");
     ovl.remove();
     if(typeof renderProfilePanel==="function"&&document.getElementById("profBody"))renderProfilePanel();
     const gaName=document.querySelector(".ga-name");if(gaName)gaName.textContent=clientName;

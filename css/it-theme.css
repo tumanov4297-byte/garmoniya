@@ -1,3 +1,35 @@
+/* Шрифт Onest лежит в проекте: работает офлайн и без Google Fonts */
+@font-face{font-family:"Onest";font-style:normal;font-weight:400;font-display:swap;
+  src:url("../fonts/onest-cyrillic-400-normal.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:400;font-display:swap;
+  src:url("../fonts/onest-latin-400-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+2122,U+2191,U+2193,U+2212,U+2215;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:500;font-display:swap;
+  src:url("../fonts/onest-cyrillic-500-normal.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:500;font-display:swap;
+  src:url("../fonts/onest-latin-500-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+2122,U+2191,U+2193,U+2212,U+2215;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:600;font-display:swap;
+  src:url("../fonts/onest-cyrillic-600-normal.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:600;font-display:swap;
+  src:url("../fonts/onest-latin-600-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+2122,U+2191,U+2193,U+2212,U+2215;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:700;font-display:swap;
+  src:url("../fonts/onest-cyrillic-700-normal.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:700;font-display:swap;
+  src:url("../fonts/onest-latin-700-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+2122,U+2191,U+2193,U+2212,U+2215;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:800;font-display:swap;
+  src:url("../fonts/onest-cyrillic-800-normal.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:800;font-display:swap;
+  src:url("../fonts/onest-latin-800-normal.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+2122,U+2191,U+2193,U+2212,U+2215;}
+
 /* ═══════════════════════════════════════════════════════════════════
    Оформление «Гармония IT» для чат-бота «Гармония».
    Подключается ПОСЛЕДНИМ. Меняет только внешний вид: цвета, шрифт,
@@ -245,4 +277,80 @@ html body .cart-total{color:var(--it-ink) !important}
 html body .cart-note, html body .cart-save{background:var(--it-surface2) !important;border:0 !important;border-left:3px solid var(--it-accent) !important;border-radius:14px !important;color:var(--it-muted) !important}
 
 /* Тост — под шапкой, не закрывает заголовки и кнопки */
-html body .toast{top:calc(env(safe-area-inset-top,0px) + 76px) !important;bottom:auto !important}
+
+
+/* Линейные иконки в чипах */
+html body .ic{width:22px;height:22px;display:block;color:var(--it-accent)}
+html body .sp-ico .ic, html body .sp-g-i .ic, html body .prof-nav-ico .ic{color:var(--it-accent)}
+html body .prof-nudge-ico .ic{color:#8A6A1F}
+html body .sp-ico, html body .prof-nav-ico, html body .sp-g-i{display:flex;align-items:center;justify-content:center}
+
+/* ── Вход: строгий стиль «Гармонии» ── */
+html body .auth-card{padding:26px 22px 20px !important;max-width:360px !important}
+html body .auth-logo-wrap{background:transparent !important;box-shadow:none !important;border:0 !important}
+html body .org-name{color:var(--it-muted) !important;letter-spacing:.06em !important;font-size:11px !important;font-weight:600 !important;text-transform:uppercase}
+html body .auth-h{color:var(--it-ink) !important;font-size:23px !important;font-weight:700 !important;letter-spacing:-.02em !important;margin:6px 0 6px !important}
+html body .auth-sub{color:var(--it-muted) !important;font-size:13.5px !important;line-height:1.45 !important}
+html body .auth-inp{height:50px !important;font-size:15px !important;margin-bottom:10px !important}
+html body .auth-inp::placeholder{color:var(--it-faint) !important}
+html body .cb-row{color:var(--it-muted) !important;font-size:12.5px !important;line-height:1.4 !important}
+html body .cb-row a{color:var(--it-accent) !important;text-decoration:underline;text-underline-offset:2px}
+html body .cb-row input[type=checkbox]{accent-color:var(--it-accent);width:20px;height:20px}
+html body .auth-btn{height:52px !important;border-radius:999px !important;font-size:16px !important;font-weight:700 !important}
+html body .auth-btn:disabled{background:var(--it-surface2) !important;color:var(--it-faint) !important;box-shadow:none !important;opacity:1 !important}
+/* Госуслуги — вторичная кнопка: не перетягивает внимание с основного входа */
+html body .auth-esia{background:var(--it-surface) !important;color:var(--it-ink) !important;
+  border:1.5px solid var(--it-line) !important;border-radius:999px !important;height:50px !important;
+  font-weight:600 !important;font-size:14.5px !important;box-shadow:none !important}
+html body .auth-esia:active{background:var(--it-surface2) !important}
+html body .esia-logo{width:24px !important;height:24px !important;border-radius:6px !important}
+html body .auth-skip{color:var(--it-muted) !important;font-weight:600 !important;text-decoration:none !important;padding:10px !important}
+html body .auth-skip:active{color:var(--it-accent) !important}
+
+/* ── Онбординг ── */
+html body .onb-card, html body .onb-modal .mc{background:var(--it-surface) !important;border-radius:28px !important;box-shadow:var(--it-shadow-lg) !important;border:0 !important}
+html body .onb-title{color:var(--it-ink) !important;letter-spacing:-.02em !important}
+html body .onb-text{color:var(--it-muted) !important}
+html body .onb-dot{background:var(--it-line) !important}
+html body .onb-dot.on{background:var(--it-accent) !important}
+html body .onb-next{background:var(--it-brand) !important;color:#fff !important;border:0 !important;border-radius:999px !important;box-shadow:0 12px 26px -14px rgba(43,101,112,.7) !important}
+html body .onb-skip{background:var(--it-surface2) !important;color:var(--it-ink) !important;border:0 !important;border-radius:999px !important}
+
+/* ═══════ Нижнее меню: без «бегающей» капли ═══════ */
+html body .tb-pill, html body .tb-pill-drag{display:none !important}
+html body .tab-bar{padding:6px !important;border-radius:22px !important}
+html body .tb{position:relative;z-index:1;color:var(--it-muted) !important;gap:4px !important;padding:8px 4px 7px !important;border-radius:16px !important;transition:color .15s ease !important}
+html body .tb::before{content:"";position:absolute;inset:2px;border-radius:14px;background:transparent;transition:background .15s ease;z-index:-1}
+html body .tb.active::before{background:var(--it-accent-soft)}
+html body .tb.active{color:var(--it-ink) !important;text-shadow:none !important}
+html body .tb.active svg{stroke:var(--it-accent) !important;transform:none !important;filter:none !important}
+html body .tb svg{transition:none !important}
+html body .tb span{transition:none !important;transform:none !important;font-size:11px !important;font-weight:600 !important}
+html body .tb.active span{transform:none !important}
+html body .tb:active{opacity:1 !important;transform:none !important}
+html body .tb-badge{background:var(--it-gold) !important;color:var(--it-amber-ink) !important;box-shadow:none !important;border:1.5px solid #fff !important}
+
+/* ═══════ Поле ввода в чате: одна рамка вместо двух ═══════ */
+html body .asst-input-row{background:var(--it-surface) !important;border:1.5px solid var(--it-line) !important;
+  border-radius:999px !important;padding:5px 6px 5px 16px !important;box-shadow:var(--it-shadow) !important;gap:8px !important}
+html body .asst-input-row:focus-within{border-color:var(--it-accent) !important;box-shadow:0 0 0 3px rgba(63,143,135,.12) !important}
+html body .asst-input{background:transparent !important;border:0 !important;border-radius:0 !important;
+  padding:10px 0 !important;font-size:16px !important;color:var(--it-ink) !important;box-shadow:none !important}
+html body .asst-input:focus{background:transparent !important;border:0 !important;box-shadow:none !important}
+html body .asst-input::placeholder{color:var(--it-faint) !important}
+html body .asst-send{width:42px !important;height:42px !important;border-radius:50% !important;background:var(--it-brand) !important;
+  color:#fff !important;box-shadow:0 8px 18px -10px rgba(43,101,112,.6) !important;font-size:15px !important}
+html body .asst-send:hover{transform:none !important}
+html body .asst-send:active{transform:scale(.94) !important}
+
+/* ═══════ Подсказки (тосты): снизу, над меню, не липнут к шапке ═══════ */
+html body .toast{
+  top:calc(env(safe-area-inset-top,0px) + 104px) !important;bottom:auto !important;
+  transform:translateX(-50%) translateY(-16px) !important;opacity:0 !important;
+  transition:transform .26s cubic-bezier(.16,1,.3,1),opacity .26s ease !important;
+  max-width:min(340px,86vw) !important;text-align:center !important;font-weight:600 !important;
+  pointer-events:none !important;z-index:1200 !important;
+}
+html body .toast.show{transform:translateX(-50%) translateY(0) !important;opacity:1 !important}
+html body .news-tab-btn{display:inline-flex;align-items:center;gap:7px}
+html body .news-tab-btn .ic{width:18px;height:18px;color:currentColor}
