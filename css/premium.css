@@ -155,11 +155,11 @@ html body .cf-card{
   border-radius:16px;padding:12px 14px;
 }
 html body .cf-card-ttl{font-weight:700;color:var(--it-ink);letter-spacing:-.02em;margin-bottom:8px;line-height:1.3}
-html body .cf-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
-  padding:5px 0;border-top:1px solid var(--pr-hair);font-size:13.5px}
+html body .cf-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;align-items:baseline;
+  padding:6px 0;border-top:1px solid var(--pr-hair);font-size:13.5px}
 html body .cf-row:first-child{border-top:0}
-html body .cf-row span{color:var(--it-muted);flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
-html body .cf-row b{flex:0 0 auto}
+html body .cf-row span{color:var(--it-muted);flex:0 0 auto;white-space:nowrap}
+html body .cf-row b{flex:1 1 auto;min-width:0;text-align:right;overflow-wrap:anywhere}
 html body .cf-row b{color:var(--it-ink);text-align:right;font-weight:600}
 html body .cf-total{margin-top:2px}
 html body .cf-total span, html body .cf-total b{font-size:15px;font-weight:700;color:var(--it-ink)}
@@ -178,3 +178,11 @@ html body .asst-actions .act-btn{
   text-align:left !important;padding:11px 16px !important;width:100% !important;font-size:14px !important;
 }
 html body .asst-actions .act-btn.outline{background:var(--it-surface) !important;border:1px solid var(--pr-hair) !important;box-shadow:var(--pr-card) !important}
+
+/* Плашка статуса: текст помещается целиком */
+html body .hdr-status{max-width:none !important;flex:0 1 auto;min-width:0}
+html body .hdr-status-txt{overflow:visible !important;text-overflow:clip !important;white-space:nowrap;font-size:12px !important}
+
+/* Кнопка «наверх» не перекрывает кнопки в чате */
+html body #backTop{bottom:calc(env(safe-area-inset-bottom,0px) + 122px) !important;right:12px !important;
+  width:40px !important;height:40px !important;opacity:.92}

@@ -76,8 +76,9 @@
       if(nx){
         var diff=(nx.at-now)/60000;
         var openStr=cd.openH+":"+String(cd.openM).padStart(2,"0");
+        // Коротко, чтобы строка помещалась в плашку рядом с кнопкой звонка
         txt.innerHTML = diff<=180
-          ? "Закрыто · откроется через "+fmtDur(diff)
+          ? "Закрыто · через "+fmtDur(diff)
           : "Закрыто · "+nx.label+" в "+openStr;
       }else{
         txt.textContent="Закрыто";

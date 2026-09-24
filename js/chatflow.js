@@ -331,7 +331,8 @@
       '<div class="cf-row"><span>Пассажиров</span><b>' + (d.pax||1) + "</b></div>" +
       '<div class="cf-row"><span>Тариф</span><b>' + esc(d.tariff.label) + "</b></div>" +
       '<div class="cf-row cf-total"><span>Стоимость</span><b>' + (d.isFree ? "Бесплатно" : money(d.price)) + "</b></div>" +
-      '<div class="cf-row"><span>Получатель</span><b>' + esc(clientName) + " · " + esc(clientPhone) + "</b></div></div>" +
+      '<div class="cf-row"><span>Получатель</span><b>' + esc(clientName) + "</b></div>" +
+      '<div class="cf-row"><span>Телефон</span><b>' + esc(clientPhone) + "</b></div></div>" +
       row([
         btn("Отправить заказ", function(){ return taxiSend(); }, { echo:"Отправить заказ" }),
         btn("Отменить", function(){ reset(); return "Отменил. Если понадобится — напишите «такси», начнём заново."; }, { cl:"outline" })
