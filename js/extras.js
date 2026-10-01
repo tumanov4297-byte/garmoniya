@@ -484,6 +484,13 @@ function showSeasonalGreeting(){
   setTimeout(()=>{
     if(typeof addMsg==="function"){
       addMsg(`<div class="seasonal-card"><span class="seasonal-emoji">${g.emoji}</span>${g.text}</div>`,true);
+      // Поздравление ставим в начало ленты и не уводим экран вниз — главная открывается сверху.
+      setTimeout(function(){
+        const ch=document.getElementById("chat");if(!ch)return;
+        const rows=ch.querySelectorAll(".msg-row");const r=rows[rows.length-1];
+        if(r&&ch.firstChild!==r)ch.insertBefore(r,ch.firstChild);
+        ch.scrollTo({top:0,behavior:"auto"});
+      },80);
     }
   },600);
 }
@@ -492,7 +499,6 @@ function showOnboarding(){
   if(localStorage.getItem("onboardingDone"))return;
   const steps=[
     {emoji:"👋",title:"Добро пожаловать!",text:"Я — чат-бот центра «Гармония». Помогу с услугами, записью, такси и вопросами."},
-    {emoji:"📋",title:"Анкета получателя",text:"Заполните анкету один раз в личном кабинете — ФИО, СНИЛС и данные сами подставятся в заявки."},
     {emoji:"📖",title:"Запись на услуги",text:"В разделе «Записаться на услуги» — все услуги с ценами. Нажмите ★, чтобы добавить в избранное."},
     {emoji:"💬",title:"Чат-бот",text:"Нажмите «Спросить чат-бот» и задайте вопрос своими словами — подскажу нужный раздел."},
     {emoji:"🚕",title:"Такси",text:"Закажите поездку с сопровождением или без. Есть бесплатный тариф для льготных категорий."},
@@ -528,16 +534,15 @@ function showOnboarding(){
   document.body.appendChild(ovl);
 }
 
-function offerQuestionnaireAfterOnboarding(){
-  if(localStorage.getItem("questionnaireDone"))return;
-  setTimeout(function(){editQuestionnaire();},450);
-}
+// Анкета получателя больше не всплывает после знакомства: нужные данные
+// спрашиваются прямо в заявке (карточка «Получатель», см. rcpMount ниже).
+function offerQuestionnaireAfterOnboarding(){}
 
 function showLiveChat(){
   if(typeof clearActions==="function")clearActions();
   if(typeof setNav==="function")setNav(true);
   document.getElementById("searchBar")?.classList.add("gone");
-  if(typeof addMsg==="function")addMsg("💬 Связаться с оператором. Выберите удобный способ — специалист ответит в рабочее время (Пн–Пт, 08:30–18:00).",true);
+  if(typeof addMsg==="function")addMsg("💬 Связаться с оператором. Выберите удобный способ — специалист ответит в рабочее время (Пн–Пт, 08:30–18:00, обед 12:30–14:00).",true);
   setTimeout(()=>{
     const cd=(typeof cityData!=="undefined"&&typeof currentCity!=="undefined")?cityData[currentCity]:{};
     const phone=cd.phoneRaw||"73493627077";
@@ -558,77 +563,374 @@ function showLiveChat(){
   },200);
 }
 
-function editQuestionnaire(){
+/* ═══ Анкета получателя — пошагово ═══
+   Один вопрос на экран, крупные поля, «Далее»/«Назад», необязательные шаги
+   можно пропустить, в конце — проверка всего с кнопками «Изменить». */
+function fmtBirth(iso){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"");return m?m[3]+"."+m[2]+"."+m[1]:(iso||"");
+}
+function editQuestionnaire(startStep){
   document.querySelectorAll(".mo").forEach(m=>m.remove());
-  let p={};try{p=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
-  const cats=[
-    ["pensioner","Пенсионер","👴"],["disabled","Инвалид","♿"],
-    ["family","Семья с детьми","👨‍👩‍👧"],["large_family","Многодетная семья","👨‍👩‍👧‍👦"],
-    ["veteran","Ветеран","🎖️"],["other","Другое","📋"]
+  const prof=rcpProfile();
+  const d={
+    name:recipientHasName()?clientName:"",
+    phone:recipientHasPhone()?formatPhone(clientPhone):"",
+    snils:(clientSnils&&clientSnils!=="—")?formatSnils(clientSnils):"",
+    birth:fmtBirth(prof.birthDate||""),
+    category:prof.category||"",
+    address:prof.address||"",
+    contactName:prof.contactName||"",contactPhone:prof.contactPhone||"",
+    note:prof.note||""
+  };
+  const STEPS=[
+    {key:"who",ico:"🪪",title:"Как вас зовут?",sub:"ФИО и телефон нужны, чтобы специалист мог связаться с вами."},
+    {key:"docs",ico:"📇",title:"СНИЛС и дата рождения",sub:"Нужны для льготной поездки на такси и оформления соцуслуг. Можно заполнить позже.",optional:true},
+    {key:"cat",ico:"🏷️",title:"К какой категории вы относитесь?",sub:"От категории зависят льготы. Выберите один вариант."},
+    {key:"addr",ico:"🏠",title:"Где вы живёте?",sub:"Адрес нужен для услуг на дому и такси.",optional:true},
+    {key:"extra",ico:"👤",title:"Кому позвонить, если вы не ответите?",sub:"Родственник или сосед. Можно пропустить.",optional:true},
+    {key:"check",ico:"✅",title:"Проверьте данные",sub:"Если что-то не так — нажмите «Изменить»."}
   ];
-  let selectedCat=p.category||"";
-  const ovl=document.createElement("div");ovl.className="mo";
+  // Уже заполненную анкету открываем сразу на проверке — править можно точечно.
+  if(startStep===undefined&&d.category&&d.name&&d.phone)startStep=STEPS.length-1;
+  let step=Math.max(0,Math.min(STEPS.length-1,startStep|0));
+  const ovl=document.createElement("div");ovl.className="mo qz-mo";
+  ovl.setAttribute("role","dialog");ovl.setAttribute("aria-modal","true");ovl.setAttribute("aria-label","Анкета получателя");
   ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
-  ovl.innerHTML=`<div class="mc eq-mc" style="max-width:440px">
-    <div class="eq-hdr">
-      <div class="eq-hdr-ico">📋</div>
-      <h3>Анкета получателя</h3>
-      <p>Заполните один раз — данные сами подставятся<br>в заявки, записи и заказ такси.</p>
-    </div>
-
-    <div class="eq-lbl">Основные данные</div>
-    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqName">ФИО</label><input class="eq-input" id="eqName" value="${(clientName||"").replace(/"/g,"&quot;")}" placeholder="Фамилия Имя Отчество"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">📱</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqPhone">Телефон</label><input class="eq-input" id="eqPhone" value="${(clientPhone||"").replace(/"/g,"&quot;")}" placeholder="+7..." inputmode="tel"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">📇</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqSnils">СНИЛС</label><input class="eq-input" id="eqSnils" value="${(clientSnils||"").replace(/"/g,"&quot;")}" placeholder="000-000-000 00" inputmode="numeric"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">🎂</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqBirth">Дата рождения</label><input type="date" class="eq-input" id="eqBirth" value="${p.birthDate||""}"></div></div>
-
-    <div class="eq-lbl">Категория</div>
-    <div class="eq-cat-grid" id="eqCatGrid">
-      ${cats.map(([k,l,ico])=>`<button type="button" class="eq-cat-card${selectedCat===k?" sel":""}" data-cat="${k}"><span class="eq-cat-ico">${ico}</span><span>${l}</span></button>`).join("")}
-    </div>
-
-    <div class="eq-lbl">Адрес и контакты</div>
-    <div class="eq-field"><span class="eq-field-ico">🏠</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqAddr">Адрес проживания</label><input class="eq-input" id="eqAddr" value="${(p.address||"").replace(/"/g,"&quot;")}" placeholder="Город, улица, дом, квартира"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">👤</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqContactName">Контактное лицо (необязательно)</label><input class="eq-input" id="eqContactName" value="${(p.contactName||"").replace(/"/g,"&quot;")}" placeholder="ФИО родственника или соседа"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">📞</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqContactPhone">Телефон контактного лица</label><input class="eq-input" id="eqContactPhone" value="${(p.contactPhone||"").replace(/"/g,"&quot;")}" placeholder="+7..." inputmode="tel"></div></div>
-
-    <div class="eq-lbl">Дополнительно</div>
-    <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqNote">Особые потребности</label><textarea class="eq-input" id="eqNote" rows="2" placeholder="Пожелания, особенности...">${p.note||""}</textarea></div></div>
-
-    <button class="eq-save-btn" id="eqSave">💾 Сохранить анкету</button>
-    <button class="eq-cancel-btn" onclick="this.closest('.mo').remove()">Отмена</button>
-  </div>`;
+  const card=document.createElement("div");card.className="mc qz-mc";ovl.appendChild(card);
   document.body.appendChild(ovl);
 
-  ovl.querySelectorAll(".eq-cat-card").forEach(function(btn){
-    btn.onclick=function(){
-      ovl.querySelectorAll(".eq-cat-card").forEach(function(b){b.classList.remove("sel");});
-      btn.classList.add("sel");
-      selectedCat=btn.dataset.cat;
-    };
-  });
-
-  ovl.querySelector("#eqSave").onclick=()=>{
-    const nameVal=document.getElementById("eqName").value.trim();
-    const phoneVal=document.getElementById("eqPhone").value.trim();
-    const snilsVal=document.getElementById("eqSnils").value.trim();
-    if(nameVal){clientName=nameVal;localStorage.setItem("clientName",clientName);}
-    if(phoneVal){clientPhone=phoneVal;localStorage.setItem("clientPhone",clientPhone);}
-    clientSnils=snilsVal;localStorage.setItem("clientSnils",clientSnils);
-    const data={
-      birthDate:document.getElementById("eqBirth").value,
-      category:selectedCat,
-      address:document.getElementById("eqAddr").value,
-      contactName:document.getElementById("eqContactName").value.trim(),
-      contactPhone:document.getElementById("eqContactPhone").value.trim(),
-      note:document.getElementById("eqNote").value,
-      filledAt:new Date().toISOString()
-    };
+  const esc=rcpEsc;
+  function fld(key,label,ph,opts){
+    opts=opts||{};
+    return '<div class="qz-fld"><label class="qz-lbl" for="qz_'+key+'">'+label+'</label>'
+      +'<input class="qz-inp" id="qz_'+key+'" data-k="'+key+'" type="'+(opts.type||"text")+'"'
+      +(opts.im?' inputmode="'+opts.im+'"':'')+' autocomplete="'+(opts.ac||"off")+'" placeholder="'+esc(ph)+'" value="'+esc(d[key])+'">'
+      +'<span class="qz-err" data-err="'+key+'"></span></div>';
+  }
+  function catName(k){const c=RCP_CATS.find(x=>x[0]===k);return c?c[2]+" "+c[1]:"—";}
+  function body(){
+    const s=STEPS[step];
+    if(s.key==="who")return fld("name","ФИО","Фамилия Имя Отчество",{ac:"name"})
+      +fld("phone","Телефон","+7 (___) ___-__-__",{type:"tel",im:"tel",ac:"tel"});
+    if(s.key==="docs")return fld("snils","СНИЛС","000-000-000 00",{im:"numeric"})
+      +fld("birth","Дата рождения","ДД.ММ.ГГГГ",{im:"numeric",ac:"bday"});
+    if(s.key==="cat")return '<div class="qz-cats" role="radiogroup" aria-label="Категория">'
+      +RCP_CATS.map(c=>'<button type="button" role="radio" aria-checked="'+(d.category===c[0])+'" class="qz-cat'+(d.category===c[0]?" sel":"")+'" data-cat="'+c[0]+'"><span class="qz-cat-ico">'+c[2]+'</span><span>'+c[1]+'</span></button>').join("")
+      +'</div><span class="qz-err" data-err="category"></span>';
+    if(s.key==="addr")return fld("address","Адрес","Город, улица, дом, квартира",{ac:"street-address"});
+    if(s.key==="extra")return fld("contactName","ФИО контактного лица","Например, дочь — Анна Петровна",{})
+      +fld("contactPhone","Его телефон","+7 (___) ___-__-__",{type:"tel",im:"tel"})
+      +'<div class="qz-fld"><label class="qz-lbl" for="qz_note">Особые потребности</label><textarea class="qz-inp" id="qz_note" data-k="note" rows="2" placeholder="Например: плохо слышу, нужен пандус">'+esc(d.note)+'</textarea></div>';
+    // проверка
+    const row=(lbl,val,st)=>'<div class="qz-sum-row"><div><span>'+lbl+'</span><b>'+(val?esc(val):'<i>не указано</i>')+'</b></div><button type="button" class="qz-edit" data-go="'+st+'">Изменить</button></div>';
+    return '<div class="qz-sum">'
+      +row("ФИО",d.name,0)+row("Телефон",d.phone,0)
+      +row("СНИЛС",d.snils,1)+row("Дата рождения",d.birth,1)
+      +'<div class="qz-sum-row"><div><span>Категория</span><b>'+esc(catName(d.category))+'</b></div><button type="button" class="qz-edit" data-go="2">Изменить</button></div>'
+      +row("Адрес",d.address,3)
+      +row("Контактное лицо",[d.contactName,d.contactPhone].filter(Boolean).join(", "),4)
+      +'</div>';
+  }
+  function render(focus){
+    const s=STEPS[step],last=step===STEPS.length-1,total=STEPS.length-1;
+    card.innerHTML=
+      '<div class="qz-top">'
+        +(step>0?'<button type="button" class="qz-back" aria-label="Назад">←</button>':'<span class="qz-back-ph"></span>')
+        +'<span class="qz-count">'+(last?"Готово":"Шаг "+(step+1)+" из "+total)+'</span>'
+        +'<button type="button" class="qz-x" aria-label="Закрыть анкету">✕</button>'
+      +'</div>'
+      +'<div class="qz-bar" role="progressbar" aria-valuemin="0" aria-valuemax="'+total+'" aria-valuenow="'+Math.min(step,total)+'"><i style="width:'+Math.round(Math.min(step+ (last?0:1),total)/total*100)+'%"></i></div>'
+      +'<div class="qz-step" data-step="'+s.key+'">'
+        +'<div class="qz-ico" aria-hidden="true">'+s.ico+'</div>'
+        +'<h3 class="qz-title">'+s.title+'</h3>'
+        +'<p class="qz-sub">'+s.sub+'</p>'
+        +body()
+      +'</div>'
+      +'<div class="qz-nav">'
+        +(last?'<button type="button" class="eq-save-btn qz-next" data-act="save">Сохранить анкету</button>'
+              :'<button type="button" class="eq-save-btn qz-next" data-act="next">Далее</button>')
+        +(s.optional?'<button type="button" class="eq-cancel-btn qz-skip">Пропустить этот шаг</button>':'')
+      +'</div>';
+    bind();
+    card.scrollTop=0;
+    if(focus!==false&&window.matchMedia&&matchMedia("(pointer:fine)").matches){
+      const f=card.querySelector(".qz-inp");if(f)setTimeout(()=>f.focus(),40);
+    }
+  }
+  function read(){card.querySelectorAll("[data-k]").forEach(i=>{d[i.dataset.k]=i.value.trim();});}
+  function err(k,msg){
+    const i=card.querySelector('[data-k="'+k+'"]');if(i)i.classList.add("bad");
+    const e=card.querySelector('[data-err="'+k+'"]');if(e)e.textContent=msg;
+  }
+  function birthIso(v){
+    const m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(v||"");if(!m)return null;
+    const dd=+m[1],mm=+m[2],yy=+m[3],dt=new Date(yy,mm-1,dd);
+    if(dt.getDate()!==dd||dt.getMonth()!==mm-1)return null;
+    const age=(Date.now()-dt)/3.15576e10;
+    if(age<0||age>120)return null;
+    return m[3]+"-"+m[2]+"-"+m[1];
+  }
+  function validate(){
+    read();const key=STEPS[step].key;let ok=true;
+    if(key==="who"){
+      if(d.name.split(/\s+/).filter(Boolean).length<2){err("name","Напишите фамилию, имя и отчество");ok=false;}
+      d.phone=formatPhone(d.phone);
+      if(d.phone.replace(/\D/g,"").length!==11){err("phone","Нужен номер из 11 цифр");ok=false;}
+    }
+    if(key==="docs"){
+      if(d.snils&&!snilsValid(d.snils)){err("snils",d.snils.replace(/\D/g,"").length<11?"СНИЛС — 11 цифр":"Похоже, в СНИЛС опечатка — проверьте цифры");ok=false;}
+      if(d.birth&&!birthIso(d.birth)){err("birth","Дата в формате ДД.ММ.ГГГГ, например 05.03.1952");ok=false;}
+    }
+    if(key==="cat"&&!d.category){err("category","Выберите один вариант");ok=false;}
+    if(key==="extra"&&d.contactPhone){
+      d.contactPhone=formatPhone(d.contactPhone);
+      if(d.contactPhone.replace(/\D/g,"").length!==11){err("contactPhone","Нужен номер из 11 цифр");ok=false;}
+    }
+    if(!ok){const c=card.querySelector(".qz-step");c.classList.remove("shake");void c.offsetWidth;c.classList.add("shake");}
+    return ok;
+  }
+  function save(){
+    clientName=d.name;localStorage.setItem("clientName",clientName);
+    clientPhone=d.phone;localStorage.setItem("clientPhone",clientPhone);
+    clientSnils=d.snils;localStorage.setItem("clientSnils",clientSnils);
+    const data=Object.assign(rcpProfile(),{
+      birthDate:birthIso(d.birth)||"",category:d.category,address:d.address,
+      contactName:d.contactName,contactPhone:d.contactPhone,note:d.note,filledAt:new Date().toISOString()
+    });
     localStorage.setItem("userProfile",JSON.stringify(data));
     localStorage.setItem("questionnaireDone","1");
-    showToast("Анкета сохранена — данные подставятся автоматически");
+    showToast("Анкета сохранена — данные подставятся в заявки сами");
     ovl.remove();
     if(typeof renderProfilePanel==="function"&&document.getElementById("profBody"))renderProfilePanel();
+    if(typeof window.hdrRefresh==="function")window.hdrRefresh();
     const gaName=document.querySelector(".ga-name");if(gaName)gaName.textContent=clientName;
+  }
+  function go(n){step=n;render();}
+  function bind(){
+    card.querySelector(".qz-x").onclick=()=>ovl.remove();
+    const back=card.querySelector(".qz-back");if(back)back.onclick=()=>{read();go(step-1);};
+    const skip=card.querySelector(".qz-skip");
+    if(skip)skip.onclick=()=>{
+      // пропуск: введённое на этом шаге не проверяем и не сохраняем частично
+      const k=STEPS[step].key;
+      if(k==="docs"){d.snils=d.snils&&snilsValid(d.snils)?d.snils:"";d.birth=birthIso(d.birth)?d.birth:"";}
+      go(step+1);
+    };
+    card.querySelector(".qz-next").onclick=function(){
+      if(this.dataset.act==="save"){
+        // финальная проверка обязательных шагов
+        if(d.name.split(/\s+/).filter(Boolean).length<2||d.phone.replace(/\D/g,"").length!==11){go(0);setTimeout(validate,30);return;}
+        if(!d.category){go(2);setTimeout(validate,30);return;}
+        save();return;
+      }
+      if(validate())go(step+1);
+    };
+    card.querySelectorAll(".qz-edit").forEach(b=>b.onclick=()=>go(+b.dataset.go));
+    card.querySelectorAll(".qz-cat").forEach(b=>b.onclick=()=>{
+      d.category=b.dataset.cat;
+      card.querySelectorAll(".qz-cat").forEach(x=>{x.classList.toggle("sel",x===b);x.setAttribute("aria-checked",String(x===b));});
+      // выбор категории сразу ведёт дальше — меньше нажатий
+      setTimeout(()=>go(step+1),220);
+    });
+    card.querySelectorAll("[data-k]").forEach(i=>{
+      i.addEventListener("input",()=>{
+        i.classList.remove("bad");const e=card.querySelector('[data-err="'+i.dataset.k+'"]');if(e)e.textContent="";
+        if(i.dataset.k==="snils")i.value=formatSnils(i.value);
+        if(i.dataset.k==="birth"){
+          const v=i.value.replace(/\D/g,"").slice(0,8);let r=v.slice(0,2);
+          if(v.length>2)r+="."+v.slice(2,4);if(v.length>4)r+="."+v.slice(4,8);i.value=r;
+        }
+      });
+      if(i.dataset.k==="phone"||i.dataset.k==="contactPhone")i.addEventListener("blur",()=>{if(i.value)i.value=formatPhone(i.value);});
+      if(i.tagName==="INPUT")i.addEventListener("keydown",e=>{
+        if(e.key!=="Enter")return;e.preventDefault();
+        const all=[...card.querySelectorAll("input.qz-inp")],idx=all.indexOf(i);
+        if(idx<all.length-1)all[idx+1].focus();else card.querySelector(".qz-next").click();
+      });
+    });
+  }
+  render();
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   КАРТОЧКА «ПОЛУЧАТЕЛЬ» В ЗАЯВКАХ
+   Вместо анкеты при регистрации данные спрашиваются там, где они нужны:
+   корзина — ФИО, телефон, СНИЛС (+ адрес по желанию); запись — ФИО, телефон;
+   такси — ФИО, телефон, а для льготной поездки ещё СНИЛС и категория.
+   Если всё уже известно — показывается свёрнутая карточка с кнопкой «Изменить».
+   ═══════════════════════════════════════════════════════════════════ */
+const RCP_CATS=[
+  ["pensioner","Пенсионер","👴"],["disabled","Инвалид","♿"],["veteran","Ветеран","🎖️"],
+  ["family","Семья с детьми","👨‍👩‍👧"],["large_family","Многодетная семья","👨‍👩‍👧‍👦"],["other","Другое","📋"]
+];
+function rcpEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+function rcpProfile(){try{return JSON.parse(localStorage.getItem("userProfile")||"{}")||{};}catch(e){return {};}}
+function recipientHasName(){
+  const n=(typeof clientName!=="undefined"&&clientName)?String(clientName).trim():"";
+  return n.length>3&&n!=="Гость"&&n.split(/\s+/).length>=2;
+}
+function recipientHasPhone(){
+  const p=(typeof clientPhone!=="undefined"&&clientPhone)?String(clientPhone):"";
+  return p.replace(/\D/g,"").length>=11;
+}
+// +7 (999) 000-00-00 из любых 10–11 цифр
+function formatPhone(v){
+  let d=String(v||"").replace(/\D/g,"");
+  if(d.length===10)d="7"+d;
+  if(d.length===11&&d[0]==="8")d="7"+d.slice(1);
+  if(d.length!==11)return String(v||"").trim();
+  return "+7 ("+d.slice(1,4)+") "+d.slice(4,7)+"-"+d.slice(7,9)+"-"+d.slice(9,11);
+}
+function formatSnils(v){
+  const d=String(v||"").replace(/\D/g,"").slice(0,11);let r="";
+  if(d.length>0)r+=d.slice(0,3);if(d.length>3)r+="-"+d.slice(3,6);
+  if(d.length>6)r+="-"+d.slice(6,9);if(d.length>9)r+=" "+d.slice(9,11);
+  return r;
+}
+// Проверка контрольного числа СНИЛС (для номеров больше 001-001-998).
+function snilsValid(v){
+  const d=String(v||"").replace(/\D/g,"");
+  if(d.length!==11)return false;
+  const num=d.slice(0,9),ctrl=parseInt(d.slice(9),10);
+  if(parseInt(num,10)<=1001998)return true;
+  let sum=0;for(let i=0;i<9;i++)sum+=parseInt(num[i],10)*(9-i);
+  let c=sum<100?sum:(sum===100||sum===101)?0:sum%101;
+  if(c===100)c=0;
+  return c===ctrl;
+}
+function rcpInitials(name){
+  return String(name||"").trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||"";}).join("").toUpperCase()||"?";
+}
+
+/* opts: {snils:bool, address:bool, category:bool, title:string}
+   Возвращает контроллер {el, validate(), setOpts(opts)}.
+   validate() → {ok:true, data:{name,phone,snils,address,category}} | {ok:false} */
+function rcpMount(container,opts){
+  opts=Object.assign({snils:false,address:false,category:false},opts||{});
+  const prof=rcpProfile();
+  const st={
+    name:recipientHasName()?clientName:"",
+    phone:recipientHasPhone()?formatPhone(clientPhone):"",
+    snils:(typeof clientSnils!=="undefined"&&clientSnils&&clientSnils!=="—")?formatSnils(clientSnils):"",
+    address:prof.address||"",
+    category:prof.category||"",
+    remember:true, open:false
   };
+  const el=document.createElement("div");el.className="rcp";
+  container.appendChild(el);
+
+  function complete(){
+    if(!st.name||st.name.split(/\s+/).length<2)return false;
+    if(st.phone.replace(/\D/g,"").length<11)return false;
+    if(opts.snils&&!snilsValid(st.snils))return false;
+    if(opts.category&&!st.category)return false;
+    return true;
+  }
+  function catLabel(k){const c=RCP_CATS.find(function(x){return x[0]===k;});return c?c[1]:"";}
+  function readInputs(){
+    el.querySelectorAll("[data-rcp]").forEach(function(i){st[i.dataset.rcp]=i.value.trim();});
+    const rem=el.querySelector(".rcp-remember input");if(rem)st.remember=rem.checked;
+  }
+  function render(){
+    const done=complete();
+    const showForm=st.open||!done;
+    const metaParts=[];
+    if(st.phone)metaParts.push('<span>📱 '+rcpEsc(st.phone)+'</span>');
+    if(opts.snils&&st.snils)metaParts.push('<span>📇 СНИЛС …'+rcpEsc(st.snils.replace(/\D/g,"").slice(-4))+'</span>');
+    if(opts.category&&st.category)metaParts.push('<span>🏷️ '+rcpEsc(catLabel(st.category))+'</span>');
+    if(opts.address&&st.address)metaParts.push('<span>🏠 '+rcpEsc(st.address)+'</span>');
+    let html='<div class="rcp-head">'
+      +'<span class="rcp-ava'+(done?"":" empty")+'">'+(st.name?rcpEsc(rcpInitials(st.name)):"👤")+'</span>'
+      +'<div class="rcp-id"><span class="rcp-cap">'+rcpEsc(opts.title||"Получатель")+'</span>'
+      +(st.name&&done?'<b>'+rcpEsc(st.name)+'</b>':'<b class="rcp-ask">'+rcpEsc(opts.ask||"Укажите ваши данные")+'</b>')
+      +(done&&metaParts.length?'<div class="rcp-meta">'+metaParts.join("")+'</div>':'')
+      +'</div>'
+      +(done?'<button type="button" class="rcp-edit" aria-expanded="'+showForm+'">'+(st.open?"Готово":"Изменить")+'</button>':'')
+      +'</div>';
+    if(showForm){
+      html+='<div class="rcp-form">';
+      if(!done&&!st.open)html+='<div class="rcp-hint">Заполняется один раз — в следующих заявках подставится само.</div>';
+      html+=rcpField("name","ФИО","Фамилия Имя Отчество",st.name,"text","name");
+      html+=rcpField("phone","Телефон для связи","+7 (___) ___-__-__",st.phone,"tel","tel");
+      if(opts.snils)html+=rcpField("snils","СНИЛС","000-000-000 00",st.snils,"numeric","off");
+      if(opts.category){
+        html+='<div class="rcp-fld"><span class="rcp-lbl">Категория получателя</span><div class="rcp-cats" role="radiogroup" aria-label="Категория получателя">'
+          +RCP_CATS.map(function(c){return '<button type="button" role="radio" aria-checked="'+(st.category===c[0])+'" class="rcp-cat'+(st.category===c[0]?" sel":"")+'" data-cat="'+c[0]+'"><span>'+c[2]+'</span>'+c[1]+'</button>';}).join("")
+          +'</div><span class="rcp-err" data-err="category"></span></div>';
+      }
+      if(opts.address)html+=rcpField("address","Адрес, где нужна услуга (необязательно)","Город, улица, дом, квартира",st.address,"text","street-address");
+      html+='<label class="rcp-remember"><input type="checkbox"'+(st.remember?" checked":"")+'> Запомнить для следующих заявок</label>';
+      html+='</div>';
+    }
+    el.innerHTML=html;
+    el.classList.toggle("is-done",done&&!st.open);
+    bind();
+  }
+  function bind(){
+    const ed=el.querySelector(".rcp-edit");
+    if(ed)ed.onclick=function(){readInputs();st.open=!st.open;render();if(st.open){const f=el.querySelector("[data-rcp]");if(f)f.focus();}};
+    const ph=el.querySelector('[data-rcp="phone"]');
+    if(ph)ph.addEventListener("blur",function(){ph.value=formatPhone(ph.value);});
+    const sn=el.querySelector('[data-rcp="snils"]');
+    if(sn)sn.addEventListener("input",function(){sn.value=formatSnils(sn.value);});
+    el.querySelectorAll("[data-rcp]").forEach(function(i){
+      i.addEventListener("input",function(){i.classList.remove("bad");const e=el.querySelector('[data-err="'+i.dataset.rcp+'"]');if(e)e.textContent="";});
+    });
+    el.querySelectorAll(".rcp-cat").forEach(function(b){
+      b.onclick=function(){
+        readInputs();st.category=b.dataset.cat;
+        el.querySelectorAll(".rcp-cat").forEach(function(x){x.classList.toggle("sel",x===b);x.setAttribute("aria-checked",String(x===b));});
+        const e=el.querySelector('[data-err="category"]');if(e)e.textContent="";
+      };
+    });
+  }
+  function setErr(key,msg){
+    const i=el.querySelector('[data-rcp="'+key+'"]');if(i)i.classList.add("bad");
+    const e=el.querySelector('[data-err="'+key+'"]');if(e)e.textContent=msg;
+  }
+  function validate(){
+    if(el.querySelector(".rcp-form"))readInputs();
+    st.phone=formatPhone(st.phone);
+    const errs=[];
+    if(!st.name||st.name.split(/\s+/).length<2)errs.push(["name","Укажите фамилию, имя и отчество"]);
+    if(st.phone.replace(/\D/g,"").length<11)errs.push(["phone","Нужен номер из 11 цифр"]);
+    if(opts.snils){
+      if(st.snils.replace(/\D/g,"").length<11)errs.push(["snils","СНИЛС — 11 цифр"]);
+      else if(!snilsValid(st.snils))errs.push(["snils","Похоже, в СНИЛС опечатка — проверьте цифры"]);
+    }
+    if(opts.category&&!st.category)errs.push(["category","Выберите категорию"]);
+    if(errs.length){
+      st.open=true;render();
+      errs.forEach(function(e){setErr(e[0],e[1]);});
+      el.scrollIntoView({behavior:"smooth",block:"center"});
+      el.classList.remove("shake");void el.offsetWidth;el.classList.add("shake");
+      return {ok:false,message:errs[0][1]};
+    }
+    const data={name:st.name.replace(/\s+/g," "),phone:st.phone,snils:st.snils,address:st.address,category:st.category};
+    if(st.remember)rcpSave(data,opts);
+    st.open=false;render();
+    return {ok:true,data:data};
+  }
+  render();
+  return {el:el,validate:validate,setOpts:function(o){readInputs();opts=Object.assign(opts,o);render();}};
+}
+function rcpField(key,label,ph,val,mode,ac){
+  const type=mode==="tel"?"tel":"text";
+  const im=mode==="numeric"?' inputmode="numeric"':mode==="tel"?' inputmode="tel"':"";
+  const id="rcp_"+key+"_"+Math.random().toString(36).slice(2,7);
+  return '<div class="rcp-fld"><label class="rcp-lbl" for="'+id+'">'+label+'</label>'
+    +'<input class="rcp-inp" id="'+id+'" data-rcp="'+key+'" type="'+type+'"'+im+' autocomplete="'+ac+'" placeholder="'+rcpEsc(ph)+'" value="'+rcpEsc(val)+'">'
+    +'<span class="rcp-err" data-err="'+key+'"></span></div>';
+}
+function rcpSave(d,opts){
+  clientName=d.name;localStorage.setItem("clientName",clientName);
+  clientPhone=d.phone;localStorage.setItem("clientPhone",clientPhone);
+  if(opts.snils&&d.snils){clientSnils=d.snils;localStorage.setItem("clientSnils",clientSnils);}
+  const p=rcpProfile();
+  if(opts.address&&d.address)p.address=d.address;
+  if(opts.category&&d.category)p.category=d.category;
+  if(opts.address||opts.category){p.filledAt=new Date().toISOString();localStorage.setItem("userProfile",JSON.stringify(p));}
+  if(typeof window.hdrRefresh==="function")window.hdrRefresh();
+  const gaName=document.querySelector(".ga-name");if(gaName)gaName.textContent=clientName;
 }

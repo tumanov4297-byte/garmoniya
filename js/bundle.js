@@ -1,6 +1,6 @@
 /* bundle.js — собран автоматически из js/*.js (build.py). Не редактировать вручную. */
 ;
-/* Сборка: 2026-09-24 */
+/* Сборка: 2026-10-01 */
 ;
 
 /* ───── js/enhance.js ───── */
@@ -107,12 +107,12 @@ const ORDER_EMAIL="aidavydenko@yanao.ru",ORG_EMAIL="cson-gub@yanao.ru",MAIN_PHON
 const VK_GROUP={numericId:127392806,screen:"cson_noyabrsk",url:"https://vk.ru/cson_noyabrsk"};
 
 const cityData={
-  gubkin:{address:"629830, ЯНАО, г. Губкинский, 3-й мкрн, д. 42",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
-  purpe:{address:"ЯНАО, мкр. Пурпе (уточните точный адрес здания в админ-панели)",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
-  muravlenko:{address:"629605, ЯНАО, г. Муравленко, ул. Нефтяников, д. 12",phone:"8(34938)5-18-00",phoneRaw:"73493851800",email:"cson-mur@yanao.ru",orderEmail:"cson-mur@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
-  noyabrsk:{address:"629806, ЯНАО, г. Ноябрьск, ул. Советская, д. 24",phone:"8(34963)3-40-80",phoneRaw:"73496334080",email:"cson-noy@yanao.ru",orderEmail:"cson-noy@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:true,hasServices:false},
-  tarko:{address:"629850, ЯНАО, г. Тарко-Сале, ул. Геологов, д. 8",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-tarko@yanao.ru",orderEmail:"cson-tarko@yanao.ru",hours:"Пн–Пт: 08:00–18:30",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true},
-  urengoy:{address:"629650, ЯНАО, пгт. Уренгой, ул. Ленина, д. 5",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-urengoy@yanao.ru",orderEmail:"cson-urengoy@yanao.ru",hours:"Пн–Пт: 08:00–18:30",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true}
+  gubkin:{address:"629830, ЯНАО, г. Губкинский, 3-й мкрн, д. 42",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00, обед 12:30–14:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
+  purpe:{address:"ЯНАО, мкр. Пурпе (уточните точный адрес здания в админ-панели)",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00, обед 12:30–14:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
+  muravlenko:{address:"629605, ЯНАО, г. Муравленко, ул. Нефтяников, д. 12",phone:"8(34938)5-18-00",phoneRaw:"73493851800",email:"cson-mur@yanao.ru",orderEmail:"cson-mur@yanao.ru",hours:"Пн–Пт: 08:30–17:30, обед 12:30–14:00",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
+  noyabrsk:{address:"629806, ЯНАО, г. Ноябрьск, ул. Советская, д. 24",phone:"8(34963)3-40-80",phoneRaw:"73496334080",email:"cson-noy@yanao.ru",orderEmail:"cson-noy@yanao.ru",hours:"Пн–Пт: 08:30–17:30, обед 12:30–14:00",openH:8,openM:30,closeH:17,closeM:30,hasStaff:true,hasServices:false},
+  tarko:{address:"629850, ЯНАО, г. Тарко-Сале, ул. Геологов, д. 8",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-tarko@yanao.ru",orderEmail:"cson-tarko@yanao.ru",hours:"Пн–Пт: 08:00–18:30, обед 12:30–14:00",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true},
+  urengoy:{address:"629650, ЯНАО, пгт. Уренгой, ул. Ленина, д. 5",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-urengoy@yanao.ru",orderEmail:"cson-urengoy@yanao.ru",hours:"Пн–Пт: 08:00–18:30, обед 12:30–14:00",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true}
 };
 
 function getOrderEmail(){
@@ -669,12 +669,52 @@ function getTaxiTariffs(){
   })};
 }
 
+// ═══ НОМЕРА ЗАЯВОК ═══
+// Случайный 6-значный номер (100000–999999) вместо «ЗАЯ-0001»/«ТАК-0001»:
+// по номеру нельзя угадать, сколько заявок было до этой, и он одинаково
+// выглядит для заявок, записей и такси. Повтор с уже выданными номерами исключён.
+function newTicketNum(){
+  var used={};
+  ["ordersHistory","bookingsHistory","taxiHistory"].forEach(function(k){
+    try{(JSON.parse(localStorage.getItem(k)||"[]")||[]).forEach(function(x){if(x&&x.num)used[String(x.num)]=1;});}catch(e){}
+  });
+  for(var i=0;i<50;i++){
+    var n;
+    if(window.crypto&&crypto.getRandomValues){var a=new Uint32Array(1);crypto.getRandomValues(a);n=100000+(a[0]%900000);}
+    else n=100000+Math.floor(Math.random()*900000);
+    if(!used[String(n)])return String(n);
+  }
+  return String(Date.now()).slice(-6);
+}
+// Для показа: «№ 482913». Старые номера вида «ЗАЯ-0101» показываем как есть.
+function ticketLabel(num){return num?(/^\d+$/.test(String(num))?"№ "+num:String(num)):"";}
+
+// ═══ РЕЖИМ РАБОТЫ: ОБЕДЕННЫЙ ПЕРЕРЫВ ═══
+// Единый перерыв для записи к специалистам, такси и статуса «Открыто/Закрыто».
+// Время в интервале [from; to) недоступно: 12:30, 13:00, 13:30 — нельзя, 14:00 — можно.
+const WORK_BREAK={from:"12:30",to:"14:00"};
+function isBreakTime(hhmm){
+  var t=taxiMinutes(hhmm);
+  return t>=taxiMinutes(WORK_BREAK.from)&&t<taxiMinutes(WORK_BREAK.to);
+}
+// Слоты по 30 минут от a до b включительно (строки "ЧЧ:ММ").
+function halfHourSlots(a,b){
+  var out=[],x=taxiMinutes(a),y=taxiMinutes(b);
+  for(var m=x;m<=y;m+=30)out.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
+  return out;
+}
+
 // ═══ ПРАВИЛА СОЦИАЛЬНОГО ТАКСИ ═══
 // Заявку принимают в день, предшествующий поездке, с 08:30 до 12:30.
-// Машина работает с 08:30 до 18:00 — позже подачи нет.
-const TAXI_RULES={orderFrom:"08:30",orderTo:"12:30",rideFrom:"08:30",rideTo:"18:00"};
-function taxiMinutes(hhmm){var p=String(hhmm||"").split(":");return parseInt(p[0]||0)*60+parseInt(p[1]||0);}
+// Машина работает с 08:30 до 18:00 — позже подачи нет. Обед 12:30–14:00 — подачи нет.
+const TAXI_RULES={orderFrom:"08:30",orderTo:"12:30",rideFrom:"08:30",rideTo:"18:00",
+                  breakFrom:WORK_BREAK.from,breakTo:WORK_BREAK.to};
+function taxiMinutes(hhmm){var p=String(hhmm||"").split(":");return parseInt(p[0]||0,10)*60+parseInt(p[1]||0,10);}
 function taxiIso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+// Строка с режимом работы машины — одна на все экраны и чат-бот.
+function taxiHoursText(){
+  return "с "+TAXI_RULES.rideFrom+" до "+TAXI_RULES.rideTo+", перерыв с "+TAXI_RULES.breakFrom+" до "+TAXI_RULES.breakTo;
+}
 // Открыт ли сейчас приём заявок (08:30–12:30).
 function taxiOrderWindowOpen(){
   var n=new Date(),m=n.getHours()*60+n.getMinutes();
@@ -689,23 +729,23 @@ function taxiEarliestRideDate(){
 }
 // Проверка даты и времени поездки по всем правилам.
 function taxiCheckRide(date,time){
-  if(!date)return {ok:false,code:"date",message:"Укажите дату поездки"};
+  if(!date||!/^\d{4}-\d{2}-\d{2}$/.test(date))return {ok:false,code:"date",message:"Укажите дату поездки"};
   var min=taxiEarliestRideDate();
   if(date<min)return {ok:false,code:"early",min:min,
     message:"Заявку принимают накануне поездки с "+TAXI_RULES.orderFrom+" до "+TAXI_RULES.orderTo+
             ". Ближайшая доступная дата — "+min.split("-").reverse().slice(0,2).join(".")};
-  if(!time)return {ok:false,code:"time",message:"Укажите время подачи"};
+  if(!time||!/^\d{2}:\d{2}$/.test(time))return {ok:false,code:"time",message:"Укажите время подачи"};
   var t=taxiMinutes(time);
   if(t<taxiMinutes(TAXI_RULES.rideFrom)||t>taxiMinutes(TAXI_RULES.rideTo))
     return {ok:false,code:"hours",message:"Машина работает с "+TAXI_RULES.rideFrom+" до "+TAXI_RULES.rideTo+" — выберите время в этом промежутке"};
+  if(isBreakTime(time))
+    return {ok:false,code:"break",message:"С "+TAXI_RULES.breakFrom+" до "+TAXI_RULES.breakTo+" обеденный перерыв — машину не подают. Выберите время до "+TAXI_RULES.breakFrom+" или с "+TAXI_RULES.breakTo};
   return {ok:true,min:min};
 }
-// Слоты подачи по 30 минут от 08:30 до 18:00.
-function taxiTimeSlots(){
-  var out=[],a=taxiMinutes(TAXI_RULES.rideFrom),b=taxiMinutes(TAXI_RULES.rideTo);
-  for(var m=a;m<=b;m+=30)out.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
-  return out;
-}
+// Слоты подачи по 30 минут от 08:30 до 18:00 (включая обеденные — они показываются неактивными).
+function taxiTimeSlots(){return halfHourSlots(TAXI_RULES.rideFrom,TAXI_RULES.rideTo);}
+// Только доступные слоты (без обеда).
+function taxiFreeTimeSlots(){return taxiTimeSlots().filter(function(t){return !isBreakTime(t);});}
 
 // ═══ Бесплатное такси — лимит 96 поездок в год на человека ═══
 const FREE_TAXI_ANNUAL_LIMIT=96;
@@ -728,19 +768,22 @@ function useFreeTaxiTrip(){
   localStorage.setItem(getFreeTaxiQuotaKey(),String(q.used+1));
   return true;
 }
-function checkFreeTaxiEligibility(){
-  var snils=(typeof clientSnils!=="undefined"?clientSnils:"")||"";
+// over — необязательные данные, введённые прямо в заявке: {snils, category}.
+function checkFreeTaxiEligibility(over){
+  over=over||{};
+  var snils=over.snils||(typeof clientSnils!=="undefined"?clientSnils:"")||"";
   var snilsDigits=snils.replace(/\D/g,"");
   if(snilsDigits.length<11){
-    return {eligible:false,reason:"snils_missing",message:"Для бесплатной поездки нужен СНИЛС в профиле — заполните его в личном кабинете."};
+    return {eligible:false,reason:"snils_missing",message:"Для бесплатной поездки нужен СНИЛС — укажите его при оформлении поездки."};
   }
   var profile={};
-  try{profile=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
+  try{profile=JSON.parse(localStorage.getItem("userProfile")||"{}")||{};}catch(e){}
+  if(over.category)profile.category=over.category;
   if(!profile.category){
-    return {eligible:false,reason:"category_missing",message:"Заполните анкету получателя в личном кабинете, чтобы система проверила право на льготу."};
+    return {eligible:false,reason:"category_missing",message:"Укажите категорию получателя — это можно сделать прямо при оформлении поездки."};
   }
   if(FREE_TAXI_ELIGIBLE_CATEGORIES.indexOf(profile.category)<0){
-    return {eligible:false,reason:"category_not_eligible",message:"По указанной категории («"+profile.category+"») бесплатная поездка не положена — доступны платные тарифы."};
+    return {eligible:false,reason:"category_not_eligible",message:"По указанной категории («"+({pensioner:"Пенсионер",disabled:"Инвалид",veteran:"Ветеран",family:"Семья с детьми",large_family:"Многодетная семья",other:"Другое"}[profile.category]||profile.category)+"») бесплатная поездка не положена — доступны платные тарифы."};
   }
   return {eligible:true,reason:"ok",message:"Право на бесплатную поездку подтверждено по СНИЛС."};
 }
@@ -2180,6 +2223,13 @@ function showSeasonalGreeting(){
   setTimeout(()=>{
     if(typeof addMsg==="function"){
       addMsg(`<div class="seasonal-card"><span class="seasonal-emoji">${g.emoji}</span>${g.text}</div>`,true);
+      // Поздравление ставим в начало ленты и не уводим экран вниз — главная открывается сверху.
+      setTimeout(function(){
+        const ch=document.getElementById("chat");if(!ch)return;
+        const rows=ch.querySelectorAll(".msg-row");const r=rows[rows.length-1];
+        if(r&&ch.firstChild!==r)ch.insertBefore(r,ch.firstChild);
+        ch.scrollTo({top:0,behavior:"auto"});
+      },80);
     }
   },600);
 }
@@ -2188,7 +2238,6 @@ function showOnboarding(){
   if(localStorage.getItem("onboardingDone"))return;
   const steps=[
     {emoji:"👋",title:"Добро пожаловать!",text:"Я — чат-бот центра «Гармония». Помогу с услугами, записью, такси и вопросами."},
-    {emoji:"📋",title:"Анкета получателя",text:"Заполните анкету один раз в личном кабинете — ФИО, СНИЛС и данные сами подставятся в заявки."},
     {emoji:"📖",title:"Запись на услуги",text:"В разделе «Записаться на услуги» — все услуги с ценами. Нажмите ★, чтобы добавить в избранное."},
     {emoji:"💬",title:"Чат-бот",text:"Нажмите «Спросить чат-бот» и задайте вопрос своими словами — подскажу нужный раздел."},
     {emoji:"🚕",title:"Такси",text:"Закажите поездку с сопровождением или без. Есть бесплатный тариф для льготных категорий."},
@@ -2224,16 +2273,15 @@ function showOnboarding(){
   document.body.appendChild(ovl);
 }
 
-function offerQuestionnaireAfterOnboarding(){
-  if(localStorage.getItem("questionnaireDone"))return;
-  setTimeout(function(){editQuestionnaire();},450);
-}
+// Анкета получателя больше не всплывает после знакомства: нужные данные
+// спрашиваются прямо в заявке (карточка «Получатель», см. rcpMount ниже).
+function offerQuestionnaireAfterOnboarding(){}
 
 function showLiveChat(){
   if(typeof clearActions==="function")clearActions();
   if(typeof setNav==="function")setNav(true);
   document.getElementById("searchBar")?.classList.add("gone");
-  if(typeof addMsg==="function")addMsg("💬 Связаться с оператором. Выберите удобный способ — специалист ответит в рабочее время (Пн–Пт, 08:30–18:00).",true);
+  if(typeof addMsg==="function")addMsg("💬 Связаться с оператором. Выберите удобный способ — специалист ответит в рабочее время (Пн–Пт, 08:30–18:00, обед 12:30–14:00).",true);
   setTimeout(()=>{
     const cd=(typeof cityData!=="undefined"&&typeof currentCity!=="undefined")?cityData[currentCity]:{};
     const phone=cd.phoneRaw||"73493627077";
@@ -2254,79 +2302,376 @@ function showLiveChat(){
   },200);
 }
 
-function editQuestionnaire(){
+/* ═══ Анкета получателя — пошагово ═══
+   Один вопрос на экран, крупные поля, «Далее»/«Назад», необязательные шаги
+   можно пропустить, в конце — проверка всего с кнопками «Изменить». */
+function fmtBirth(iso){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"");return m?m[3]+"."+m[2]+"."+m[1]:(iso||"");
+}
+function editQuestionnaire(startStep){
   document.querySelectorAll(".mo").forEach(m=>m.remove());
-  let p={};try{p=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
-  const cats=[
-    ["pensioner","Пенсионер","👴"],["disabled","Инвалид","♿"],
-    ["family","Семья с детьми","👨‍👩‍👧"],["large_family","Многодетная семья","👨‍👩‍👧‍👦"],
-    ["veteran","Ветеран","🎖️"],["other","Другое","📋"]
+  const prof=rcpProfile();
+  const d={
+    name:recipientHasName()?clientName:"",
+    phone:recipientHasPhone()?formatPhone(clientPhone):"",
+    snils:(clientSnils&&clientSnils!=="—")?formatSnils(clientSnils):"",
+    birth:fmtBirth(prof.birthDate||""),
+    category:prof.category||"",
+    address:prof.address||"",
+    contactName:prof.contactName||"",contactPhone:prof.contactPhone||"",
+    note:prof.note||""
+  };
+  const STEPS=[
+    {key:"who",ico:"🪪",title:"Как вас зовут?",sub:"ФИО и телефон нужны, чтобы специалист мог связаться с вами."},
+    {key:"docs",ico:"📇",title:"СНИЛС и дата рождения",sub:"Нужны для льготной поездки на такси и оформления соцуслуг. Можно заполнить позже.",optional:true},
+    {key:"cat",ico:"🏷️",title:"К какой категории вы относитесь?",sub:"От категории зависят льготы. Выберите один вариант."},
+    {key:"addr",ico:"🏠",title:"Где вы живёте?",sub:"Адрес нужен для услуг на дому и такси.",optional:true},
+    {key:"extra",ico:"👤",title:"Кому позвонить, если вы не ответите?",sub:"Родственник или сосед. Можно пропустить.",optional:true},
+    {key:"check",ico:"✅",title:"Проверьте данные",sub:"Если что-то не так — нажмите «Изменить»."}
   ];
-  let selectedCat=p.category||"";
-  const ovl=document.createElement("div");ovl.className="mo";
+  // Уже заполненную анкету открываем сразу на проверке — править можно точечно.
+  if(startStep===undefined&&d.category&&d.name&&d.phone)startStep=STEPS.length-1;
+  let step=Math.max(0,Math.min(STEPS.length-1,startStep|0));
+  const ovl=document.createElement("div");ovl.className="mo qz-mo";
+  ovl.setAttribute("role","dialog");ovl.setAttribute("aria-modal","true");ovl.setAttribute("aria-label","Анкета получателя");
   ovl.onclick=e=>{if(e.target===ovl)ovl.remove();};
-  ovl.innerHTML=`<div class="mc eq-mc" style="max-width:440px">
-    <div class="eq-hdr">
-      <div class="eq-hdr-ico">📋</div>
-      <h3>Анкета получателя</h3>
-      <p>Заполните один раз — данные сами подставятся<br>в заявки, записи и заказ такси.</p>
-    </div>
-
-    <div class="eq-lbl">Основные данные</div>
-    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqName">ФИО</label><input class="eq-input" id="eqName" value="${(clientName||"").replace(/"/g,"&quot;")}" placeholder="Фамилия Имя Отчество"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">📱</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqPhone">Телефон</label><input class="eq-input" id="eqPhone" value="${(clientPhone||"").replace(/"/g,"&quot;")}" placeholder="+7..." inputmode="tel"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">📇</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqSnils">СНИЛС</label><input class="eq-input" id="eqSnils" value="${(clientSnils||"").replace(/"/g,"&quot;")}" placeholder="000-000-000 00" inputmode="numeric"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">🎂</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqBirth">Дата рождения</label><input type="date" class="eq-input" id="eqBirth" value="${p.birthDate||""}"></div></div>
-
-    <div class="eq-lbl">Категория</div>
-    <div class="eq-cat-grid" id="eqCatGrid">
-      ${cats.map(([k,l,ico])=>`<button type="button" class="eq-cat-card${selectedCat===k?" sel":""}" data-cat="${k}"><span class="eq-cat-ico">${ico}</span><span>${l}</span></button>`).join("")}
-    </div>
-
-    <div class="eq-lbl">Адрес и контакты</div>
-    <div class="eq-field"><span class="eq-field-ico">🏠</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqAddr">Адрес проживания</label><input class="eq-input" id="eqAddr" value="${(p.address||"").replace(/"/g,"&quot;")}" placeholder="Город, улица, дом, квартира"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">👤</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqContactName">Контактное лицо (необязательно)</label><input class="eq-input" id="eqContactName" value="${(p.contactName||"").replace(/"/g,"&quot;")}" placeholder="ФИО родственника или соседа"></div></div>
-    <div class="eq-field"><span class="eq-field-ico">📞</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqContactPhone">Телефон контактного лица</label><input class="eq-input" id="eqContactPhone" value="${(p.contactPhone||"").replace(/"/g,"&quot;")}" placeholder="+7..." inputmode="tel"></div></div>
-
-    <div class="eq-lbl">Дополнительно</div>
-    <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl" for="eqNote">Особые потребности</label><textarea class="eq-input" id="eqNote" rows="2" placeholder="Пожелания, особенности...">${p.note||""}</textarea></div></div>
-
-    <button class="eq-save-btn" id="eqSave">💾 Сохранить анкету</button>
-    <button class="eq-cancel-btn" onclick="this.closest('.mo').remove()">Отмена</button>
-  </div>`;
+  const card=document.createElement("div");card.className="mc qz-mc";ovl.appendChild(card);
   document.body.appendChild(ovl);
 
-  ovl.querySelectorAll(".eq-cat-card").forEach(function(btn){
-    btn.onclick=function(){
-      ovl.querySelectorAll(".eq-cat-card").forEach(function(b){b.classList.remove("sel");});
-      btn.classList.add("sel");
-      selectedCat=btn.dataset.cat;
-    };
-  });
-
-  ovl.querySelector("#eqSave").onclick=()=>{
-    const nameVal=document.getElementById("eqName").value.trim();
-    const phoneVal=document.getElementById("eqPhone").value.trim();
-    const snilsVal=document.getElementById("eqSnils").value.trim();
-    if(nameVal){clientName=nameVal;localStorage.setItem("clientName",clientName);}
-    if(phoneVal){clientPhone=phoneVal;localStorage.setItem("clientPhone",clientPhone);}
-    clientSnils=snilsVal;localStorage.setItem("clientSnils",clientSnils);
-    const data={
-      birthDate:document.getElementById("eqBirth").value,
-      category:selectedCat,
-      address:document.getElementById("eqAddr").value,
-      contactName:document.getElementById("eqContactName").value.trim(),
-      contactPhone:document.getElementById("eqContactPhone").value.trim(),
-      note:document.getElementById("eqNote").value,
-      filledAt:new Date().toISOString()
-    };
+  const esc=rcpEsc;
+  function fld(key,label,ph,opts){
+    opts=opts||{};
+    return '<div class="qz-fld"><label class="qz-lbl" for="qz_'+key+'">'+label+'</label>'
+      +'<input class="qz-inp" id="qz_'+key+'" data-k="'+key+'" type="'+(opts.type||"text")+'"'
+      +(opts.im?' inputmode="'+opts.im+'"':'')+' autocomplete="'+(opts.ac||"off")+'" placeholder="'+esc(ph)+'" value="'+esc(d[key])+'">'
+      +'<span class="qz-err" data-err="'+key+'"></span></div>';
+  }
+  function catName(k){const c=RCP_CATS.find(x=>x[0]===k);return c?c[2]+" "+c[1]:"—";}
+  function body(){
+    const s=STEPS[step];
+    if(s.key==="who")return fld("name","ФИО","Фамилия Имя Отчество",{ac:"name"})
+      +fld("phone","Телефон","+7 (___) ___-__-__",{type:"tel",im:"tel",ac:"tel"});
+    if(s.key==="docs")return fld("snils","СНИЛС","000-000-000 00",{im:"numeric"})
+      +fld("birth","Дата рождения","ДД.ММ.ГГГГ",{im:"numeric",ac:"bday"});
+    if(s.key==="cat")return '<div class="qz-cats" role="radiogroup" aria-label="Категория">'
+      +RCP_CATS.map(c=>'<button type="button" role="radio" aria-checked="'+(d.category===c[0])+'" class="qz-cat'+(d.category===c[0]?" sel":"")+'" data-cat="'+c[0]+'"><span class="qz-cat-ico">'+c[2]+'</span><span>'+c[1]+'</span></button>').join("")
+      +'</div><span class="qz-err" data-err="category"></span>';
+    if(s.key==="addr")return fld("address","Адрес","Город, улица, дом, квартира",{ac:"street-address"});
+    if(s.key==="extra")return fld("contactName","ФИО контактного лица","Например, дочь — Анна Петровна",{})
+      +fld("contactPhone","Его телефон","+7 (___) ___-__-__",{type:"tel",im:"tel"})
+      +'<div class="qz-fld"><label class="qz-lbl" for="qz_note">Особые потребности</label><textarea class="qz-inp" id="qz_note" data-k="note" rows="2" placeholder="Например: плохо слышу, нужен пандус">'+esc(d.note)+'</textarea></div>';
+    // проверка
+    const row=(lbl,val,st)=>'<div class="qz-sum-row"><div><span>'+lbl+'</span><b>'+(val?esc(val):'<i>не указано</i>')+'</b></div><button type="button" class="qz-edit" data-go="'+st+'">Изменить</button></div>';
+    return '<div class="qz-sum">'
+      +row("ФИО",d.name,0)+row("Телефон",d.phone,0)
+      +row("СНИЛС",d.snils,1)+row("Дата рождения",d.birth,1)
+      +'<div class="qz-sum-row"><div><span>Категория</span><b>'+esc(catName(d.category))+'</b></div><button type="button" class="qz-edit" data-go="2">Изменить</button></div>'
+      +row("Адрес",d.address,3)
+      +row("Контактное лицо",[d.contactName,d.contactPhone].filter(Boolean).join(", "),4)
+      +'</div>';
+  }
+  function render(focus){
+    const s=STEPS[step],last=step===STEPS.length-1,total=STEPS.length-1;
+    card.innerHTML=
+      '<div class="qz-top">'
+        +(step>0?'<button type="button" class="qz-back" aria-label="Назад">←</button>':'<span class="qz-back-ph"></span>')
+        +'<span class="qz-count">'+(last?"Готово":"Шаг "+(step+1)+" из "+total)+'</span>'
+        +'<button type="button" class="qz-x" aria-label="Закрыть анкету">✕</button>'
+      +'</div>'
+      +'<div class="qz-bar" role="progressbar" aria-valuemin="0" aria-valuemax="'+total+'" aria-valuenow="'+Math.min(step,total)+'"><i style="width:'+Math.round(Math.min(step+ (last?0:1),total)/total*100)+'%"></i></div>'
+      +'<div class="qz-step" data-step="'+s.key+'">'
+        +'<div class="qz-ico" aria-hidden="true">'+s.ico+'</div>'
+        +'<h3 class="qz-title">'+s.title+'</h3>'
+        +'<p class="qz-sub">'+s.sub+'</p>'
+        +body()
+      +'</div>'
+      +'<div class="qz-nav">'
+        +(last?'<button type="button" class="eq-save-btn qz-next" data-act="save">Сохранить анкету</button>'
+              :'<button type="button" class="eq-save-btn qz-next" data-act="next">Далее</button>')
+        +(s.optional?'<button type="button" class="eq-cancel-btn qz-skip">Пропустить этот шаг</button>':'')
+      +'</div>';
+    bind();
+    card.scrollTop=0;
+    if(focus!==false&&window.matchMedia&&matchMedia("(pointer:fine)").matches){
+      const f=card.querySelector(".qz-inp");if(f)setTimeout(()=>f.focus(),40);
+    }
+  }
+  function read(){card.querySelectorAll("[data-k]").forEach(i=>{d[i.dataset.k]=i.value.trim();});}
+  function err(k,msg){
+    const i=card.querySelector('[data-k="'+k+'"]');if(i)i.classList.add("bad");
+    const e=card.querySelector('[data-err="'+k+'"]');if(e)e.textContent=msg;
+  }
+  function birthIso(v){
+    const m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(v||"");if(!m)return null;
+    const dd=+m[1],mm=+m[2],yy=+m[3],dt=new Date(yy,mm-1,dd);
+    if(dt.getDate()!==dd||dt.getMonth()!==mm-1)return null;
+    const age=(Date.now()-dt)/3.15576e10;
+    if(age<0||age>120)return null;
+    return m[3]+"-"+m[2]+"-"+m[1];
+  }
+  function validate(){
+    read();const key=STEPS[step].key;let ok=true;
+    if(key==="who"){
+      if(d.name.split(/\s+/).filter(Boolean).length<2){err("name","Напишите фамилию, имя и отчество");ok=false;}
+      d.phone=formatPhone(d.phone);
+      if(d.phone.replace(/\D/g,"").length!==11){err("phone","Нужен номер из 11 цифр");ok=false;}
+    }
+    if(key==="docs"){
+      if(d.snils&&!snilsValid(d.snils)){err("snils",d.snils.replace(/\D/g,"").length<11?"СНИЛС — 11 цифр":"Похоже, в СНИЛС опечатка — проверьте цифры");ok=false;}
+      if(d.birth&&!birthIso(d.birth)){err("birth","Дата в формате ДД.ММ.ГГГГ, например 05.03.1952");ok=false;}
+    }
+    if(key==="cat"&&!d.category){err("category","Выберите один вариант");ok=false;}
+    if(key==="extra"&&d.contactPhone){
+      d.contactPhone=formatPhone(d.contactPhone);
+      if(d.contactPhone.replace(/\D/g,"").length!==11){err("contactPhone","Нужен номер из 11 цифр");ok=false;}
+    }
+    if(!ok){const c=card.querySelector(".qz-step");c.classList.remove("shake");void c.offsetWidth;c.classList.add("shake");}
+    return ok;
+  }
+  function save(){
+    clientName=d.name;localStorage.setItem("clientName",clientName);
+    clientPhone=d.phone;localStorage.setItem("clientPhone",clientPhone);
+    clientSnils=d.snils;localStorage.setItem("clientSnils",clientSnils);
+    const data=Object.assign(rcpProfile(),{
+      birthDate:birthIso(d.birth)||"",category:d.category,address:d.address,
+      contactName:d.contactName,contactPhone:d.contactPhone,note:d.note,filledAt:new Date().toISOString()
+    });
     localStorage.setItem("userProfile",JSON.stringify(data));
     localStorage.setItem("questionnaireDone","1");
-    showToast("Анкета сохранена — данные подставятся автоматически");
+    showToast("Анкета сохранена — данные подставятся в заявки сами");
     ovl.remove();
     if(typeof renderProfilePanel==="function"&&document.getElementById("profBody"))renderProfilePanel();
+    if(typeof window.hdrRefresh==="function")window.hdrRefresh();
     const gaName=document.querySelector(".ga-name");if(gaName)gaName.textContent=clientName;
+  }
+  function go(n){step=n;render();}
+  function bind(){
+    card.querySelector(".qz-x").onclick=()=>ovl.remove();
+    const back=card.querySelector(".qz-back");if(back)back.onclick=()=>{read();go(step-1);};
+    const skip=card.querySelector(".qz-skip");
+    if(skip)skip.onclick=()=>{
+      // пропуск: введённое на этом шаге не проверяем и не сохраняем частично
+      const k=STEPS[step].key;
+      if(k==="docs"){d.snils=d.snils&&snilsValid(d.snils)?d.snils:"";d.birth=birthIso(d.birth)?d.birth:"";}
+      go(step+1);
+    };
+    card.querySelector(".qz-next").onclick=function(){
+      if(this.dataset.act==="save"){
+        // финальная проверка обязательных шагов
+        if(d.name.split(/\s+/).filter(Boolean).length<2||d.phone.replace(/\D/g,"").length!==11){go(0);setTimeout(validate,30);return;}
+        if(!d.category){go(2);setTimeout(validate,30);return;}
+        save();return;
+      }
+      if(validate())go(step+1);
+    };
+    card.querySelectorAll(".qz-edit").forEach(b=>b.onclick=()=>go(+b.dataset.go));
+    card.querySelectorAll(".qz-cat").forEach(b=>b.onclick=()=>{
+      d.category=b.dataset.cat;
+      card.querySelectorAll(".qz-cat").forEach(x=>{x.classList.toggle("sel",x===b);x.setAttribute("aria-checked",String(x===b));});
+      // выбор категории сразу ведёт дальше — меньше нажатий
+      setTimeout(()=>go(step+1),220);
+    });
+    card.querySelectorAll("[data-k]").forEach(i=>{
+      i.addEventListener("input",()=>{
+        i.classList.remove("bad");const e=card.querySelector('[data-err="'+i.dataset.k+'"]');if(e)e.textContent="";
+        if(i.dataset.k==="snils")i.value=formatSnils(i.value);
+        if(i.dataset.k==="birth"){
+          const v=i.value.replace(/\D/g,"").slice(0,8);let r=v.slice(0,2);
+          if(v.length>2)r+="."+v.slice(2,4);if(v.length>4)r+="."+v.slice(4,8);i.value=r;
+        }
+      });
+      if(i.dataset.k==="phone"||i.dataset.k==="contactPhone")i.addEventListener("blur",()=>{if(i.value)i.value=formatPhone(i.value);});
+      if(i.tagName==="INPUT")i.addEventListener("keydown",e=>{
+        if(e.key!=="Enter")return;e.preventDefault();
+        const all=[...card.querySelectorAll("input.qz-inp")],idx=all.indexOf(i);
+        if(idx<all.length-1)all[idx+1].focus();else card.querySelector(".qz-next").click();
+      });
+    });
+  }
+  render();
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   КАРТОЧКА «ПОЛУЧАТЕЛЬ» В ЗАЯВКАХ
+   Вместо анкеты при регистрации данные спрашиваются там, где они нужны:
+   корзина — ФИО, телефон, СНИЛС (+ адрес по желанию); запись — ФИО, телефон;
+   такси — ФИО, телефон, а для льготной поездки ещё СНИЛС и категория.
+   Если всё уже известно — показывается свёрнутая карточка с кнопкой «Изменить».
+   ═══════════════════════════════════════════════════════════════════ */
+const RCP_CATS=[
+  ["pensioner","Пенсионер","👴"],["disabled","Инвалид","♿"],["veteran","Ветеран","🎖️"],
+  ["family","Семья с детьми","👨‍👩‍👧"],["large_family","Многодетная семья","👨‍👩‍👧‍👦"],["other","Другое","📋"]
+];
+function rcpEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+function rcpProfile(){try{return JSON.parse(localStorage.getItem("userProfile")||"{}")||{};}catch(e){return {};}}
+function recipientHasName(){
+  const n=(typeof clientName!=="undefined"&&clientName)?String(clientName).trim():"";
+  return n.length>3&&n!=="Гость"&&n.split(/\s+/).length>=2;
+}
+function recipientHasPhone(){
+  const p=(typeof clientPhone!=="undefined"&&clientPhone)?String(clientPhone):"";
+  return p.replace(/\D/g,"").length>=11;
+}
+// +7 (999) 000-00-00 из любых 10–11 цифр
+function formatPhone(v){
+  let d=String(v||"").replace(/\D/g,"");
+  if(d.length===10)d="7"+d;
+  if(d.length===11&&d[0]==="8")d="7"+d.slice(1);
+  if(d.length!==11)return String(v||"").trim();
+  return "+7 ("+d.slice(1,4)+") "+d.slice(4,7)+"-"+d.slice(7,9)+"-"+d.slice(9,11);
+}
+function formatSnils(v){
+  const d=String(v||"").replace(/\D/g,"").slice(0,11);let r="";
+  if(d.length>0)r+=d.slice(0,3);if(d.length>3)r+="-"+d.slice(3,6);
+  if(d.length>6)r+="-"+d.slice(6,9);if(d.length>9)r+=" "+d.slice(9,11);
+  return r;
+}
+// Проверка контрольного числа СНИЛС (для номеров больше 001-001-998).
+function snilsValid(v){
+  const d=String(v||"").replace(/\D/g,"");
+  if(d.length!==11)return false;
+  const num=d.slice(0,9),ctrl=parseInt(d.slice(9),10);
+  if(parseInt(num,10)<=1001998)return true;
+  let sum=0;for(let i=0;i<9;i++)sum+=parseInt(num[i],10)*(9-i);
+  let c=sum<100?sum:(sum===100||sum===101)?0:sum%101;
+  if(c===100)c=0;
+  return c===ctrl;
+}
+function rcpInitials(name){
+  return String(name||"").trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||"";}).join("").toUpperCase()||"?";
+}
+
+/* opts: {snils:bool, address:bool, category:bool, title:string}
+   Возвращает контроллер {el, validate(), setOpts(opts)}.
+   validate() → {ok:true, data:{name,phone,snils,address,category}} | {ok:false} */
+function rcpMount(container,opts){
+  opts=Object.assign({snils:false,address:false,category:false},opts||{});
+  const prof=rcpProfile();
+  const st={
+    name:recipientHasName()?clientName:"",
+    phone:recipientHasPhone()?formatPhone(clientPhone):"",
+    snils:(typeof clientSnils!=="undefined"&&clientSnils&&clientSnils!=="—")?formatSnils(clientSnils):"",
+    address:prof.address||"",
+    category:prof.category||"",
+    remember:true, open:false
   };
+  const el=document.createElement("div");el.className="rcp";
+  container.appendChild(el);
+
+  function complete(){
+    if(!st.name||st.name.split(/\s+/).length<2)return false;
+    if(st.phone.replace(/\D/g,"").length<11)return false;
+    if(opts.snils&&!snilsValid(st.snils))return false;
+    if(opts.category&&!st.category)return false;
+    return true;
+  }
+  function catLabel(k){const c=RCP_CATS.find(function(x){return x[0]===k;});return c?c[1]:"";}
+  function readInputs(){
+    el.querySelectorAll("[data-rcp]").forEach(function(i){st[i.dataset.rcp]=i.value.trim();});
+    const rem=el.querySelector(".rcp-remember input");if(rem)st.remember=rem.checked;
+  }
+  function render(){
+    const done=complete();
+    const showForm=st.open||!done;
+    const metaParts=[];
+    if(st.phone)metaParts.push('<span>📱 '+rcpEsc(st.phone)+'</span>');
+    if(opts.snils&&st.snils)metaParts.push('<span>📇 СНИЛС …'+rcpEsc(st.snils.replace(/\D/g,"").slice(-4))+'</span>');
+    if(opts.category&&st.category)metaParts.push('<span>🏷️ '+rcpEsc(catLabel(st.category))+'</span>');
+    if(opts.address&&st.address)metaParts.push('<span>🏠 '+rcpEsc(st.address)+'</span>');
+    let html='<div class="rcp-head">'
+      +'<span class="rcp-ava'+(done?"":" empty")+'">'+(st.name?rcpEsc(rcpInitials(st.name)):"👤")+'</span>'
+      +'<div class="rcp-id"><span class="rcp-cap">'+rcpEsc(opts.title||"Получатель")+'</span>'
+      +(st.name&&done?'<b>'+rcpEsc(st.name)+'</b>':'<b class="rcp-ask">'+rcpEsc(opts.ask||"Укажите ваши данные")+'</b>')
+      +(done&&metaParts.length?'<div class="rcp-meta">'+metaParts.join("")+'</div>':'')
+      +'</div>'
+      +(done?'<button type="button" class="rcp-edit" aria-expanded="'+showForm+'">'+(st.open?"Готово":"Изменить")+'</button>':'')
+      +'</div>';
+    if(showForm){
+      html+='<div class="rcp-form">';
+      if(!done&&!st.open)html+='<div class="rcp-hint">Заполняется один раз — в следующих заявках подставится само.</div>';
+      html+=rcpField("name","ФИО","Фамилия Имя Отчество",st.name,"text","name");
+      html+=rcpField("phone","Телефон для связи","+7 (___) ___-__-__",st.phone,"tel","tel");
+      if(opts.snils)html+=rcpField("snils","СНИЛС","000-000-000 00",st.snils,"numeric","off");
+      if(opts.category){
+        html+='<div class="rcp-fld"><span class="rcp-lbl">Категория получателя</span><div class="rcp-cats" role="radiogroup" aria-label="Категория получателя">'
+          +RCP_CATS.map(function(c){return '<button type="button" role="radio" aria-checked="'+(st.category===c[0])+'" class="rcp-cat'+(st.category===c[0]?" sel":"")+'" data-cat="'+c[0]+'"><span>'+c[2]+'</span>'+c[1]+'</button>';}).join("")
+          +'</div><span class="rcp-err" data-err="category"></span></div>';
+      }
+      if(opts.address)html+=rcpField("address","Адрес, где нужна услуга (необязательно)","Город, улица, дом, квартира",st.address,"text","street-address");
+      html+='<label class="rcp-remember"><input type="checkbox"'+(st.remember?" checked":"")+'> Запомнить для следующих заявок</label>';
+      html+='</div>';
+    }
+    el.innerHTML=html;
+    el.classList.toggle("is-done",done&&!st.open);
+    bind();
+  }
+  function bind(){
+    const ed=el.querySelector(".rcp-edit");
+    if(ed)ed.onclick=function(){readInputs();st.open=!st.open;render();if(st.open){const f=el.querySelector("[data-rcp]");if(f)f.focus();}};
+    const ph=el.querySelector('[data-rcp="phone"]');
+    if(ph)ph.addEventListener("blur",function(){ph.value=formatPhone(ph.value);});
+    const sn=el.querySelector('[data-rcp="snils"]');
+    if(sn)sn.addEventListener("input",function(){sn.value=formatSnils(sn.value);});
+    el.querySelectorAll("[data-rcp]").forEach(function(i){
+      i.addEventListener("input",function(){i.classList.remove("bad");const e=el.querySelector('[data-err="'+i.dataset.rcp+'"]');if(e)e.textContent="";});
+    });
+    el.querySelectorAll(".rcp-cat").forEach(function(b){
+      b.onclick=function(){
+        readInputs();st.category=b.dataset.cat;
+        el.querySelectorAll(".rcp-cat").forEach(function(x){x.classList.toggle("sel",x===b);x.setAttribute("aria-checked",String(x===b));});
+        const e=el.querySelector('[data-err="category"]');if(e)e.textContent="";
+      };
+    });
+  }
+  function setErr(key,msg){
+    const i=el.querySelector('[data-rcp="'+key+'"]');if(i)i.classList.add("bad");
+    const e=el.querySelector('[data-err="'+key+'"]');if(e)e.textContent=msg;
+  }
+  function validate(){
+    if(el.querySelector(".rcp-form"))readInputs();
+    st.phone=formatPhone(st.phone);
+    const errs=[];
+    if(!st.name||st.name.split(/\s+/).length<2)errs.push(["name","Укажите фамилию, имя и отчество"]);
+    if(st.phone.replace(/\D/g,"").length<11)errs.push(["phone","Нужен номер из 11 цифр"]);
+    if(opts.snils){
+      if(st.snils.replace(/\D/g,"").length<11)errs.push(["snils","СНИЛС — 11 цифр"]);
+      else if(!snilsValid(st.snils))errs.push(["snils","Похоже, в СНИЛС опечатка — проверьте цифры"]);
+    }
+    if(opts.category&&!st.category)errs.push(["category","Выберите категорию"]);
+    if(errs.length){
+      st.open=true;render();
+      errs.forEach(function(e){setErr(e[0],e[1]);});
+      el.scrollIntoView({behavior:"smooth",block:"center"});
+      el.classList.remove("shake");void el.offsetWidth;el.classList.add("shake");
+      return {ok:false,message:errs[0][1]};
+    }
+    const data={name:st.name.replace(/\s+/g," "),phone:st.phone,snils:st.snils,address:st.address,category:st.category};
+    if(st.remember)rcpSave(data,opts);
+    st.open=false;render();
+    return {ok:true,data:data};
+  }
+  render();
+  return {el:el,validate:validate,setOpts:function(o){readInputs();opts=Object.assign(opts,o);render();}};
+}
+function rcpField(key,label,ph,val,mode,ac){
+  const type=mode==="tel"?"tel":"text";
+  const im=mode==="numeric"?' inputmode="numeric"':mode==="tel"?' inputmode="tel"':"";
+  const id="rcp_"+key+"_"+Math.random().toString(36).slice(2,7);
+  return '<div class="rcp-fld"><label class="rcp-lbl" for="'+id+'">'+label+'</label>'
+    +'<input class="rcp-inp" id="'+id+'" data-rcp="'+key+'" type="'+type+'"'+im+' autocomplete="'+ac+'" placeholder="'+rcpEsc(ph)+'" value="'+rcpEsc(val)+'">'
+    +'<span class="rcp-err" data-err="'+key+'"></span></div>';
+}
+function rcpSave(d,opts){
+  clientName=d.name;localStorage.setItem("clientName",clientName);
+  clientPhone=d.phone;localStorage.setItem("clientPhone",clientPhone);
+  if(opts.snils&&d.snils){clientSnils=d.snils;localStorage.setItem("clientSnils",clientSnils);}
+  const p=rcpProfile();
+  if(opts.address&&d.address)p.address=d.address;
+  if(opts.category&&d.category)p.category=d.category;
+  if(opts.address||opts.category){p.filledAt=new Date().toISOString();localStorage.setItem("userProfile",JSON.stringify(p));}
+  if(typeof window.hdrRefresh==="function")window.hdrRefresh();
+  const gaName=document.querySelector(".ga-name");if(gaName)gaName.textContent=clientName;
 }
 
 ;
@@ -3289,7 +3634,7 @@ function signupEvent(id){
   const e=(typeof eventsData!=="undefined"?eventsData:[]).find(x=>x.id===id);if(!e)return;
   const body=`${emailTemplates.event.intro}\nМероприятие: ${e.title}\nКогда: ${e.date}\nМесто: ${e.place}\n\nУчастник: ${clientName}\nТелефон: ${clientPhone}\nФилиал: г. ${currentCityName}`;
   window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.event.subject,{title:e.title}))}&body=${encodeURIComponent(body)}`;
-  window.GarmoniyaDB?.saveBooking?.({num:"МЕР-"+id,clientName,clientPhone,cityName:currentCityName,dept:"Мероприятие",spec:e.title,visitDate:e.date,visitTime:"",comment:e.place});
+  window.GarmoniyaDB?.saveBooking?.({num:newTicketNum(),clientName,clientPhone,cityName:currentCityName,dept:"Мероприятие",spec:e.title,visitDate:e.date,visitTime:"",comment:e.place});
   addMsg(`✅ Заявка на участие в «${e.title}» отправлена!`,true);
   showToast("Вы записаны");
 }
@@ -3301,7 +3646,13 @@ function signupEvent(id){
 (function(){
   "use strict";
 
-  const ADMIN={email:"iatumanov@yanao.ru",pass:"300897"};
+  // Вход в админ-панель — только по 6-значному коду. В коде хранится не сам код,
+  // а SHA-256 от "garmoniya-admin:<код>". Сменить код: посчитать новый хэш
+  //   echo -n "garmoniya-admin:НОВЫЙКОД" | sha256sum
+  // и заменить строку ниже.
+  const ADMIN_CODE_HASH="8a623844da4d793a79260c2ef7e4de62633d12a55ddf5cc22ae8e695513363f9";
+  const ADMIN_CODE_LEN=6;
+  const ADMIN_MAX_TRIES=5, ADMIN_LOCK_MS=60*1000;
   const CITY_NAMES={gubkin:"Губкинский",purpe:"мкр. Пурпе",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"Уренгой"};
   const CONTACT_FIELDS=[["address","Адрес"],["phone","Телефон (для показа)"],["phoneRaw","Телефон (цифры, для звонка)"],["email","Email"],["orderEmail","Email для приёма заявок (куда улетают заявки)"],["hours","Часы работы"]];
 
@@ -3401,29 +3752,124 @@ function signupEvent(id){
     }
   };
 
+  /* SHA-256: через WebCrypto, а если страница открыта не по HTTPS — запасная JS-реализация. */
+  function sha256Fallback(str){
+    const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    const bytes=Array.from(new TextEncoder().encode(str));
+    const bitLen=bytes.length*8;
+    bytes.push(0x80);while(bytes.length%64!==56)bytes.push(0);
+    for(let i=7;i>=0;i--)bytes.push(Math.floor(bitLen/Math.pow(2,i*8))&255);
+    let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    const r=(x,n)=>(x>>>n)|(x<<(32-n));
+    for(let o=0;o<bytes.length;o+=64){
+      const W=new Array(64);
+      for(let i=0;i<16;i++)W[i]=(bytes[o+i*4]<<24)|(bytes[o+i*4+1]<<16)|(bytes[o+i*4+2]<<8)|bytes[o+i*4+3];
+      for(let i=16;i<64;i++){const s0=r(W[i-15],7)^r(W[i-15],18)^(W[i-15]>>>3),s1=r(W[i-2],17)^r(W[i-2],19)^(W[i-2]>>>10);W[i]=(W[i-16]+s0+W[i-7]+s1)|0;}
+      let [a,b,c,d,e,f,g,h]=H;
+      for(let i=0;i<64;i++){
+        const S1=r(e,6)^r(e,11)^r(e,25),ch=(e&f)^(~e&g),t1=(h+S1+ch+K[i]+W[i])|0;
+        const S0=r(a,2)^r(a,13)^r(a,22),mj=(a&b)^(a&c)^(b&c),t2=(S0+mj)|0;
+        h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;
+      }
+      H=[H[0]+a,H[1]+b,H[2]+c,H[3]+d,H[4]+e,H[5]+f,H[6]+g,H[7]+h].map(x=>x|0);
+    }
+    return H.map(x=>(x>>>0).toString(16).padStart(8,"0")).join("");
+  }
+  async function sha256Hex(str){
+    try{
+      if(window.crypto&&crypto.subtle){
+        const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+        return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+      }
+    }catch(e){}
+    return sha256Fallback(str);
+  }
+  function lockLeft(){
+    const until=parseInt(localStorage.getItem("admLockUntil")||"0",10);
+    return Math.max(0,until-Date.now());
+  }
+
   function renderLogin(ovl){
-    ovl.innerHTML=`<div class="admin-card">
-      <h3>🔐 Вход для администратора</h3>
-      <div class="admin-warn">Внимание: Вход только Администратору!</div>
-      <label class="admin-lbl">Email</label>
-      <input class="admin-inp" id="admEmail" type="email" placeholder="email@yanao.ru" autocomplete="username">
-      <label class="admin-lbl">Пароль</label>
-      <input class="admin-inp" id="admPass" type="password" placeholder="••••••" autocomplete="current-password">
-      <button class="admin-btn" id="admGo">Войти</button>
-      <button class="admin-btn ghost" id="admCancel">Отмена</button>
+    ovl.innerHTML=`<div class="admin-card pin-card">
+      <div class="pin-ico" aria-hidden="true">🔐</div>
+      <h3 class="pin-title">Вход для администратора</h3>
+      <p class="pin-sub" id="pinSub">Введите код доступа</p>
+      <div class="pin-dots" id="pinDots" aria-hidden="true">${"<span></span>".repeat(ADMIN_CODE_LEN)}</div>
+      <input class="pin-hidden" id="pinInp" type="password" inputmode="numeric" autocomplete="one-time-code"
+        maxlength="${ADMIN_CODE_LEN}" aria-label="Код доступа, ${ADMIN_CODE_LEN} цифр">
+      <div class="pin-pad" role="group" aria-label="Цифровая клавиатура">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" class="pin-key" data-k="${n}">${n}</button>`).join("")}
+        <button type="button" class="pin-key pin-key-txt" data-k="cancel">Отмена</button>
+        <button type="button" class="pin-key" data-k="0">0</button>
+        <button type="button" class="pin-key pin-key-txt" data-k="del" aria-label="Стереть цифру">⌫</button>
+      </div>
     </div>`;
-    const em=ovl.querySelector("#admEmail"),pw=ovl.querySelector("#admPass");
-    const go=()=>{
-      if(em.value.trim().toLowerCase()===ADMIN.email&&pw.value===ADMIN.pass){
+    const inp=ovl.querySelector("#pinInp"),dots=ovl.querySelectorAll("#pinDots span"),sub=ovl.querySelector("#pinSub");
+    const card=ovl.querySelector(".pin-card");
+    let code="",busy=false,lockTimer=null;
+    function paint(){
+      dots.forEach((d,i)=>d.classList.toggle("on",i<code.length));
+      inp.value=code;
+    }
+    function showLock(){
+      const left=lockLeft();
+      card.classList.toggle("locked",left>0);
+      if(left>0){
+        sub.textContent="Слишком много попыток. Повторите через "+Math.ceil(left/1000)+" с";
+        clearTimeout(lockTimer);lockTimer=setTimeout(showLock,1000);
+      }else{
+        sub.textContent="Введите код доступа";
+        localStorage.removeItem("admTries");
+      }
+      return left>0;
+    }
+    async function check(){
+      if(busy)return;busy=true;
+      const ok=(await sha256Hex("garmoniya-admin:"+code))===ADMIN_CODE_HASH;
+      if(ok){
+        localStorage.removeItem("admTries");localStorage.removeItem("admLockUntil");
         sessionStorage.setItem("adminAuthed","1");
-        ovl.remove();
-        openFullPanel();
-      }else{showToast("Неверный email или пароль");}
-    };
-    ovl.querySelector("#admGo").onclick=go;
-    pw.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
-    ovl.querySelector("#admCancel").onclick=()=>ovl.remove();
-    em.focus();
+        card.classList.add("ok");
+        setTimeout(()=>{ovl.remove();openFullPanel();},180);
+        return;
+      }
+      const tries=parseInt(localStorage.getItem("admTries")||"0",10)+1;
+      localStorage.setItem("admTries",String(tries));
+      if(tries>=ADMIN_MAX_TRIES){localStorage.setItem("admLockUntil",String(Date.now()+ADMIN_LOCK_MS));}
+      card.classList.remove("err");void card.offsetWidth;card.classList.add("err");
+      if(navigator.vibrate)try{navigator.vibrate(120);}catch(e){}
+      setTimeout(()=>{
+        code="";paint();busy=false;
+        if(!showLock())sub.textContent="Неверный код. Осталось попыток: "+(ADMIN_MAX_TRIES-tries);
+      },420);
+    }
+    function press(k){
+      if(k==="cancel"){clearTimeout(lockTimer);ovl.remove();return;}
+      if(busy||lockLeft()>0){showLock();return;}
+      if(k==="del"){code=code.slice(0,-1);paint();return;}
+      if(!/^\d$/.test(k)||code.length>=ADMIN_CODE_LEN)return;
+      code+=k;paint();
+      if(code.length===ADMIN_CODE_LEN)check();
+    }
+    ovl.querySelectorAll(".pin-key").forEach(b=>b.onclick=()=>press(b.dataset.k));
+    // Физическая клавиатура (ПК) и ввод в скрытое поле
+    inp.addEventListener("input",()=>{
+      const v=inp.value.replace(/\D/g,"").slice(0,ADMIN_CODE_LEN);
+      if(busy||lockLeft()>0){inp.value=code;return;}
+      code=v;paint();if(code.length===ADMIN_CODE_LEN)check();
+    });
+    ovl.addEventListener("keydown",e=>{
+      if(e.target===inp)return;
+      if(/^\d$/.test(e.key)){press(e.key);e.preventDefault();}
+      else if(e.key==="Backspace"){press("del");e.preventDefault();}
+      else if(e.key==="Escape"){press("cancel");}
+    });
+    showLock();
+    // На ПК фокус в скрытое поле — можно печатать цифры с клавиатуры.
+    // На телефоне не фокусируем, чтобы системная клавиатура не закрыла наш пин-пад.
+    if(window.matchMedia&&matchMedia("(pointer:fine)").matches){
+      setTimeout(()=>{try{inp.focus({preventScroll:true});}catch(e){}},60);
+    }
   }
 
   function openFullPanel(){
@@ -4066,7 +4512,6 @@ let fbRating=0,fbTags=[];
 let serviceRatings=JSON.parse(localStorage.getItem("serviceRatings")||"{}");
 const chatEl=document.getElementById("chat"),actionsEl=document.getElementById("actions");
 const badgeEl=document.getElementById("cartBadge");
-let ticketCounter=parseInt(localStorage.getItem("ticketCounter")||"100");
 
 const BOT_POSES=["img/bot-avatar.jpg","img/bot-tablet.jpg","img/bot-present.jpg","img/bot-meditate.jpg","img/bot-pray.jpg","img/bot-heart.jpg"];
 function randomBotPose(){return BOT_POSES[Math.floor(Math.random()*BOT_POSES.length)];}
@@ -4315,7 +4760,7 @@ function cancelBooking(idx){
   bh.splice(idx,1);
   localStorage.setItem("bookingsHistory",JSON.stringify(bh));
   bookingsHistory=bh;
-  const body=`${emailTemplates.cancelBooking.intro}\nТалон: ${b.num}\nПолучатель: ${clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${b.visitDate} в ${b.visitTime}\nСпециалист: ${b.spec}`;
+  const body=`${emailTemplates.cancelBooking.intro}\nНомер записи: ${b.num}\nПолучатель: ${b.recipient||clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${b.visitDate} в ${b.visitTime}\nСпециалист: ${b.spec}`;
   window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.cancelBooking.subject,{ticket:b.num}))}&body=${encodeURIComponent(body)}`;
   showToast("Запись отменена");
   if(document.getElementById("ordersPanel").classList.contains("open")){
@@ -4379,7 +4824,7 @@ function renderCart(){
   body.innerHTML=cart.map(it=>`
     <div class="cart-item" role="listitem">
       <div class="ci-name">${it.name}</div>
-      <div class="ci-price">${(it.price*it.qty).toLocaleString()} ₽</div>
+      <div class="ci-price">${(it.price*it.qty).toLocaleString("ru-RU")} ₽</div>
       <div class="qty-row" role="group" aria-label="Количество">
         <button class="qty-btn" onclick="chgQty(${it.id},-1)" aria-label="Уменьшить">−</button>
         <span class="qty-val" aria-live="polite">${it.qty}</span>
@@ -4390,61 +4835,68 @@ function renderCart(){
   const baseTotal=cart.reduce((s,i)=>s+(i.base!=null?i.base:i.price)*i.qty,0);
   const savings=baseTotal-total;
   const savingsHtml=(hasMoroshka&&savings>0)
-    ?`<div class="cart-save"><img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Скидка «Морошка»: −${savings.toLocaleString()} ₽ <span>(без скидки ${baseTotal.toLocaleString()} ₽)</span></div>`
+    ?`<div class="cart-save"><img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Скидка «Морошка»: −${savings.toLocaleString("ru-RU")} ₽ <span>(без скидки ${baseTotal.toLocaleString("ru-RU")} ₽)</span></div>`
     :"";
   footer.innerHTML=`
-    <div class="cart-total"><span>Итого:</span><span aria-live="polite">${total.toLocaleString()} ₽</span></div>
+    <div class="cart-total"><span>Итого:</span><span aria-live="polite">${total.toLocaleString("ru-RU")} ₽</span></div>
     ${savingsHtml}
-    <div class="cart-rcpt">Заявка будет отправлена на <strong>${getOrderEmail()}</strong><br>Получатель: <strong>${clientName||"—"}</strong></div>
+    <div class="cart-rcpt">Заявка будет отправлена на <strong>${getOrderEmail()}</strong><br>Данные получателя проверим на следующем шаге</div>
     <button class="cart-send" onclick="sendOrder()" aria-label="${t("cart_send")}">${t("cart_send")}</button>
     <button class="cart-clr" onclick="clearCart()">${t("cart_clear")}</button>`;
 }
 function sendOrder(){
   if(!cart.length)return;
-  if(!clientSnils||clientSnils==="—"||clientSnils.replace(/\D/g,"").length<11){
-    askSnilsAndSend();return;
-  }
-  doSendOrder();
+  showOrderCheckout();
 }
-function askSnilsAndSend(){
-  var ovl=document.createElement("div");ovl.className="mo";
-  ovl.onclick=function(e){if(e.target===ovl)ovl.remove();};
-  ovl.innerHTML='<div class="mc" style="max-width:360px;text-align:center;padding:28px 22px"><h3>Укажите СНИЛС</h3><p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Для оформления заявки на социальные услуги необходимо указать СНИЛС получателя</p><input class="auth-inp" id="snilsInput" placeholder="000-000-000 00" inputmode="numeric" style="text-align:center;font-size:18px;letter-spacing:1px"><button class="auth-btn" id="snilsOk" disabled style="margin-top:12px">Продолжить</button><button class="rating-skip" onclick="this.closest(\'.mo\').remove()">Отмена</button></div>';
-  document.body.appendChild(ovl);
-  var inp=ovl.querySelector("#snilsInput"),btn=ovl.querySelector("#snilsOk");
-  inp.oninput=function(){
-    var v=inp.value.replace(/\D/g,"").substring(0,11),r="";
-    if(v.length>0)r+=v.substring(0,3);if(v.length>3)r+="-"+v.substring(3,6);
-    if(v.length>6)r+="-"+v.substring(6,9);if(v.length>9)r+=" "+v.substring(9,11);
-    inp.value=r;btn.disabled=v.length<11;
-  };
-  btn.onclick=function(){
-    clientSnils=inp.value.trim();
-    localStorage.setItem("clientSnils",clientSnils);
-    ovl.remove();doSendOrder();
-  };
-  inp.focus();
-}
-function doSendOrder(){
-  const cd=cityData[currentCity]||cityData.gubkin;
-  const items=cart.map(i=>`• ${i.name} (x${i.qty}) — ${(i.price*i.qty).toLocaleString()} руб.`).join("\n");
+// Оформление заявки из корзины: состав + карточка «Получатель» в одном листе.
+// СНИЛС обязателен для соцуслуг — спрашиваем здесь же, без отдельного окна.
+function showOrderCheckout(){
+  document.querySelectorAll(".mo.chk-mo").forEach(function(m){m.remove();});
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const body=`${emailTemplates.order.intro}\nДата: ${new Date().toLocaleString("ru-RU")}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\nСНИЛС: ${clientSnils}\nКарта «Морошка»: ${hasMoroshka?"Да":"Нет"}\nФилиал: г. ${currentCityName}\n\nУСЛУГИ\n${items}\n\nИТОГО: ${total.toLocaleString()} руб.`;
-  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.order.subject,{name:clientName,city:currentCityName}))}&body=${encodeURIComponent(body)}`;
-  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-  const orderNum="ЗАЯ-"+String(ticketCounter).padStart(4,"0");
+  const ovl=document.createElement("div");ovl.className="mo chk-mo";
+  ovl.setAttribute("role","dialog");ovl.setAttribute("aria-modal","true");ovl.setAttribute("aria-label","Оформление заявки");
+  ovl.onclick=function(e){if(e.target===ovl)ovl.remove();};
+  ovl.innerHTML=`<div class="mc chk-mc">
+    <div class="chk-title">Оформление заявки</div>
+    <div class="chk-items">${cart.map(i=>`<div class="chk-item"><span>${i.name}${i.qty>1?` <em>×${i.qty}</em>`:""}</span><b>${(i.price*i.qty).toLocaleString("ru-RU")} ₽</b></div>`).join("")}</div>
+    <div class="chk-total"><span>Итого</span><b>${total.toLocaleString("ru-RU")} ₽</b></div>
+    <div id="chkRcp"></div>
+    <button type="button" class="eq-save-btn" id="chkSend">Отправить заявку</button>
+    <button type="button" class="eq-cancel-btn" id="chkCancel">Вернуться к корзине</button>
+    <div class="chk-note">Заявка уйдёт на ${getOrderEmail()} — откроется почта, останется нажать «Отправить».</div>
+  </div>`;
+  document.body.appendChild(ovl);
+  const rcp=rcpMount(ovl.querySelector("#chkRcp"),{snils:true,address:true,title:"Получатель услуг"});
+  ovl.querySelector("#chkCancel").onclick=function(){ovl.remove();};
+  ovl.querySelector("#chkSend").onclick=function(){
+    const r=rcp.validate();
+    if(!r.ok){showToast(r.message);return;}
+    ovl.remove();
+    doSendOrder(r.data);
+  };
+}
+function doSendOrder(rcp){
+  if(!cart.length)return;
+  rcp=rcp||{name:clientName,phone:clientPhone,snils:clientSnils,address:""};
+  const cd=cityData[currentCity]||cityData.gubkin;
+  const items=cart.map(i=>`• ${i.name} (x${i.qty}) — ${(i.price*i.qty).toLocaleString("ru-RU")} руб.`).join("\n");
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const orderNum=newTicketNum();
+  const body=`${emailTemplates.order.intro}\nНомер заявки: ${orderNum}\nДата: ${new Date().toLocaleString("ru-RU")}\n\nПОЛУЧАТЕЛЬ\nФИО: ${rcp.name}\nТелефон: ${rcp.phone}\nСНИЛС: ${rcp.snils||"—"}${rcp.address?"\nАдрес оказания услуги: "+rcp.address:""}\nКарта «Морошка»: ${hasMoroshka?"Да":"Нет"}\nФилиал: г. ${currentCityName}\n\nУСЛУГИ\n${items}\n\nИТОГО: ${total.toLocaleString("ru-RU")} руб.`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.order.subject,{name:rcp.name,city:currentCityName}))}&body=${encodeURIComponent(body)}`;
   ordersHistory.unshift({
     num:orderNum,
     date:new Date().toLocaleString("ru-RU"),
-    sum:total.toLocaleString(),
+    sum:total.toLocaleString("ru-RU"),
     items:cart.map(i=>`<div class="ord-item-line">${i.name} <span class="ord-item-qty">×${i.qty}</span></div>`).join(""),
     itemsRaw:cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,base:i.base,mor:i.mor})),
+    recipient:rcp.name,
     status:"new"
   });
   localStorage.setItem("ordersHistory",JSON.stringify(ordersHistory));
 
   window.GarmoniyaDB?.saveOrder({
-    clientName, clientPhone, cityName:currentCityName, moroshka:hasMoroshka, total,
+    clientName:rcp.name, clientPhone:rcp.phone, cityName:currentCityName, moroshka:hasMoroshka, total,
     items:cart.map(i=>({name:i.name,qty:i.qty,price:i.price}))
   });
   cart=[];saveCart();updateBadge();renderCart();closeCart();
@@ -4777,7 +5229,7 @@ function showCategory(catId,highlightUid){
 let taxiState={tariffIdx:null,from:"",to:"",date:"",time:"",comment:""};
 
 let taxiShowMor=hasMoroshka;
-let taxiSelectedIdx=null,taxiSelectedIsFree=false;
+let taxiSelectedIdx=null,taxiSelectedIsFree=false,taxiRcpCtl=null;
 function showTaxi(keepState,prefillTo){
   clearActions();setNav(true);
   chatEl.innerHTML="";
@@ -4798,7 +5250,8 @@ function showTaxi(keepState,prefillTo){
   }
 
   w.innerHTML=`
-    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:0%"></div></div>
+    <h2 class="taxi-h">🚕 Социальное такси</h2>
+    <div class="taxi-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" aria-label="Шаг 1 из 3"><div class="taxi-progress-fill" style="width:33.3%"></div></div>
     <div class="taxi-step-lbl"><span class="taxi-step-num">1</span>Маршрут</div>
     <div class="taxi-route-visual">
       <div class="taxi-route-line">
@@ -4872,11 +5325,14 @@ function showTaxiTariff(tariffs){
   const w=document.createElement("div");w.className="taxi-page taxi-page-v2";
   const quota=getFreeTaxiQuota();
   const eligibility=checkFreeTaxiEligibility();
-  const freeDisabled=!eligibility.eligible||quota.remaining<=0;
+  // Если не хватает только данных (СНИЛС/категория) — даём выбрать льготу,
+  // недостающее спросим на следующем шаге. Блокируем, только если права точно нет.
+  const needsData=!eligibility.eligible&&(eligibility.reason==="snils_missing"||eligibility.reason==="category_missing");
+  const freeDisabled=(!eligibility.eligible&&!needsData)||quota.remaining<=0;
 
   w.innerHTML=`
     <button class="pl-back" onclick="showTaxi(true)">← Назад к маршруту</button>
-    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:33.3%"></div></div>
+    <div class="taxi-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="2" aria-label="Шаг 2 из 3"><div class="taxi-progress-fill" style="width:66.6%"></div></div>
     <div class="taxi-step-lbl"><span class="taxi-step-num">2</span>Выберите тариф</div>
     <button type="button" class="taxi-mor-toggle taxi-mor-toggle-main ${taxiShowMor?"on":""}" id="taxiMorToggleMain" aria-pressed="${taxiShowMor}"><img src="img/moroshka-logo.jpg" alt=""><span>Показывать цены по карте «Морошка»</span></button>
     <div class="taxi-select-list" id="taxiSelectList">
@@ -4885,7 +5341,8 @@ function showTaxiTariff(tariffs){
         <div class="taxi-tariff-body">
           <div class="taxi-tariff-top"><span class="taxi-tariff-name">Льготная поездка</span><span class="taxi-sel-check">✓</span></div>
           <div class="taxi-tariff-price"><span class="ttp-main free-price">Бесплатно</span></div>
-          ${!eligibility.eligible?`<div class="taxi-free-eligibility not-ok"><span>🔒</span> ${eligibility.message}</div>`
+          ${needsData?`<div class="taxi-free-eligibility ok"><span>📇</span> Для пенсионеров, инвалидов и ветеранов. Понадобятся СНИЛС и категория — укажете на следующем шаге</div>`
+            :!eligibility.eligible?`<div class="taxi-free-eligibility not-ok"><span>🔒</span> ${eligibility.message}</div>`
             :`<div class="taxi-free-eligibility ok"><span>✅</span> ${quota.remaining>0?"Осталось "+quota.remaining+" из "+quota.limit+" поездок":"Лимит на этот год исчерпан"}</div>`}
         </div>
       </button>
@@ -4939,11 +5396,11 @@ function showTaxiDateTime(tariffs){
   clearActions();setNav(true);
   chatEl.innerHTML="";
   const w=document.createElement("div");w.className="taxi-page taxi-page-v2";
-  const today=new Date().toISOString().split("T")[0];
+  const today=taxiEarliestRideDate();
 
   w.innerHTML=`
     <button class="pl-back" onclick="showTaxiTariff(getTaxiTariffs())">← Назад к тарифу</button>
-    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:66.6%"></div></div>
+    <div class="taxi-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="3" aria-label="Шаг 3 из 3"><div class="taxi-progress-fill" style="width:100%"></div></div>
     <div class="taxi-step-lbl"><span class="taxi-step-num">3</span>Когда подать машину</div>
     <div class="taxi-dt-section">
       <div class="taxi-date-scroll" id="taxiDateScroll"></div>
@@ -4951,6 +5408,7 @@ function showTaxiDateTime(tariffs){
       <input type="hidden" id="taxiDate" value="${today}">
       <input type="hidden" id="taxiTime" value="">
     </div>
+    <div class="taxi-rcp" id="taxiRcp"></div>
     <div class="eq-field"><span class="eq-field-ico">👥</span><div class="eq-field-body"><label class="eq-field-lbl">Количество пассажиров</label>
       <div class="taxi-pax-stepper">
         <button type="button" class="taxi-pax-btn" id="taxiPaxMinus">−</button>
@@ -4959,13 +5417,18 @@ function showTaxiDateTime(tariffs){
         <span class="taxi-pax-hint">макс. 2 места</span>
       </div>
     </div></div>
-    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 1</label><input class="eq-input" id="taxiPax1Name" value="${(clientName||"").replace(/"/g,"&quot;")}" placeholder="ФИО пассажира"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 1</label><input class="eq-input" id="taxiPax1Name" value="${(recipientHasName()?clientName:"").replace(/"/g,"&quot;")}" placeholder="Если едет не заказчик — ФИО пассажира"></div></div>
     <div class="eq-field gone" id="taxiPax2Field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 2</label><input class="eq-input" id="taxiPax2Name" placeholder="ФИО второго пассажира"></div></div>
     <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl">Комментарий (необязательно)</label><textarea class="eq-input" id="taxiComment" rows="2" placeholder="Особые пожелания..."></textarea></div></div>
     <input type="hidden" id="taxiPax" value="1">
   `;
   chatEl.appendChild(w);
   taxiRenderDateTimePicker();
+  // Заказчик поездки: ФИО и телефон нужны диспетчеру всегда,
+  // для льготной поездки дополнительно — СНИЛС и категория.
+  taxiRcpCtl=rcpMount(document.getElementById("taxiRcp"),{
+    title:"Кто заказывает поездку",snils:taxiSelectedIsFree,category:taxiSelectedIsFree
+  });
 
   function updatePax(delta){
     const paxVal=document.getElementById("taxiPaxVal");
@@ -5018,7 +5481,6 @@ function taxiTariffCardHtml(t){
     +'</div></div></button>';
 }
 function taxiRenderDateTimePicker(){
-  const cd=cityData[currentCity]||cityData.gubkin;
   const dateScroll=document.getElementById("taxiDateScroll");
   const timeGrid=document.getElementById("taxiTimeGrid");
   const dateHidden=document.getElementById("taxiDate");
@@ -5026,49 +5488,51 @@ function taxiRenderDateTimePicker(){
   const dayNames=["вс","пн","вт","ср","чт","пт","сб"];
   const monthNames=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
   const days=[];
-  const now=new Date();
   // Заявку принимают накануне поездки с 08:30 до 12:30, поэтому первая доступная
   // дата — завтра, а если приём на сегодня уже закрыт (после 12:30) — послезавтра.
   const firstIso=taxiEarliestRideDate();
   const first=new Date(firstIso+"T00:00:00");
   for(let i=0;i<14;i++){
-    const d=new Date(first.getFullYear(),first.getMonth(),first.getDate()+i);
-    days.push(d);
+    days.push(new Date(first.getFullYear(),first.getMonth(),first.getDate()+i));
   }
   if(!document.getElementById("taxiPreNote")){
-    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">Заявку принимают накануне поездки с '+TAXI_RULES.orderFrom+' до '+TAXI_RULES.orderTo+'. Машина работает с '+TAXI_RULES.rideFrom+' до '+TAXI_RULES.rideTo+'. Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для уточнения деталей.</div>');
+    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">Заявку принимают накануне поездки с '+TAXI_RULES.orderFrom+' до '+TAXI_RULES.orderTo+'. Машина работает '+taxiHoursText()+'. Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для уточнения деталей.</div>');
   }
+  // Дата берётся по местному времени (taxiIso), а не через toISOString():
+  // в ЯНАО (UTC+5) полночь по UTC — это ещё вчерашний день, и даты «съезжали» на сутки.
+  const tomorrowIso=(function(){var n=new Date();return taxiIso(new Date(n.getFullYear(),n.getMonth(),n.getDate()+1));})();
   dateScroll.innerHTML=days.map(function(d,i){
-    const iso=d.toISOString().split("T")[0];
-    const tomorrowIso=(function(){var n=new Date();var t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);return taxiIso(t);})();
+    const iso=taxiIso(d);
     const lbl=(iso===tomorrowIso)?"Завтра":dayNames[d.getDay()];
     return '<button type="button" class="taxi-date-chip'+(i===0?" sel":"")+'" data-iso="'+iso+'"><span class="taxi-date-chip-dow">'+lbl+'</span><span class="taxi-date-chip-num">'+d.getDate()+' '+monthNames[d.getMonth()]+'</span></button>';
   }).join("");
-  dateHidden.value=days[0].toISOString().split("T")[0];
+  dateHidden.value=taxiIso(days[0]);
 
-  function renderTimeGrid(selectedIso){
-    // Машина работает с 08:30 до 18:00 — показываем слоты по 30 минут.
+  function renderTimeGrid(){
+    // Слоты по 30 минут с 08:30 до 18:00; обеденные (12:30–13:30) — неактивны.
     const slots=taxiTimeSlots();
-    const cur=slots.indexOf(timeHidden.value)>=0?timeHidden.value:slots[0];
+    const free=slots.filter(function(t){return !isBreakTime(t);});
+    const cur=free.indexOf(timeHidden.value)>=0?timeHidden.value:free[0];
     timeGrid.innerHTML=slots.map(function(t){
-      return '<button type="button" class="taxi-time-chip'+(t===cur?" sel":"")+'" data-time="'+t+'">'+t+'</button>';
-    }).join("");
+      const br=isBreakTime(t);
+      return '<button type="button" class="taxi-time-chip'+(br?" busy":"")+(t===cur?" sel":"")+'"'+(br?' disabled aria-disabled="true" title="Обеденный перерыв"':'')+' data-time="'+t+'" aria-label="Подача в '+t+(br?' — обеденный перерыв':'')+'">'+t+'</button>';
+    }).join("")+'<div class="taxi-break-note">🍽 '+TAXI_RULES.breakFrom+'–'+TAXI_RULES.breakTo+' — обеденный перерыв, машину не подают</div>';
     timeHidden.value=cur;
-    timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(b){
+    timeGrid.querySelectorAll(".taxi-time-chip:not(.busy)").forEach(function(b){
       b.onclick=function(){
         timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(x){x.classList.remove("sel");});
         b.classList.add("sel");timeHidden.value=b.dataset.time;
       };
     });
   }
-  renderTimeGrid(dateHidden.value);
+  renderTimeGrid();
 
   dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(btn){
     btn.onclick=function(){
       dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(b){b.classList.remove("sel");});
       btn.classList.add("sel");
       dateHidden.value=btn.dataset.iso;
-      renderTimeGrid(btn.dataset.iso);
+      renderTimeGrid();
     };
   });
 }
@@ -5288,18 +5752,18 @@ function taxiReverseGeocodeOSM(lat,lon,inputEl){
 function taxiSubmitOrder(o){
   const t=o.tariff, isFree=!!o.isFree;
   if(isFree)useFreeTaxiTrip();
-  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-  const ticketNum="ТАК-"+String(ticketCounter).padStart(4,"0");
+  const ticketNum=newTicketNum();
   const price=isFree?0:(o.price!=null?o.price:t.base);
   const cd=cityData[currentCity]||cityData.gubkin;
   const passengerNames=o.passengerNames||[];
-  const body=`Заказ социального такси\nТалон: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
-  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси "+ticketNum+" — "+clientName)}&body=${encodeURIComponent(body)}`;
+  const r=o.recipient||{name:clientName,phone:clientPhone,snils:clientSnils};
+  const body=`Заказ социального такси\nНомер заявки: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nЗАКАЗЧИК\nФИО: ${r.name}\nТелефон: ${r.phone}${isFree&&r.snils?"\nСНИЛС: "+r.snils:""}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси № "+ticketNum+" — "+r.name)}&body=${encodeURIComponent(body)}`;
   const taxiHistory=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   taxiHistory.unshift({
     num:ticketNum,tariff:t.label,duration:t.duration,price:price,isFree:isFree,from:o.from,to:o.to,
     pax:o.pax||1,passengerNames:passengerNames,date:o.date,time:o.time,comment:o.comment||"",
-    createdAt:new Date().toISOString(),cityName:currentCityName,status:"new"
+    createdAt:new Date().toISOString(),cityName:currentCityName,recipient:r.name,status:"new"
   });
   localStorage.setItem("taxiHistory",JSON.stringify(taxiHistory));
   return {ticketNum:ticketNum,price:price,tariff:t,isFree:isFree,
@@ -5330,7 +5794,10 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const comment=document.getElementById("taxiComment").value.trim();
   const paxEl=document.getElementById("taxiPax");
   const pax=paxEl?parseInt(paxEl.value)||1:1;
-  const pax1Name=(document.getElementById("taxiPax1Name")?.value||clientName||"").trim();
+  const rcpRes=taxiRcpCtl?taxiRcpCtl.validate():{ok:recipientHasName()&&recipientHasPhone(),data:{name:clientName,phone:clientPhone,snils:clientSnils},message:"Укажите ФИО и телефон"};
+  if(!rcpRes.ok){showToast(rcpRes.message||"Проверьте данные заказчика");return;}
+  const rcp=rcpRes.data;
+  const pax1Name=(document.getElementById("taxiPax1Name")?.value||rcp.name||"").trim();
   const pax2Name=pax>1?(document.getElementById("taxiPax2Name")?.value||"").trim():"";
   const passengerNames=[pax1Name,pax2Name].filter(Boolean);
   if(!from||!to){showToast("Укажите адрес отправления и назначения");return;}
@@ -5340,11 +5807,11 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const existingTaxi=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   const timeConflict=existingTaxi.find(function(o){return o.date===date&&o.time===time&&o.status!=="cancelled";});
   if(timeConflict){
-    showToast("На это время у вас уже есть заказ такси ("+timeConflict.num+") — выберите другое время");
+    showToast("На это время у вас уже есть заказ такси ("+ticketLabel(timeConflict.num)+") — выберите другое время");
     return;
   }
   if(isFree){
-    const elig=checkFreeTaxiEligibility();
+    const elig=checkFreeTaxiEligibility({snils:rcp.snils,category:rcp.category});
     if(!elig.eligible){showToast(""+elig.message);return;}
     const q=getFreeTaxiQuota();
     if(q.remaining<=0){showToast("Лимит бесплатных поездок на этот год исчерпан");return;}
@@ -5352,7 +5819,7 @@ function taxiConfirmBooking(tariffIdx,isFree){
 
   const useMor0=taxiState.moroshkaView&&t.moroshka!=null;
   const res=taxiSubmitOrder({tariff:t,isFree:isFree,price:useMor0?t.moroshka:t.base,
-    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames});
+    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames,recipient:rcp});
   const ticketNum=res.ticketNum, price=res.price;
 
   chatEl.innerHTML="";
@@ -5364,7 +5831,7 @@ function taxiConfirmBooking(tariffIdx,isFree){
     <div class="taxi-confirm-card">
       <div class="taxi-confirm-check">✅</div>
       <div class="taxi-confirm-title">Заявка отправлена</div>
-      <div class="taxi-confirm-ticket">Талон ${ticketNum}</div>
+      <div class="taxi-confirm-ticket">Заявка № ${ticketNum}</div>
       <div class="taxi-eta-banner"><span class="taxi-eta-ico">📞</span><div><span class="taxi-eta-lbl">Что дальше</span><span class="taxi-eta-val">Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для подтверждения поездки</span></div></div>
       <div class="taxi-confirm-row"><span>Тариф</span><b>${t.label}</b></div>
       <div class="taxi-confirm-row"><span>Стоимость</span><b>${isFree?"Бесплатно 🎁":price+" ₽"}</b></div>
@@ -5433,7 +5900,7 @@ function showServiceBookingItem(catId){
   w.innerHTML=`
     <button class="pl-back" onclick="showServices();setTimeout(function(){plOpenCat(${cat.id});},220);">← Назад к услугам</button>
     <h2>📝 ${cat.icon} ${cat.name}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:0%"></div></div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:25%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">1</span>Выберите услугу</div>
     <div class="bk-spec-list" id="bkItemList">
       ${cat.items.map((it,idx)=>`<button class="bk-spec-card bk-item-card" data-idx="${idx}"><span class="bk-spec-ava bk-item-ava">📄</span><span class="bk-spec-txt"><b>${it.n}</b><span>${it.p} ₽</span></span></button>`).join("")}
@@ -5461,7 +5928,7 @@ function showBookingSpecialist(specialists){
   w.innerHTML=`
     <button class="pl-back" onclick="${backFn}">${backLabel}</button>
     <h2>📝 ${bkState.catName}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isSvcFlow?25:0}%"></div></div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isSvcFlow?50:33.3}%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">${isSvcFlow?2:1}</span>Выберите специалиста</div>
     <div class="bk-spec-list" id="bkSpecList">
       ${specialists.map(s=>{
@@ -5495,11 +5962,11 @@ function showBookingDate(){
   w.innerHTML=`
     <button class="pl-back" onclick="showBookingSpecialist(bkState.specialists)">← Назад к специалисту</button>
     <h2>📝 ${bkState.spec}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?50:33.3}%"></div></div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?75:66.6}%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">${isService?3:2}</span>Выберите дату</div>
     <div class="bk-days-scroll" id="bkDays">
       ${days.map(dt=>{
-        const iso=dt.toISOString().split("T")[0];
+        const iso=taxiIso(dt); // местная дата, без сдвига UTC
         const dayName=dt.toLocaleDateString("ru-RU",{weekday:"short"});
         const dayNum=dt.getDate();
         const monShort=dt.toLocaleDateString("ru-RU",{month:"short"});
@@ -5521,23 +5988,23 @@ function showBookingTime(){
   clearActions();setNav(true);
   chatEl.innerHTML="";
   const w=document.createElement("div");w.className="booking-page";
-  const dObj=new Date(bkState.date);
+  const dObj=new Date(bkState.date+"T00:00:00");
   const dateStr=dObj.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
   const isService=bkState.flow==="service"||bkState.flow==="struct";
   const isGroup=bkState.flow==="struct"&&bkState.mode==="group";
-  const slots=isGroup?["09:00"]:["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
-  const lunchIdxs=isGroup?new Set():new Set([6,7,8]);
+  // Приём с 09:00 до 17:30 шагом 30 мин; обед 12:30–14:00 (общий WORK_BREAK) — слоты неактивны.
+  const slots=isGroup?["09:00"]:halfHourSlots("09:00","17:30");
   const groupNote=isGroup?`<div class="bk-group-note">👥 Занятие групповое${bkState.cap?" (до "+bkState.cap+" мест)":""}. Единое время начала для всех участников — 09:00.</div>`:"";
   w.innerHTML=`
     <button class="pl-back" onclick="showBookingDate()">← Назад к дате</button>
     <h2>📝 ${dateStr}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?75:66.6}%"></div></div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:100%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">${isService?4:3}</span>${isGroup?"Время занятия — единое для группы":"Выберите время"}</div>
     ${groupNote}
     <div class="bk-time-wrap" id="bkTimeWrap">
       <div class="time-grid" role="group" aria-label="Выберите время приёма">
         ${slots.map((sl,idx)=>{
-          const busy=lunchIdxs.has(idx);
+          const busy=!isGroup&&isBreakTime(sl);
           return `<button type="button" class="time-slot${busy?" busy":""}" ${busy?"disabled":""} data-time="${sl}" aria-label="Время ${sl}${busy?" — обед":""}">${sl}</button>`;
         }).join("")}
       </div>
@@ -5547,10 +6014,16 @@ function showBookingTime(){
       <textarea class="fb-inp" id="bkComment" placeholder="Цель визита, особые потребности…" style="min-height:70px"></textarea>
     </div>
     <div class="bk-summary gone" id="bkSummary"></div>
+    <div class="bk-rcp-wrap gone" id="bkRcpWrap">
+      <div id="bkRcp"></div>
+      <button type="button" class="book-send" id="bkSendBtn">📧 Подтвердить запись</button>
+    </div>
   `;
   chatEl.appendChild(w);
   const commentWrapEl=w.querySelector("#bkCommentWrap");
   const summaryEl=w.querySelector("#bkSummary");
+  const rcpWrapEl=w.querySelector("#bkRcpWrap");
+  let bkRcp=null;
   w.querySelectorAll(".time-slot:not(.busy)").forEach(btn=>{
     btn.onclick=()=>{
       w.querySelectorAll(".time-slot").forEach(b=>{b.classList.remove("sel");b.setAttribute("aria-pressed","false");});
@@ -5564,11 +6037,17 @@ function showBookingTime(){
         ${bkState.price!=null?`<div class="bk-sum-row"><span>Цена</span><b>${bkState.price} ₽${bkState.priceM!=null?" · по «Морошке» "+bkState.priceM+" ₽":""}</b></div>`:""}
         <div class="bk-sum-row"><span>Специалист</span><b>${bkState.spec}</b></div>
         <div class="bk-sum-row"><span>Дата и время</span><b>${dateStr}, ${bkState.time}</b></div>
-        <button class="book-send" id="bkSendBtn">📧 Подтвердить запись</button>
       `;
       summaryEl.classList.remove("gone");
-      summaryEl.scrollIntoView({behavior:"smooth",block:"end"});
-      summaryEl.querySelector("#bkSendBtn").onclick=doSendBooking;
+      rcpWrapEl.classList.remove("gone");
+      // Карточка получателя создаётся один раз — при смене времени введённое не теряется.
+      if(!bkRcp)bkRcp=rcpMount(w.querySelector("#bkRcp"),{title:"Кто придёт на приём"});
+      rcpWrapEl.scrollIntoView({behavior:"smooth",block:"end"});
+      w.querySelector("#bkSendBtn").onclick=function(){
+        const r=bkRcp.validate();
+        if(!r.ok){showToast(r.message);return;}
+        doSendBooking(r.data);
+      };
     };
   });
   if(isGroup){
@@ -5578,35 +6057,41 @@ function showBookingTime(){
   actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 
-function doSendBooking(){
+function doSendBooking(rcp){
+  rcp=rcp||{name:clientName,phone:clientPhone};
   bkState.comment=(document.getElementById("bkComment")||{}).value||"";
   if(!bkState.spec||!bkState.date||!bkState.time){showToast("Заполните все поля");return;}
-  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-  const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
+  if(bkState.flow!=="struct"||bkState.mode!=="group"){
+    if(isBreakTime(bkState.time)){showToast("С "+WORK_BREAK.from+" до "+WORK_BREAK.to+" обеденный перерыв — выберите другое время");return;}
+  }
+  const bh0=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+  const dup=bh0.find(function(b){return b.visitDate===bkState.date&&b.visitTime===bkState.time&&b.status!=="cancelled";});
+  if(dup){showToast("На это время у вас уже есть запись ("+ticketLabel(dup.num)+") — выберите другое время");return;}
+  const ticketNum=newTicketNum();
   const cd2=cityData[currentCity]||cityData.gubkin;
   const structExtra=bkState.flow==="struct"
     ?`${bkState.subName?"\nПодгруппа: "+bkState.subName:""}${bkState.num?"\nПункт прейскуранта: "+bkState.num:""}${bkState.price!=null?"\nЦена: "+bkState.price+" ₽"+(bkState.priceM!=null?" (по карте «Морошка»: "+bkState.priceM+" ₽)":""):""}\nФормат: ${bkState.mode==="group"?"групповое занятие, общее время"+(bkState.cap?" (до "+bkState.cap+" мест)":""):"индивидуальный приём"}${bkState.resp?"\nОтветственный: "+bkState.resp:""}`
     :"";
-  const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nНаправление: ${bkState.catName}${bkState.serviceItem?"\nУслуга: "+bkState.serviceItem:""}${structExtra}\nДата: ${bkState.date}, Время: ${bkState.time}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nСПЕЦИАЛИСТ: ${bkState.spec}\nКОММЕНТАРИЙ: ${bkState.comment||"—"}`;
-  window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:clientName,date:bkState.date,time:bkState.time,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
+  const body=`${emailTemplates.booking.intro}\nНомер записи: ${ticketNum}\nНаправление: ${bkState.catName}${bkState.serviceItem?"\nУслуга: "+bkState.serviceItem:""}${structExtra}\nДата: ${bkState.date}, Время: ${bkState.time}\n\nПОЛУЧАТЕЛЬ\nФИО: ${rcp.name}\nТелефон: ${rcp.phone}\n\nСПЕЦИАЛИСТ: ${bkState.spec}\nКОММЕНТАРИЙ: ${bkState.comment||"—"}`;
+  window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:rcp.name,date:bkState.date,time:bkState.time,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
   bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
   bookingsHistory.unshift({
     num:ticketNum,
     date:new Date().toLocaleString("ru-RU"),
     visitDate:bkState.date,visitTime:bkState.time,
     dept:bkState.catName,spec:bkState.spec,
-    comment:bkState.comment
+    comment:bkState.comment,recipient:rcp.name
   });
   localStorage.setItem("bookingsHistory",JSON.stringify(bookingsHistory));
   window.GarmoniyaDB?.saveBooking({
-    num:ticketNum, clientName, clientPhone, cityName:currentCityName,
+    num:ticketNum, clientName:rcp.name, clientPhone:rcp.phone, cityName:currentCityName,
     dept:bkState.catName, spec:bkState.spec, visitDate:bkState.date, visitTime:bkState.time,
     comment:bkState.comment
   });
   chatEl.innerHTML="";
   showSuccessAnim("Запись оформлена!");
-  addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${bkState.date}</b> в <b>${bkState.time}</b><br>👤 ${bkState.spec}<br>🏷️ ${bkState.catName}`,true);
-  showToast("Талон "+ticketNum+" сохранён!");
+  addMsg(`✅ Запись оформлена!<br>📋 Номер записи: <b>${ticketNum}</b><br>📅 <b>${bkState.date}</b> в <b>${bkState.time}</b><br>👤 ${bkState.spec}<br>🏷️ ${bkState.catName}`,true);
+  showToast("Запись № "+ticketNum+" сохранена");
   clearActions();
   const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
   calBtn.style.width="100%";
@@ -5860,7 +6345,7 @@ function renderOrdersPanel(filter){
       <div class="ord-card-top">
         <div class="ord-ico ord-ico-cart">🛒</div>
         <div class="ord-card-main">
-          <div class="ord-card-title">${o.num?"Заявка "+o.num:"Заявка на услуги"}</div>
+          <div class="ord-card-title">${o.num?"Заявка "+ticketLabel(o.num):"Заявка на услуги"}</div>
           <div class="ord-card-date">📅 ${o.date}</div>
         </div>
         ${statusBadge(o.status)}
@@ -5882,7 +6367,7 @@ function renderOrdersPanel(filter){
       <div class="ord-card-top">
         <div class="ord-ico ord-ico-cal">📅</div>
         <div class="ord-card-main">
-          <div class="ord-card-title">Талон ${b.num}</div>
+          <div class="ord-card-title">Запись ${ticketLabel(b.num)}</div>
           <div class="ord-card-date">Оформлен ${b.date}</div>
         </div>
         <span class="st-badge st-new">Записан</span>
@@ -5905,7 +6390,7 @@ function renderOrdersPanel(filter){
       <div class="ord-card-top">
         <div class="ord-ico ord-ico-taxi">🚕</div>
         <div class="ord-card-main">
-          <div class="ord-card-title">Такси ${tx.num}</div>
+          <div class="ord-card-title">Такси ${ticketLabel(tx.num)}</div>
           <div class="ord-card-date">📅 ${tx.date} в ${tx.time}</div>
         </div>
         <span class="st-badge st-new">Заказано</span>
@@ -6048,7 +6533,6 @@ function renderProfilePanel(){
       <button class="prof-chip" onclick="showProfileSection('favorites')"><b>${fav.length}</b><span>Избранное</span></button>
     </div>
 
-    ${!anketaDone?`<button class="prof-nudge" onclick="editQuestionnaire()"><span class="prof-nudge-ico">${ico("list")}</span><span class="prof-nudge-txt"><b>Заполните анкету получателя</b><span>Данные сами подставятся в заявки и такси</span></span><span class="prof-nudge-arr">→</span></button>`:""}
 
     <div class="prof-nav-list">
       <button class="prof-nav-row" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showServices);">
@@ -6058,7 +6542,7 @@ function renderProfilePanel(){
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('personal')">
         <span class="prof-nav-ico">${ico("user")}</span>
-        <span class="prof-nav-txt"><b>Личные данные и анкета</b><span>${anketaDone?"Заполнена":"Не заполнена"}</span></span>
+        <span class="prof-nav-txt"><b>Личные данные и анкета</b><span>${anketaDone?"Заполнена":"Заполнится при первой заявке"}</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="openProfileSwitcher()">
@@ -6095,7 +6579,7 @@ function showProfileSection(section){
     const fav=JSON.parse(localStorage.getItem("favorites")||"[]");
     const favHtml=fav.length===0
       ?'<div class="hist-empty">'+emptyIllustration()+'<div class="empty-title">Нет избранных</div><div class="empty-sub">Нажмите ★ у любой услуги в прейскуранте</div></div>'
-      :fav.map(f=>`<div class="pcard-item"><div class="pcard-item-txt"><b>${f.n}</b><span>${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString()} ₽</span></div><button class="pcard-item-act" onclick="addFavToCart('${f.id}')">🛒</button></div>`).join("");
+      :fav.map(f=>`<div class="pcard-item"><div class="pcard-item-txt"><b>${f.n}</b><span>${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString("ru-RU")} ₽</span></div><button class="pcard-item-act" onclick="addFavToCart('${f.id}')">🛒</button></div>`).join("");
     body.innerHTML=back+`<h2 class="prof-sec-title">Избранное</h2><div class="pcard">${favHtml}</div>`;
     return;
   }
@@ -6115,7 +6599,7 @@ function showProfileSection(section){
     const catLabels={pensioner:"Пенсионер",disabled:"Инвалид",family:"Семья с детьми",large_family:"Многодетная семья",veteran:"Ветеран",other:"Другое"};
     const anketaBody=(userProfile.category||userProfile.address||userProfile.birthDate)?`
         ${userProfile.category?`<div class="pinfo-row"><span class="pinfo-ico">🏷️</span><span class="pinfo-txt"><span class="pinfo-lbl">Категория</span><span class="pinfo-val">${catLabels[userProfile.category]||userProfile.category}</span></span></div>`:""}
-        ${userProfile.birthDate?`<div class="pinfo-row"><span class="pinfo-ico">🎂</span><span class="pinfo-txt"><span class="pinfo-lbl">Дата рождения</span><span class="pinfo-val">${userProfile.birthDate}</span></span></div>`:""}
+        ${userProfile.birthDate?`<div class="pinfo-row"><span class="pinfo-ico">🎂</span><span class="pinfo-txt"><span class="pinfo-lbl">Дата рождения</span><span class="pinfo-val">${fmtBirth(userProfile.birthDate)}</span></span></div>`:""}
         ${userProfile.address?`<div class="pinfo-row"><span class="pinfo-ico">🏠</span><span class="pinfo-txt"><span class="pinfo-lbl">Адрес</span><span class="pinfo-val">${userProfile.address}</span></span></div>`:""}
         ${userProfile.contactName?`<div class="pinfo-row"><span class="pinfo-ico">👤</span><span class="pinfo-txt"><span class="pinfo-lbl">Контактное лицо</span><span class="pinfo-val">${userProfile.contactName}${userProfile.contactPhone?" · "+userProfile.contactPhone:""}</span></span></div>`:""}`
       :`<button class="pinfo-fill-btn" onclick="editQuestionnaire()">📋 Заполнить анкету получателя <span class="pinfo-fill-arr">→</span></button>`;
@@ -6168,14 +6652,14 @@ function exportMyData(){
   if(clientSnils&&clientSnils!=="—")lines.push("СНИЛС: "+clientSnils);
   lines.push("Филиал: г. "+currentCityName);
   if(userProfile.category)lines.push("Категория: "+userProfile.category);
-  if(userProfile.birthDate)lines.push("Дата рождения: "+userProfile.birthDate);
+  if(userProfile.birthDate)lines.push("Дата рождения: "+fmtBirth(userProfile.birthDate));
   if(userProfile.address)lines.push("Адрес: "+userProfile.address);
   lines.push("");
   lines.push("=== ЗАЯВКИ ("+oh.length+") ===");
-  oh.forEach(o=>{lines.push((o.num||"Заявка")+" от "+o.date+" — "+o.sum+" ₽ — "+o.status);});
+  oh.forEach(o=>{lines.push((o.num?"Заявка "+ticketLabel(o.num):"Заявка")+" от "+o.date+" — "+o.sum+" ₽ — "+o.status);});
   lines.push("");
   lines.push("=== ЗАПИСИ ("+bh.length+") ===");
-  bh.forEach(b=>{lines.push("Талон "+b.num+" — "+b.visitDate+" "+b.visitTime+" — "+b.spec);});
+  bh.forEach(b=>{lines.push("Запись "+ticketLabel(b.num)+" — "+b.visitDate+" "+b.visitTime+" — "+b.spec);});
   lines.push("");
   lines.push("=== ИЗБРАННОЕ ("+fav.length+") ===");
   fav.forEach(f=>{lines.push(f.n+" — "+f.p+" ₽");});
@@ -6379,9 +6863,12 @@ function movePillTo(btn){
 }
 function tabGo(t){
   var _nav=document.getElementById("tabBar");if(_nav)_nav.classList.remove("nav-hidden");
-  document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");});
-  event.currentTarget.classList.add("active");
-  movePillTo(event.currentTarget);
+  // Кнопка вкладки: из события клика, а если вызвали из кода — находим по onclick.
+  var ev=window.event,tbBtn=(ev&&ev.currentTarget&&ev.currentTarget.classList&&ev.currentTarget.classList.contains("tb"))
+    ?ev.currentTarget:document.querySelector('.tb[onclick*="\''+t+'\'"]');
+  document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");b.removeAttribute("aria-current");});
+  if(tbBtn){tbBtn.classList.add("active");tbBtn.setAttribute("aria-current","page");movePillTo(tbBtn);}
+  if(t==="home"||t==="menu")window.__screenTab=t;
   var _run=function(){
     if(t==="home")showMainMenu();
     else if(t==="menu")showMenuPage();
@@ -6665,7 +7152,14 @@ function selectCity(cityKey,silent){
     var dot=st.querySelector(".hdr-status-dot"), txt=st.querySelector(".hdr-status-txt");
     var closeStr=cd.closeH+":"+String(cd.closeM).padStart(2,"0");
     st.classList.remove("is-open","is-soon","is-closed");
-    if(isOpen){
+    var hhmm=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+    var onBreak=isOpen&&typeof isBreakTime==="function"&&typeof WORK_BREAK!=="undefined"&&isBreakTime(hhmm);
+    if(onBreak){
+      // Обеденный перерыв 12:30–14:00 — центр в это время не принимает.
+      var toBack=taxiMinutes(WORK_BREAK.to)-mins;
+      st.classList.add("is-soon");
+      txt.innerHTML="Обед · откроется через "+fmtDur(toBack);
+    }else if(isOpen){
       var toClose=closeMins-mins;
       st.classList.add(toClose<=60?"is-soon":"is-open");
       txt.innerHTML = toClose<=60
@@ -6769,8 +7263,8 @@ function selectCity(cityKey,silent){
   /* ─────────── Уведомления (лента активности) ─────────── */
   function collectNotifs(){
     var items=[];
-    readHist("ordersHistory").forEach(function(o){ items.push({t:o.createdAt||o.date, ico:"🛍️", title:"Заявка "+(o.num||""), sub:(o.status==="new"?"Отправлена":o.status||"")+(o.sum?" · "+o.sum+" ₽":"")}); });
-    readHist("bookingsHistory").forEach(function(b){ items.push({t:b.createdAt||b.visitDate, ico:"📅", title:"Запись "+(b.num||""), sub:(b.visitDate||"")+" "+(b.visitTime||"")+" · "+(b.spec||b.dept||"")}); });
+    readHist("ordersHistory").forEach(function(o){ items.push({t:o.createdAt||o.date, ico:"🛍️", title:"Заявка "+ticketLabel(o.num), sub:(o.status==="new"?"Отправлена":o.status||"")+(o.sum?" · "+o.sum+" ₽":"")}); });
+    readHist("bookingsHistory").forEach(function(b){ items.push({t:b.createdAt||b.visitDate, ico:"📅", title:"Запись "+ticketLabel(b.num), sub:(b.visitDate||"")+" "+(b.visitTime||"")+" · "+(b.spec||b.dept||"")}); });
     readHist("taxiHistory").forEach(function(x){ items.push({t:x.createdAt||x.date, ico:"🚕", title:"Такси"+(x.date?" "+x.date:""), sub:(x.from||"")+" → "+(x.to||"")}); });
     items.sort(function(a,b){ return new Date(b.t||0)-new Date(a.t||0); });
     return items;
@@ -7554,8 +8048,8 @@ function selectCity(cityKey,silent){
   function addService(s){
     addToCart(s.uid, s.name, (hasMoroshka && s.mor != null) ? s.mor : s.price, null, s.price, s.mor);
     var total = cart.reduce(function(a,i){ return a + i.price*i.qty; }, 0);
-    return "Добавил в заявку: <b>" + esc(s.name) + "</b>.<br>Сейчас в заявке " + cart.length +
-      (cart.length === 1 ? " услуга" : " услуг") + " на " + money(total) + "." +
+    var n = cart.length, w = (n%10===1&&n%100!==11) ? " услуга" : (n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)) ? " услуги" : " услуг";
+    return "Добавил в заявку: <b>" + esc(String(s.name).replace(/[.\s]+$/,"")) + "</b>.<br>Сейчас в заявке " + n + w + " на " + money(total) + "." +
       row([
         btn("Оформить заявку", function(){ return startOrder(); }, { echo:"Оформить заявку" }),
         btn("Добавить ещё услугу", function(){ CF.mode="order"; CF.step="pick";
@@ -7571,9 +8065,9 @@ function selectCity(cityKey,silent){
       CF.mode = "order"; CF.step = "pick";
       return "В заявке пока пусто. Напишите, какая услуга нужна — найду её в прейскуранте и добавлю.";
     }
-    if (!clientName || clientName === "Гость") { CF.mode="order"; CF.step="name";
+    if (!recipientHasName()) { CF.mode="order"; CF.step="name";
       return "Оформляю заявку. Напишите, пожалуйста, <b>фамилию, имя и отчество</b> получателя услуг."; }
-    if (!clientPhone) { CF.mode="order"; CF.step="phone";
+    if (!recipientHasPhone()) { CF.mode="order"; CF.step="phone";
       return "Остался телефон для связи — напишите номер, например +7 (999) 000-00-00."; }
     return orderSummary();
   }
@@ -7609,9 +8103,12 @@ function selectCity(cityKey,silent){
     var m = t.match(/(\d{1,2})[.\-\/\s](\d{1,2})(?:[.\-\/\s](\d{2,4}))?/);
     if (m) {
       var y = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3])) : now.getFullYear();
-      var d = new Date(y, parseInt(m[2]) - 1, parseInt(m[1]));
+      var dayN = parseInt(m[1]), monN = parseInt(m[2]);
+      var d = new Date(y, monN - 1, dayN);
+      // 31.02 и т. п. Date «перекатывает» в март — такую дату не принимаем.
+      if (isNaN(d) || d.getDate() !== dayN || d.getMonth() !== monN - 1) return null;
       if (!m[3] && d < now) d.setFullYear(y + 1);
-      return isNaN(d) ? null : iso(d);
+      return iso(d);
     }
     var m2 = t.match(/(\d{1,2})\s+([а-я]+)/);
     if (m2) {
@@ -7647,7 +8144,7 @@ function selectCity(cityKey,silent){
   function earliestRide(){ return taxiEarliestRideDate(); }
   function rulesLine(){
     return "Заявку принимают <b>накануне поездки с " + TAXI_RULES.orderFrom + " до " + TAXI_RULES.orderTo +
-           "</b>, машина работает <b>с " + TAXI_RULES.rideFrom + " до " + TAXI_RULES.rideTo + "</b>.";
+           "</b>, машина работает <b>" + taxiHoursText() + "</b>.";
   }
 
   function startTaxi(){
@@ -7690,8 +8187,13 @@ function selectCity(cityKey,silent){
   }
 
   function taxiConfirmStep(){
-    CF.step = "confirm";
     var d = CF.data;
+    // Диспетчеру нужны ФИО и телефон — у гостя их нет, спрашиваем прямо в диалоге.
+    if (!recipientHasName()) { CF.step = "tname";
+      return "Почти готово. Напишите <b>фамилию, имя и отчество</b> пассажира — диспетчер оформит поездку на него."; }
+    if (!recipientHasPhone()) { CF.step = "tphone";
+      return "И телефон для связи — диспетчер позвонит, чтобы подтвердить поездку. Например, +7 (999) 000-00-00."; }
+    CF.step = "confirm";
     return "Проверьте заказ:" +
       '<div class="cf-card">' +
       '<div class="cf-row"><span>Откуда</span><b>' + esc(d.from) + "</b></div>" +
@@ -7711,18 +8213,23 @@ function selectCity(cityKey,silent){
   function taxiSend(){
     var d = CF.data;
     var rule = taxiCheckRide(d.date, d.time);
-    if (!rule.ok) { CF.step = "date"; return '<div class="cf-warn">' + esc(rule.message) + "</div>Напишите другую дату."; }
+    if (!rule.ok) {
+      if (rule.code === "break" || rule.code === "hours" || rule.code === "time") {
+        CF.step = "time"; return '<div class="cf-warn">' + esc(rule.message) + "</div>Напишите другое время.";
+      }
+      CF.step = "date"; return '<div class="cf-warn">' + esc(rule.message) + "</div>Напишите другую дату.";
+    }
     var existing = JSON.parse(localStorage.getItem("taxiHistory") || "[]");
     var clash = existing.find(function(o){ return o.date === d.date && o.time === d.time && o.status !== "cancelled"; });
     if (clash) { CF.step = "time";
-      return "На это время у вас уже есть заказ " + esc(clash.num) + ". Напишите другое время поездки."; }
+      return "На это время у вас уже есть заказ " + esc(ticketLabel(clash.num)) + ". Напишите другое время поездки."; }
     var res = taxiSubmitOrder({
       tariff:d.tariff, isFree:d.isFree, price:d.price, from:d.from, to:d.to,
       date:d.date, time:d.time, comment:"Заказ оформлен через чат-бота",
       pax:d.pax||1, passengerNames:[clientName].filter(Boolean)
     });
     reset();
-    return "Готово! Заказ такси оформлен, талон <b>" + res.ticketNum + "</b>." +
+    return "Готово! Заказ такси оформлен, номер заявки <b>№ " + res.ticketNum + "</b>." +
       '<div class="cf-card"><div class="cf-row"><span>Маршрут</span><b>' + esc(d.from) + " → " + esc(d.to) + "</b></div>" +
       '<div class="cf-row"><span>Подача</span><b>' + fmtDate(d.date) + ", " + d.time + "</b></div>" +
       '<div class="cf-row"><span>Стоимость</span><b>' + (d.isFree ? "Бесплатно" : money(d.price)) + "</b></div></div>" +
@@ -7749,13 +8256,13 @@ function selectCity(cityKey,silent){
       if (CF.step === "name") {
         if (t.split(/\s+/).length < 2) return "Напишите фамилию, имя и отчество полностью — так специалист найдёт вас в базе.";
         clientName = t; localStorage.setItem("clientName", clientName);
-        if (!clientPhone) { CF.step = "phone"; return "Записал. Теперь номер телефона для связи."; }
+        if (!recipientHasPhone()) { CF.step = "phone"; return "Записал. Теперь номер телефона для связи."; }
         return orderSummary();
       }
       if (CF.step === "phone") {
         var digits = t.replace(/\D/g, "");
         if (digits.length < 10) return "Похоже, в номере не хватает цифр. Напишите телефон полностью, например +7 (999) 000-00-00.";
-        clientPhone = t; localStorage.setItem("clientPhone", clientPhone);
+        clientPhone = formatPhone(t); localStorage.setItem("clientPhone", clientPhone);
         return orderSummary();
       }
       if (CF.step === "confirm") return orderSummary();
@@ -7784,8 +8291,8 @@ function selectCity(cityKey,silent){
             fmtDate(chk.min) + "</b>. Напишите другую дату.";
         }
         CF.data.date = d; CF.step = "time";
-        return "Дата: <b>" + fmtDate(d) + "</b>.<br><b>Во сколько подать машину?</b> Машина работает с " +
-          TAXI_RULES.rideFrom + " до " + TAXI_RULES.rideTo + " — например, 09:30.";
+        return "Дата: <b>" + fmtDate(d) + "</b>.<br><b>Во сколько подать машину?</b> Машина работает " +
+          taxiHoursText() + " — например, 09:30 или 14:30.";
       }
       if (CF.step === "time") {
         var tm = parseTime(t);
@@ -7795,6 +8302,10 @@ function selectCity(cityKey,silent){
           if (check.code === "hours")
             return '<div class="cf-warn">Машина работает с ' + TAXI_RULES.rideFrom + " до " + TAXI_RULES.rideTo +
               ", позже подачи нет.</div>Напишите время в этом промежутке — например, 09:30 или 17:00.";
+          if (check.code === "break")
+            return '<div class="cf-warn">С ' + TAXI_RULES.breakFrom + " до " + TAXI_RULES.breakTo +
+              " обеденный перерыв — машину не подают.</div>Напишите время до " + TAXI_RULES.breakFrom +
+              " или с " + TAXI_RULES.breakTo + " — например, 11:30 или 14:00.";
           CF.step = "date";
           return '<div class="cf-warn">' + esc(check.message) + "</div>Напишите другую дату.";
         }
@@ -7811,6 +8322,16 @@ function selectCity(cityKey,silent){
         return taxiTariffStep();
       }
       if (CF.step === "tariff") return taxiTariffStep();
+      if (CF.step === "tname") {
+        if (t.split(/\s+/).length < 2) return "Напишите фамилию, имя и отчество полностью.";
+        clientName = t; localStorage.setItem("clientName", clientName);
+        return taxiConfirmStep();
+      }
+      if (CF.step === "tphone") {
+        if (t.replace(/\D/g, "").length < 10) return "В номере не хватает цифр. Напишите телефон полностью, например +7 (999) 000-00-00.";
+        clientPhone = formatPhone(t); localStorage.setItem("clientPhone", clientPhone);
+        return taxiConfirmStep();
+      }
       if (CF.step === "confirm") return taxiConfirmStep();
     }
     return null;
@@ -7894,6 +8415,16 @@ function selectCity(cityKey,silent){
     });
   };
 
+  /* Доступ для «мозга» бота (botbrain.js): состояние диалога и готовые сценарии. */
+  window.CFX = {
+    isActive:function(){ return !!CF.mode; },
+    mode:function(){ return CF.mode; },
+    step:function(){ return CF.step; },
+    reset:reset, handleStep:handleStep, route:route,
+    startTaxi:startTaxi, startOrder:startOrder, addService:addService,
+    btn:btn, row:row, say:say, esc:esc, money:money
+  };
+
   /* Быстрые подсказки под приветствием бота. */
   window.cfHints = function(){
     return row([
@@ -7902,4 +8433,961 @@ function selectCity(cityKey,silent){
       btn("Что есть в прейскуранте", function(){ reset(); showServices(); return ""; }, { cl:"outline" })
     ]);
   };
+})();
+
+;
+
+/* ───── js/botbrain.js ───── */
+/* ═══════════════════════════════════════════════════════════════════
+   botbrain.js — «мозг» чат-бота «Гармония».
+
+   Подключается после chatflow.js и становится первым обработчиком
+   сообщений. Порядок разбора:
+     1. идущий диалог (такси/заявка) — продолжаем его, но «привет»,
+        «спасибо» и «отмена» не принимаются за адрес или ФИО;
+     2. разговорные фразы целиком: привет, как дела, спасибо, пока, да/нет…
+        Приветствие в начале длинной фразы отрезается, остальное разбирается;
+     3. срочные ситуации (плохо, болит, не хочу жить) — 112 и экстренная помощь;
+     4. справка о центре: контакты, режим работы, сотрудники по должности,
+        «Морошка», льготы, как оформить/отменить, филиалы, настройки;
+     5. услуги: точный поиск по прейскуранту филиала с учётом окончаний,
+        опечаток и разговорных синонимов («коляска», «шея», «госуслуги»…).
+        Рассказ об услуге собирается ТОЛЬКО из данных прейскуранта —
+        цена, «Морошка», длительность, формат, возраст, кто проводит,
+        как записаться. Ничего не выдумывается;
+     6. нет в этом филиале — ищем в других; нет нигде — честно говорим
+        и даём телефон. Случайную услугу «наугад» бот больше не предлагает.
+   ═══════════════════════════════════════════════════════════════════ */
+(function(){
+  "use strict";
+  if (!window.CFX) return;
+  var C = window.CFX, btn = C.btn, row = C.row, esc = C.esc, money = C.money;
+
+  /* ─────────── Текст ─────────── */
+  function norm(s){
+    return String(s||"").toLowerCase().replace(/ё/g,"е")
+      .replace(/[«»"“”„'`’]/g," ").replace(/[^a-zа-я0-9\s\-]/g," ")
+      .replace(/-/g," ").replace(/\s+/g," ").trim();
+  }
+  var ENDS = ["ениями","ением","ировать","ения","ение","ений","ании","ание","ания","ться","тся","ить","ать","ять","еть","уть",
+              "иями","ями","ами","ого","его","ому","ему","ыми","ими","ией","иях","ость","ости",
+              "ых","их","ой","ей","ий","ый","ая","яя","ое","ее","ые","ие","ам","ям","ом","ем",
+              "ую","юю","ов","ев","ах","ях","ия","ья","ье","ии","а","я","о","е","и","ы","у","ю","ь","й"];
+  function stem(w){
+    if (w.length <= 4) return w;
+    for (var i = 0; i < ENDS.length; i++) {
+      var e = ENDS[i];
+      if (w.length - e.length >= 4 && w.slice(-e.length) === e) return w.slice(0, -e.length);
+    }
+    return w;
+  }
+  function lev(a, b){
+    if (Math.abs(a.length - b.length) > 2) return 9;
+    var prev = [], cur, i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      cur = [i];
+      for (j = 1; j <= b.length; j++)
+        cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  function plural(n, f){ var a=n%10,b=n%100; return (a===1&&b!==11)?f[0]:(a>=2&&a<=4&&(b<10||b>=20))?f[1]:f[2]; }
+  function userName(){ return (typeof asstName === "function") ? asstName() : ""; }
+  function hi(){ var n = userName(); return n ? ", " + n : ""; }
+  function cityName(){ return (typeof currentCityName !== "undefined" && currentCityName) ? currentCityName : ""; }
+  function cd(){ return (typeof cityData !== "undefined" && cityData[currentCity]) ? cityData[currentCity] : {}; }
+  function svcData(){ return (typeof servicesData !== "undefined" && servicesData) ? servicesData : []; }
+
+  /* Переход на экран из чата: выходим из полноэкранного чата и запоминаем возврат. */
+  function go(fn){
+    try{
+      if (typeof exitAssistantFullscreenMode === "function") exitAssistantFullscreenMode();
+      if (typeof pushNav === "function" && typeof openAssistantFullscreen === "function")
+        pushNav(function(){ openAssistantFullscreen(); });
+    }catch(e){}
+    setTimeout(fn, 30);
+    return "";
+  }
+  function navBtn(label, fn, cl){ return btn(label, function(){ return go(fn); }, { cl: cl || "outline" }); }
+
+  /* ─────────── Слова, которые не несут смысла для поиска услуги ─────────── */
+  var STOP = {};
+  ("а и или но да нет не ни же ли бы то это этот эта эти тот там тут здесь вот как какой какая какое какие каков " +
+   "что чем чего кто кому где куда когда зачем почему сколько стоит стоят стоимость цена цены цену ценник прайс " +
+   "у в во на по с со к ко о об обо от до за из для при про над под без через мне меня мной мы нам нас вы вам вас " +
+   "ты тебя тебе я он она они их его ее мой моя мое мои ваш ваша ваше ваши свой своя наш наша " +
+   "есть был была было будет можно нужно надо нужен нужна нужны хочу хотим хотел хотела хотелось бы " +
+   "пожалуйста подскажите подскажи скажите скажи расскажите расскажи покажи покажите узнать интересует интересно " +
+   "услуга услуги услугу услуг сервис вариант варианты " +
+   "записаться записать запиши запишите запись записи заказать закажи заказ оформить оформи заявка заявку заявки " +
+   "получить сделать сделайте делаете делают проводите проводят оказываете предоставляете " +
+   "имеется имеются бывает бывают также тоже еще ещё уже очень просто все всё весь вся " +
+   "такое такой такая подробнее подробно информация инфо про какой-нибудь какую каким " +
+   "длится длительность продолжительность времени минут сколько-то ведет ведёт проводит " +
+   "лет год года годам годика месяцев месяца делать сделать помочь помогите помощью тест").split(" ")
+   .forEach(function(w){ STOP[w] = 1; });
+
+  /* ─────────── Разговорные синонимы → слова из прейскуранта ─────────── */
+  var SYN = [
+    [/(?:^| )шея|(?:^| )шеи(?= |$)|(?:^| )шею(?= |$)|(?:^| )шейн/, "шейно воротниковой", /^ше[яиюй]/],
+    [/(?:^| )ног[иау]?(?= |$)|(?:^| )стоп[ыау]?(?= |$)/, "нижних конечностей стопы", /^(ног|стоп)/],
+    [/(?:^| )рук[иау]?(?= |$)/, "верхних конечностей", /^рук/],
+    [/(?:^| )поясниц/, "пояснично крестцового", /^поясниц/],
+    [/(?:^| )инвалидн[а-яa-z0-9]* кресл|(?:^| )коляск/, "коляска", /^(инвалидн|коляск)/],
+    [/(?:^| )палочк/, "трость", /^палочк/],
+    [/(?:^| )кровать(?= |$)|(?:^| )кровати(?= |$)|(?:^| )койк/, "кровать многофункциональная", /^(кроват|койк)/],
+    [/(?:^| )матрас|(?:^| )матрац/, "матрац противопролежневый", /^матра/],
+    [/(?:^| )унитаз|(?:^| )туалет/, "туалет унитаз", /^(унитаз|туалет)/],
+    [/(?:^| )подъемник|(?:^| )подъемн|(?:^| )лестничн/, "подъемник подъемное", /^(подъемник|подъемн)/],
+    [/(?:^| )прокат|(?:^| )аренд|(?:^| )напрокат/, "прокату технических средств реабилитации", /^(прокат|аренд|напрокат)/],
+    [/(?:^| )тсо(?= |$)|(?:^| )тср(?= |$)|(?:^| )средств[ао]? реабилитац/, "прокату технических средств реабилитации", /^(тсо|тср|средств|реабилитац)/],
+    [/(?:^| )госуслуг|(?:^| )гос услуг|(?:^| )портал/, "портале государственных услуг электронной", /^(госуслуг|гос|портал)/],
+    [/(?:^| )налог|(?:^| )вычет|(?:^| )3 ?ндфл|(?:^| )ндфл/, "декларации ндфл", /^(налог|вычет|ндфл|3)/],
+    [/(?:^| )гражданств|(?:^| )паспорт рф/, "гражданство", /^(гражданств)/],
+    [/(?:^| )внж(?= |$)|(?:^| )вид на жительство|(?:^| )рвп(?= |$)|(?:^| )временн[а-яa-z0-9]* проживан/, "вида жительство временного проживания", /^(внж|рвп|вид|жительств|временн|проживан)/],
+    [/(?:^| )миграц|(?:^| )регистрац/, "миграционный учет регистрацию", /^(миграц|регистрац)/],
+    [/(?:^| )иск(?= |$)|(?:^| )исков|(?:^| )в суд(?= |$)/, "исковых заявлений", /^(иск|суд)/],
+    [/(?:^| )жалоб|(?:^| )претенз|(?:^| )ходатайств|(?:^| )обращени/, "заявлений жалоб претензий", /^(жалоб|претенз|ходатайств|обращени)/],
+    [/(?:^| )юрист|(?:^| )юридич|(?:^| )адвокат|(?:^| )правов/, "правовые", /^(юрист|юридич|адвокат|правов)/],
+    [/(?:^| )давлени|(?:^| )тонометр/, "артериального давления", /^(давлени|тонометр)/],
+    [/(?:^| )солян|(?:^| )соль(?= |$)|(?:^| )галотерап/, "соляной комнате", /^(солян|соль|галотерап)/],
+    [/(?:^| )сауна|(?:^| )саун/, "сауна", /^саун/],
+    [/(?:^| )бочк/, "фитобочка", /^бочк/],
+    [/(?:^| )коктейл/, "кислородный коктейль", /^коктейл/],
+    [/(?:^| )фиточа|(?:^| )травян[а-яa-z0-9]* ча/, "фиточай", /^(фиточа|травян|чай)/],
+    [/(?:^| )физиотерап|(?:^| )физиопроцедур/, "физиотерапевтический", /^физио/],
+    [/(?:^| )лфк(?= |$)|(?:^| )лечебн[а-яa-z0-9]* физкульт/, "лфк", /^(лфк|лечебн|физкульт)/],
+    [/(?:^| )спортзал|(?:^| )физкультур|(?:^| )фитнес/, "спортивном зале физической культурой", /^(спортзал|физкультур|фитнес)/],
+    [/(?:^| )тренажерк|(?:^| )тренажерн/, "тренажерном", /^тренажер/],
+    [/(?:^| )скандинав/, "скандинавской ходьбе", /^скандинав/],
+    [/(?:^| )лошад|(?:^| )иппо/, "иппотерапия", /^(лошад|иппо)/],
+    [/(?:^| )психолог/, "психолога психологическое психологические", /^психолог/],
+    [/(?:^| )логопед|(?:^| )речь(?= |$)|(?:^| )речи(?= |$)|(?:^| )заика|(?:^| )заикан|(?:^| )не говорит/, "логопедом логопедическая речевого", /^(логопед|речь|речи|заик|говорит)/],
+    [/(?:^| )дефектолог/, "дефектолога", /^дефектолог/],
+    [/(?:^| )к школе|(?:^| )школ/, "школе школьному", /^школ/],
+    [/(?:^| )уроки(?= |$)|(?:^| )домашк|(?:^| )домашн[а-яa-z0-9]* задани/, "домашних заданий", /^(урок|домашк|домашн|задани)/],
+    [/(?:^| )компьютер|(?:^| )интернет|(?:^| )смартфон|(?:^| )телефоном пользоват/, "компьютерной грамотности", /^(компьютер|интернет|смартфон)/],
+    [/(?:^| )гончар|(?:^| )глин|(?:^| )керамик/, "гончарной мастерской", /^(гончар|глин|керамик)/],
+    [/(?:^| )рукодел|(?:^| )творчеств|(?:^| )подел/, "декоративно прикладному творчеству", /^(рукодел|творчеств|подел)/],
+    [/(?:^| )арт ?терап|(?:^| )рисован/, "арт терапии арттерапевтических", /^(арт|терап|рисован)/],
+    [/(?:^| )опекун|(?:^| )опек|(?:^| )попечител/, "опекунов попечителей", /^(опекун|опек|попечител)/],
+    [/(?:^| )выгоран/, "выгорания", /^выгоран/],
+    [/(?:^| )сон(?= |$)|(?:^| )бессонниц|(?:^| )уснуть|(?:^| )не сплю|(?:^| )плохо сплю/, "сна", /^(сон|бессонниц|уснуть|сплю)/],
+    [/(?:^| )сенсорн|(?:^| )релакс/, "сенсорной релаксации", /^(сенсорн|релакс)/],
+    [/(?:^| )iq(?= |$)|(?:^| )ай кью|(?:^| )интеллект/, "iq умственного развития интеллекта", /^(iq|ай|кью|интеллект)/],
+    [/(?:^| )профориент|(?:^| )кем стать|(?:^| )професси/, "профориентационная профессиональное самоопределение", /^(профориент|кем|стать|професси)/],
+    [/(?:^| )дед[а-яa-z0-9]* мороз|(?:^| )снегуроч|(?:^| )новогодн|(?:^| )новый год/, "деда мороза снегурочки", /^(дед|мороз|снегуроч|новогодн|новый|год)/],
+    [/(?:^| )аниматор|(?:^| )день рождени|(?:^| )деньрожден|(?:^| )праздник|(?:^| )поздравлени|(?:^| )юбиле/, "праздничным датам поздравление праздников", /^(аниматор|день|рождени|праздник|поздравлени|юбиле)/],
+    [/(?:^| )фотосесс|(?:^| )сфотограф|(?:^| )фотограф|(?:^| )фото(?= |$)/, "фотосессия фотографирование фотографии", /^(фотосесс|сфотограф|фотограф|фото)/],
+    [/(?:^| )видео|(?:^| )ролик/, "видеоролика", /^(видео|ролик)/],
+    [/(?:^| )сиделк|(?:^| )ухаж|(?:^| )уход за (пожил|бабуш|дедуш|мам|пап|инвалид)/, "сиделки присмотр гражданами пожилого возраста", /^(сиделк|ухаж)/],
+    [/(?:^| )нян|(?:^| )посидеть с ребен|(?:^| )присмотр[а-яa-z0-9]* за ребен/, "няня няней", /^(нян|посидеть|присмотр)/],
+    [/(?:^| )прогулк|(?:^| )погулять/, "прогулку", /^(прогулк|погулять)/],
+    [/(?:^| )паллиатив/, "паллиативным статусом", /^паллиатив/],
+    [/(?:^| )гостиниц|(?:^| )переночев|(?:^| )жилье на|(?:^| )пожить|(?:^| )номер на ночь/, "гостиничные краткосрочного проживания", /^(гостиниц|переночев|жилье|пожить|номер|ночь)/],
+    [/(?:^| )массажн[а-яa-z0-9]* кресл/, "кресло", /^кресл/],
+    [/(?:^| )массажн[а-яa-z0-9]* кроват/, "кровать", /^кроват/],
+    [/(?:^| )массажист/, "массаж", /^массажист/],
+    [/(?:^| )ребен|(?:^| )ребён|(?:^| )детск|(?:^| )дет[еия](?= |$)|(?:^| )детям|(?:^| )детьми|(?:^| )сын|(?:^| )доч/, "детей детский дети детям детьми ребенка ребенок", /^(ребен|детск|дет|детям|детьми|сын|доч)/],
+    [/(?:^| )подрост|(?:^| )школьник|(?:^| )старшеклас/, "подростков старшеклассников 13 старше", /^(подрост|школьник|старшеклас)/],
+    [/(?:^| )бабушк|(?:^| )дедушк|(?:^| )пожил|(?:^| )престарел|(?:^| )пенсионер/, "пожилого возраста", /^(бабушк|дедушк|пожил|престарел|пенсионер)/],
+    [/(?:^| )пролежн/, "противопролежневый противопролежневая", /^пролежн/],
+    [/(?:^| )лежач/, "многофункциональная противопролежневый постели", /^лежач/],
+    [/(?:^| )спелео|(?:^| )сильвинит/, "спелеоклиматическая сильвинитовая", /^(спелео|сильвинит)/],
+    [/(?:^| )тестирован|(?:^| )проверить интеллект/, "диагностика", /^тестирован/],
+    [/(?:^| )взросл/, "взрослого взрослых взрослые", /^взросл/]
+  ];
+
+  /* ─────────── Индекс прейскуранта (по филиалу) ─────────── */
+  var IDX = {};
+  function tokenize(text){
+    return norm(text).split(" ").filter(function(w){ return w && !STOP[w] && !/^\d+$/.test(w) && w.length > 1; });
+  }
+  function buildIndex(services, key){
+    if (IDX[key] && IDX[key].src === services) return IDX[key];
+    var items = [], df = {};
+    (services||[]).forEach(function(cat){
+      var catStems = tokenize(cat.name).map(stem);
+      (cat.items||[]).forEach(function(it, idx){
+        var st = tokenize(it.n).map(stem), uniq = {};
+        st.forEach(function(x){ uniq[x] = 1; });
+        Object.keys(uniq).forEach(function(x){ df[x] = (df[x]||0) + 1; });
+        items.push({ uid: cat.id*1000 + idx, catId: cat.id, catName: cat.name, icon: cat.icon||"", idx: idx,
+                     name: String(it.n||"").replace(/\s+/g," ").trim(), price: it.p, mor: (it.m==null?null:it.m),
+                     stems: Object.keys(uniq), catStems: catStems });
+      });
+    });
+    var N = items.length || 1, idf = {};
+    Object.keys(df).forEach(function(k){ idf[k] = Math.log(1 + N/df[k]); });
+    return (IDX[key] = { src: services, items: items, idf: idf, N: N });
+  }
+  function curIndex(){ return buildIndex(svcData(), "cur:" + (typeof currentCity !== "undefined" ? currentCity : "")); }
+
+  /* Разбор запроса на смысловые единицы (concepts). Синоним — одна единица из нескольких слов. */
+  function concepts(text){
+    var t = norm(text), toks = t.split(" ").filter(Boolean), used = {}, out = [];
+    SYN.forEach(function(r){
+      if (!r[0].test(t)) return;
+      var group = r[1].split(" ").map(stem);
+      toks.forEach(function(w, i){ if (r[2].test(w)) used[i] = 1; });
+      out.push({ stems: group, syn: true });
+    });
+    toks.forEach(function(w, i){
+      if (used[i] || STOP[w] || /^\d+$/.test(w) || w.length < 2) return;
+      out.push({ stems: [stem(w)], syn: false, raw: w });
+    });
+    return out;
+  }
+  function matchStem(q, list){
+    var best = null;
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i], qual = 0;
+      if (s === q) qual = 1;
+      else {
+        var shorter = q.length < s.length ? q : s, longer = shorter === q ? s : q;
+        if (shorter.length >= 5 && longer.indexOf(shorter) === 0) qual = 0.85;
+        else if (shorter.length >= 4 && longer.indexOf(shorter) === 0 && q.length <= s.length) qual = 0.7;
+        else if (q.length >= 5 && s.length >= 5 && lev(q, s) <= 1) qual = 0.75;
+        else if (q.length >= 9 && s.length >= 9 && lev(q, s) <= 2) qual = 0.6;
+      }
+      if (qual && (!best || qual > best.q)) best = { q: qual, s: s };
+    }
+    return best;
+  }
+  function search(text, index){
+    index = index || curIndex();
+    var cs = concepts(text);
+    if (!cs.length) return { list: [], n: 0 };
+    var res = [];
+    index.items.forEach(function(it){
+      var score = 0, hit = 0, hitStems = 0;
+      cs.forEach(function(c){
+        var best = 0;
+        c.stems.forEach(function(qs){
+          var m = matchStem(qs, it.stems);
+          if (m) {
+            var w = index.idf[m.s] || 1;
+            if (m.s !== qs && index.idf[qs]) w = Math.min(w, index.idf[qs]);
+            var v = m.q * w; if (v > best) best = v;
+          }
+          else {
+            var mc = matchStem(qs, it.catStems);
+            if (mc && mc.q * 0.6 > best) best = mc.q * 0.6;
+          }
+        });
+        if (best > 0) { score += best; hit++; }
+      });
+      if (!hit) return;
+      cs.forEach(function(c){ c.stems.forEach(function(qs){ if (matchStem(qs, it.stems)) hitStems++; }); });
+      var prec = Math.min(1, hitStems / Math.max(1, it.stems.length));
+      res.push({ it: it, score: score + prec * 0.8, cov: hit / cs.length });
+    });
+    res.sort(function(a,b){ return (b.cov - a.cov) || (b.score - a.score) || (a.it.name.length - b.it.name.length); });
+    return { list: res, n: cs.length, cs: cs };
+  }
+  /* Верхняя группа уверенных совпадений. */
+  function topGroup(r){
+    if (!r.list.length) return [];
+    var b = r.list[0];
+    var need = r.n <= 2 ? 1 : 0.66;
+    if (b.cov < need) return [];
+    return r.list.filter(function(x){ return x.cov === b.cov && x.score >= b.score * 0.82; }).map(function(x){ return x.it; });
+  }
+
+  /* ─────────── Направления записи (Губкинский, мкр. Пурпе) ─────────── */
+  function structAvail(){ return typeof BOOKING_STRUCT !== "undefined" && (currentCity === "gubkin" || currentCity === "purpe"); }
+  function stemSet(t){ var o = {}; tokenize(t).map(stem).forEach(function(x){ o[x] = 1; }); return o; }
+  function jacc(a, b){ var i = 0, u = 0, k; for (k in a){ u++; if (b[k]) i++; } for (k in b) if (!a[k]) u++; return u ? i/u : 0; }
+  function structFor(it){
+    if (!structAvail()) return null;
+    var dir = BOOKING_STRUCT.find(function(d){ return d.catId === it.catId; });
+    if (!dir) return null;
+    var A = stemSet(it.name), best = null;
+    dir.subs.forEach(function(sub, si){
+      sub.items.forEach(function(x, ii){
+        var j = jacc(A, stemSet(x.n)) + (x.p === it.price ? 0.15 : 0);
+        if (!best || j > best.j) best = { j: j, dir: dir, sub: sub, x: x, si: si, ii: ii };
+      });
+    });
+    return best && best.j >= 0.62 ? best : null;
+  }
+  function structDirByCat(catId){
+    if (!structAvail()) return null;
+    return BOOKING_STRUCT.find(function(d){ return d.catId === catId; }) || null;
+  }
+  function staffByNames(names){
+    return (typeof structResolveStaff === "function") ? structResolveStaff(names||[]) : [];
+  }
+
+  /* ─────────── Рассказ об услуге — только факты из прейскуранта ─────────── */
+  function facts(it){
+    var n = it.name, low = n.toLowerCase(), f = [];
+    var range = n.match(/от\s*\d+\s*до\s*\d+\s*мин(ут)?/i);
+    var dur = range || n.match(/(не более|до|от)?\s*\d+([.,]\d+)?\s*(-?х|-ух)?\s*(ч\.?\s*\d+\s*мин|мин(ут)?|час(а|ов)?|ч)(?=[\s.,);]|$)/i);
+    if (dur && !range && /за\s*$/.test(n.slice(Math.max(0, dur.index - 4), dur.index + (dur[0].match(/^\s*/)[0].length)))) dur = null;
+    if (dur) f.push(["Длительность", dur[0].replace(/\s+/g," ").replace(/\.$/,"").trim()]);
+    var grp = low.match(/(не более|до|не менее)\s*(\d+)\s*-?х?\s*человек/);
+    if (/группов|не менее \d+ человек/.test(low)) f.push(["Формат", "групповое" + (grp ? " (" + grp[0] + ")" : "")]);
+    else if (/индивидуал/.test(low)) f.push(["Формат", "индивидуально"]);
+    else if (grp) f.push(["Формат", grp[0]]);
+    var age = n.match(/(для детей[^,()]*|детей от[^,()]*|с детьми от[^,()]*|для взрослых|взрослые|старшеклассников|подростков|от \d+(,\d+)? (лет|мес)[^,()]*)/i);
+    if (age) f.push(["Для кого", age[0].trim()]);
+    if (/с\s*инструктор/.test(low)) f.push(["Инструктор", "занятие с инструктором"]);
+    else if (/без инструктор/.test(low)) f.push(["Инструктор", "без инструктора"]);
+    if (/с сопровождением/.test(low)) f.push(["Сопровождение", "с сопровождающим работником центра"]);
+    else if (/без сопровождения/.test(low)) f.push(["Сопровождение", "без сопровождающего"]);
+    if (/на дому/.test(low)) f.push(["Где", "на дому"]);
+    else if (/в учреждении|на территории центра|в полустационар/.test(low)) f.push(["Где", "в центре"]);
+    else if (/на территории заказчика/.test(low)) f.push(["Где", "у заказчика"]);
+    var unit = low.match(/за\s*10 сеансов|за 1 (месяц|час|человека|челов|раз|единицу|услугу|декларацию|заявление|документ|занятие|сеанс)|\(\s*1 месяц\s*\)|1 \(месяц\)/);
+    if (unit) {
+      var u = unit[0];
+      f.push(["Оплата", /месяц/.test(u) ? "за 1 месяц проката" : /10 сеансов/.test(u) ? "абонемент на 10 сеансов"
+              : u.replace(/\(|\)/g,"").replace(/челов$/,"человека").trim()]);
+    }
+    var incl = n.match(/в т\.?\s*ч\.?\s*:?\s*([^)]+)/i) || n.match(/\(([^()]{25,})\)/);
+    if (incl && !/^\s*(не более|до|за|\d)/i.test(incl[1])) f.push(["Что входит", incl[1].replace(/\s+/g," ").trim().replace(/[.,;]$/,"")]);
+    return f;
+  }
+  function catNote(it){
+    var c = it.catName.toLowerCase();
+    if (/прокат/.test(c)) return "Средство выдаётся во временное пользование, оплата помесячно.";
+    if (/перевозк/.test(c)) return "Заказ — через раздел «Такси»: заявку принимают накануне поездки с " + TAXI_RULES.orderFrom + " до " + TAXI_RULES.orderTo + ".";
+    return "";
+  }
+  function serviceCard(it){
+    var rows = [["Раздел", esc(it.catName)], ["Цена", money(it.price)]];
+    if (it.mor != null && it.mor !== it.price) rows.push(["По карте «Морошка»", money(it.mor) + " (−" + money(it.price - it.mor) + ")"]);
+    facts(it).forEach(function(f){ rows.push([f[0], esc(f[1])]); });
+    var st = structFor(it);
+    if (st) {
+      var people = staffByNames(st.x.resp || st.sub.resp || st.dir.resp).filter(function(p){ return p && p.name; });
+      if (people.length) rows.push(["Ответственный", people.map(function(p){ return esc(p.name) + (p.pos && p.pos !== "Ответственный специалист" ? " — " + esc(p.pos.toLowerCase()) : ""); }).join("<br>")]);
+      if (st.sub.mode === "group") rows.push(["Запись", "в группу, единое время" + (st.sub.cap ? " (до " + st.sub.cap + " мест)" : "")]);
+    }
+    return '<div class="cf-card"><div class="cf-card-ttl">' + esc(it.name) + "</div>" +
+      rows.map(function(r){ return '<div class="cf-row"><span>' + r[0] + "</span><b>" + r[1] + "</b></div>"; }).join("") + "</div>";
+  }
+  function serviceActions(it){
+    var b = [], st = structFor(it), c = it.catName.toLowerCase();
+    if (/перевозк/.test(c)) {
+      b.push(btn("🚕 Заказать такси", function(){ return C.startTaxi(); }, { echo: "Заказать такси" }));
+    } else if (st) {
+      b.push(btn("📝 Записаться на время", function(){ return go(function(){ structPickItem(st.dir.catId, st.si, st.ii); }); }));
+      b.push(btn("Добавить в заявку", function(){ return C.addService(asSvc(it)); }, { cl: "outline", echo: "Добавить в заявку: " + it.name }));
+    } else {
+      b.push(btn("Добавить в заявку", function(){ return C.addService(asSvc(it)); }, { echo: "Добавить в заявку: " + it.name }));
+    }
+    b.push(navBtn("Открыть в прейскуранте", function(){ showCategory(it.catId, it.uid); }));
+    return row(b);
+  }
+  function asSvc(it){ return { uid: it.uid, name: it.name, price: it.price, mor: it.mor, catId: it.catId }; }
+  function dupNote(it){
+    var same = curIndex().items.filter(function(x){ return x !== it && norm(x.name) === norm(it.name); });
+    if (!same.length) return "";
+    return "<br><span class=\"cf-mor\">В прейскуранте есть ещё вариант с тем же названием: " +
+      same.map(function(x){ return money(x.price); }).join(", ") + ". Уточните у специалиста, какой подходит вам.</span>";
+  }
+  function answerService(it, lead){
+    var note = catNote(it);
+    var st = structFor(it);
+    var how = /перевозк/i.test(it.catName) ? "" :
+      st ? "Можно сразу выбрать дату и время — запись по будням, обед с " + WORK_BREAK.from + " до " + WORK_BREAK.to + "."
+         : "Добавьте в заявку — она уйдёт в центр, и специалист свяжется с вами, чтобы согласовать время.";
+    return (lead || "Вот всё об этой услуге:") + serviceCard(it) +
+      [note, how].filter(Boolean).join(" ") + dupNote(it) + serviceActions(it);
+  }
+
+  /* Несколько услуг: сразу показываем цены текстом + кнопки «подробнее». */
+  function answerList(items, head, more){
+    var shown = items.slice(0, 8);
+    var lines = shown.map(function(it){
+      return "• " + esc(it.name) + " — <b>" + money(it.price) + "</b>" +
+        (it.mor != null && it.mor !== it.price ? ' <span class="cf-mor">(по «Морошке» ' + money(it.mor) + ")</span>" : "");
+    }).join("<br>");
+    var b = shown.slice(0, 5).map(function(it){
+      return btn(esc(shortName(it.name)) + " · " + money(it.price), function(){ return answerService(it); }, { cl: "outline", echo: it.name });
+    });
+    var tail = items.length > shown.length ? "<br>…и ещё " + (items.length - shown.length) + " " + plural(items.length - shown.length, ["вариант","варианта","вариантов"]) + " в прейскуранте." : "";
+    if (more) b.push(more);
+    return (head || "Нашёл несколько подходящих услуг:") + "<br>" + lines + tail +
+      "<br><br>Нажмите на услугу — расскажу подробно." + row(b);
+  }
+  function shortName(n){ n = n.replace(/\s+/g," "); return n.length > 60 ? n.slice(0, 57).replace(/\s\S*$/,"") + "…" : n; }
+
+  function answerCategory(cat){
+    var items = curIndex().items.filter(function(x){ return x.catId === cat.id; });
+    var dir = structDirByCat(cat.id);
+    var extra = dir ? btn("📝 Записаться: " + esc(dir.title), function(){ return go(function(){ structGoto(cat.id); }); })
+                    : navBtn("Открыть раздел", function(){ showCategory(cat.id); }, "teal");
+    return answerList(items, (cat.icon ? cat.icon + " " : "") + "<b>" + esc(cat.name) + "</b> — " + items.length + " " +
+      plural(items.length, ["услуга","услуги","услуг"]) + " в филиале «" + esc(cityName()) + "»:", extra);
+  }
+
+  /* Ключевые слова → раздел прейскуранта (по названию раздела, чтобы работало во всех филиалах). */
+  var CAT_RULES = [
+    [/психолог|психотерап|тревог|стресс|депресс/, /психолог/],
+    [/логопед|дефектолог|педагог|репетитор|кружк|мастер класс/, /педагогич/],
+    [/лфк|тренажер|спортзал|физкультур|инструктор/, /лфк|залах/],
+    [/массаж|физиотерап|оздоров|процедур|медицин|медсестр/, /медицин/],
+    [/юрист|юридич|правов|адвокат/, /правов/],
+    [/прокат|аренд|средств[ао]? реабилитац|тср(?= |$)|тсо(?= |$)/, /прокат/],
+    [/праздник|аниматор|дед[а-яa-z0-9]* мороз|поздравлен/, /праздник/],
+    [/сиделк|нян|присмотр|уход за/, /сиделк|нян/],
+    [/гостиниц|проживан|переночев/, /гостинич/],
+    [/фото/, /фотограф/],
+    [/видео/, /видеоролик/],
+    [/паллиатив/, /паллиатив/]
+  ];
+  function catByRules(t){
+    for (var i = 0; i < CAT_RULES.length; i++) {
+      if (!CAT_RULES[i][0].test(t)) continue;
+      var cat = svcData().find(function(c){ return CAT_RULES[i][1].test(c.name.toLowerCase()); });
+      if (cat) return cat;
+      return { missing: true, re: CAT_RULES[i][1] };
+    }
+    return null;
+  }
+
+  /* Поиск в других филиалах. */
+  var CITY = { gubkin:"Губкинский", purpe:"мкр. Пурпе", muravlenko:"Муравленко", noyabrsk:"Ноябрьск", tarko:"Тарко-Сале", urengoy:"пгт. Уренгой" };
+  function crossBranch(text){
+    if (typeof branchContent === "undefined") return null;
+    var found = [];
+    Object.keys(branchContent).forEach(function(k){
+      if (k === currentCity) return;
+      var sv = branchContent[k] && branchContent[k].services;
+      if (!sv || !sv.length) return;
+      var g = topGroup(search(text, buildIndex(sv, "br:" + k)));
+      if (g.length) found.push({ city: k, items: g });
+    });
+    return found.length ? found : null;
+  }
+  function crossCat(re){
+    if (typeof branchContent === "undefined") return [];
+    return Object.keys(branchContent).filter(function(k){
+      return k !== currentCity && (branchContent[k].services||[]).some(function(c){ return re.test(c.name.toLowerCase()); });
+    });
+  }
+  function switchBtn(k){
+    return btn("🏢 Перейти в филиал «" + CITY[k] + "»", function(){ return go(function(){ selectCity(k); }); });
+  }
+
+  /* ─────────── Сотрудники по должности ─────────── */
+  var ROLES = [
+    [/директор|руководител|начальник|главн[а-яa-z0-9]* в центре/, /директор/, "Директор"],
+    [/заведующ/, /заведующ/, "Заведующие отделениями"],
+    [/психолог/, /психолог/, "Психологи"],
+    [/логопед/, /логопед/, "Логопеды"],
+    [/дефектолог/, /дефектолог/, "Дефектологи"],
+    [/социальн[а-яa-z0-9]* педагог|соц педагог/, /социальный педагог/, "Социальные педагоги"],
+    [/педагог доп|допобраз|дополнительн[а-яa-z0-9]* образован/, /доп/, "Педагоги дополнительного образования"],
+    [/медсестр|медицинск[а-яa-z0-9]* сестр|медик|медработник/, /медицинск/, "Медицинские сестры"],
+    [/воспитател/, /воспитател/, "Воспитатели"],
+    [/социальн[а-яa-z0-9]* работник|соцработник/, /социальный работник/, "Социальные работники"],
+    [/специалист[а-яa-z0-9]* по социальн|соц[а-яa-z0-9]* специалист/, /специалист по социальной/, "Специалисты по социальной работе"],
+    [/юрист|юрисконсульт/, /юрис/, "Юрисконсульты"],
+    [/инструктор/, /инструктор|физкульт/, "Инструкторы"],
+    [/секретар|приемн/, /секретар/, "Приёмная"]
+  ];
+  function staffAnswer(t){
+    var ask = /(кто|как зовут|фамили|телефон|номер|почт|email|связаться|контакт|найти|позвонить|добавочн)/.test(t);
+    if (!ask) return null;
+    for (var i = 0; i < ROLES.length; i++) {
+      if (!ROLES[i][0].test(t)) continue;
+      var list = (typeof staffData !== "undefined" ? staffData : []).filter(function(p){ return ROLES[i][1].test((p.pos||"").toLowerCase()); });
+      if (!list.length && catByRules(t) && !catByRules(t).missing) return null; /* расскажем про услуги направления */
+      if (!list.length) return ROLES[i][2] + " — в справочнике филиала «" + esc(cityName()) + "» таких сотрудников нет. Позвоните в приёмную: <b>" + esc(cd().phone||"") + "</b>." +
+        row([navBtn("👥 Все сотрудники", function(){ showStaff(); }, "teal")]);
+      var lines = list.slice(0, 8).map(function(p){
+        return "• <b>" + esc(p.name) + "</b> — " + esc(p.pos) + "<br>&nbsp;&nbsp;📞 " + esc(cd().phone||"") + (p.ext ? " доб. " + esc(p.ext) : "") +
+               (p.email ? "<br>&nbsp;&nbsp;✉️ " + esc(p.email) : "");
+      }).join("<br>");
+      return ROLES[i][2] + " — филиал «" + esc(cityName()) + "»:<br>" + lines +
+        (list.length > 8 ? "<br>…и ещё " + (list.length - 8) + "." : "") +
+        row([navBtn("👥 Все сотрудники", function(){ showStaff(); }, "teal")]);
+    }
+    return null;
+  }
+
+  /* ─────────── Разговорные фразы ─────────── */
+  var GREET_RE = /^(привет[а-яa-z0-9]*|приветик|здравствуй[а-яa-z0-9]*|здрасьте|здрасте|здорово|добр[а-яa-z0-9]* (утро|день|вечер|ночи|времени( суток)?)|доброго (дня|утра|вечера|времени( суток)?)|день добрый|вечер добрый|утро доброе|приветствую|хай|хеллоу|hello|hi|салют|алло|ау)(?= |$)/;
+  var LEAD_RE = /^(ну|а|и|слушай|слушайте|скажи|скажите|подскажи|подскажите|пожалуйста|бот|гармония|уважаемый|уважаемая|спасибо|благодарю)(?= |$)\s*/;
+  function timeHello(){
+    var h = new Date().getHours();
+    return h < 5 ? "Доброй ночи" : h < 12 ? "Доброе утро" : h < 18 ? "Добрый день" : "Добрый вечер";
+  }
+  /* Отвечаем тем же приветствием, что написал человек («добрый вечер» → «Добрый вечер»). */
+  function helloFor(t){
+    var m = t.match(/^(добр[а-яa-z0-9]* (утро|день|вечер)|доброго (утра|дня|вечера)|день добрый|вечер добрый|утро доброе)/);
+    if (m) { var w = /утр/.test(m[0]) ? "Доброе утро" : /вечер/.test(m[0]) ? "Добрый вечер" : "Добрый день"; return w; }
+    if (/^здравствуй|^здрасьте|^здрасте|^приветствую/.test(t)) return "Здравствуйте";
+    if (/^привет/.test(t)) return "Привет";
+    return timeHello();
+  }
+  function capabilities(){
+    return "Я помогу:<br>• узнать цену и подробности любой услуги — просто напишите, например, «массаж спины» или «коляска напрокат»;" +
+      "<br>• записаться к специалисту на удобное время;<br>• оформить заявку на услуги;<br>• заказать социальное такси;" +
+      "<br>• найти телефон сотрудника, адрес и режим работы филиала." + C.row([
+        btn("🚕 Заказать такси", function(){ return C.startTaxi(); }, { echo: "Заказать такси" }),
+        btn("📝 Записаться к специалисту", function(){ return bookingDirs(); }, { cl: "outline", echo: "Записаться к специалисту" }),
+        navBtn("📋 Все услуги и цены", function(){ showServices(); })
+      ]);
+  }
+  /* Полностью разговорная фраза → ответ. Иначе null. */
+  function smallTalk(t){
+    var n = userName(), h = hi();
+    var s = t.replace(/\s*(бот|гармония|пожалуйста)$/,"").trim();
+    if (s.split(" ").length < 2 && /(бот|гармония)$/.test(t)) s = t;
+    if (GREET_RE.test(s) && !s.replace(GREET_RE, "").trim())
+      return helloFor(s) + h + "! 👋 Я чат-бот центра «Гармония». Спросите про любую услугу, цену или запись — отвечу и подскажу, как оформить.";
+    if (/^(как (у тебя |у вас |твои |ваши )?(дела|делишки|жизнь|поживаешь|поживаете|настроение|ты|вы|сам|служба|оно))( [а-яa-z0-9]+)?$/.test(s) || /^как дела(?= |$)/.test(s))
+      return "Спасибо, что спросили" + h + "! У меня всё хорошо — работаю и готов помочь 🙂 Как ваши дела? Чем могу быть полезен?";
+    if (/^(спасибо|благодарю|спс|пасиб[а-яa-z0-9]*|спасибочки|спасибки|мерси|thanks|thank you)( (тебе|вам|большое|огромное|за помощь|за ответ|за информацию|бот|друг))*$/.test(s) ||
+        /^(большое|огромное) спасибо( [а-яa-z0-9]+)*$/.test(s))
+      return "Пожалуйста" + h + "! Рад помочь 🌿 Если появятся вопросы — пишите.";
+    if (/^(пока|покеда|до свидания|досвидания|до свиданья|всего доброго|всего хорошего|до встречи|до завтра|спокойной ночи|прощай|увидимся|бывай)( [а-яa-z0-9]+)?$/.test(s))
+      return "Всего доброго" + h + "! Берегите себя 🌿";
+    if (/^(да|ага|угу|ок|окей|ok|okay|хорошо|ладно|понятно|ясно|понял|поняла|договорились|принято|супер|класс|отлично|здорово|замечательно|прекрасно|круто|норм|нормально|неплохо)( спасибо)?$/.test(s))
+      return "Хорошо" + h + "! Если понадобится — я здесь. Могу рассказать об услуге, записать к специалисту или заказать такси." ;
+    if (/^(нет|не|неа|не надо|не нужно|ничего|нет спасибо|не сейчас|потом|позже)( спасибо)?$/.test(s))
+      return "Хорошо" + h + ". Если что-то понадобится — просто напишите.";
+    if (/^(плохо|так себе|не очень|грустно|тоскливо|устал|устала|паршиво|хуже некуда)$/.test(s))
+      return "Сочувствую" + h + " 💛 Если хочется поговорить со специалистом — в центре работают психологи, к ним можно записаться. Если ситуация острая — звоните <b>112</b>." +
+        row([btn("🧠 Записаться к психологу", function(){ return catAnswerById(/психолог/); }, { cl: "outline", echo: "Записаться к психологу" }),
+             navBtn("🆘 Экстренная помощь", function(){ showEmergency(); })]);
+    if (/(кто ты|ты кто|что ты (умеешь|можешь|знаешь)|что умеешь|что можешь|чем (ты )?(можешь )?помочь|чем поможешь|твои возможности|расскажи о себе|что ты такое|ты бот|ты робот|ты человек|ты живой|ты настоящий|ты ии|ты нейросеть)/.test(s))
+      return "Я — чат-бот центра «Гармония», программа, а не человек. Знаю весь прейскурант филиала «" + esc(cityName()) + "», режим работы и сотрудников. " + capabilities();
+    if (/^(помощь|помоги|помогите|help|меню|начать|старт|start|что дальше|с чего начать|не знаю что спросить)$/.test(s))
+      return capabilities();
+    if (/(как (тебя|вас) зовут|твое имя|ваше имя)/.test(s))
+      return "Меня зовут «Гармония» — я чат-бот центра. А вас" + (n ? " — " + esc(n) + ", верно?" : " как зовут?");
+    if (/^(ха)+$|^а?хах[а-яa-z0-9]*$|^лол$|^\)+$|^смешно$/.test(s)) return "🙂 Рад, что настроение хорошее! Чем могу помочь?";
+    if (/(дурак|тупой|тупая|глупый|идиот|бесполезн|отстой|ерунд|бред|не понимаешь|плохо работаешь)/.test(s))
+      return "Прошу прощения, если ответил не так" + h + ". Попробуйте написать по-другому — например, название услуги: «массаж шеи», «логопед», «прокат коляски». Или позвоните: <b>" + esc(cd().phone||"") + "</b>.";
+    if (/(молодец|умница|умничка|ты лучший|ты классный|ты хороший|ты супер|люблю тебя|спасибо тебе большое)/.test(s))
+      return "Очень приятно" + h + "! 🌿 Стараюсь быть полезным. Чем ещё помочь?";
+    if (/(извини|извините|прости|простите|сорри)$/.test(s)) return "Всё в порядке" + h + " 🙂 Чем могу помочь?";
+    if (/^(скучно|скучаю|одиноко|мне одиноко|не с кем поговорить)$/.test(s))
+      return "Понимаю" + h + " 🌿 В центре проходят мероприятия, кружки и клубы — хороший повод пообщаться вживую." +
+        row([navBtn("🎟️ Мероприятия", function(){ showEvents(); }, "teal"), btn("Кружки и клубы", function(){ return catAnswerById(/педагогич/); }, { cl: "outline", echo: "Кружки и клубы" })]);
+    if (/(какая|какой|какое) (сегодня )?(погод|температур)/.test(s) || /^погода/.test(s))
+      return "Погоду я не вижу — к прогнозу не подключён 🌤 Но могу помочь с услугами центра.";
+    if (/(который час|сколько времени|какое (сегодня )?число|какой (сегодня )?день|какая (сегодня )?дата|какой сегодня|сегодняшн[а-яa-z0-9]* дат)/.test(s)) {
+      var d = new Date();
+      return "Сейчас " + d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) + ", " +
+        d.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).replace(/\.$/,"") + ".";
+    }
+    return null;
+  }
+  /* Срочное — всегда раньше всего остального. */
+  function urgent(t){
+    if (/(не хочу жить|покончить с собой|покончу|суицид|убить себя|свести счеты|нет смысла жить|хочу умереть)/.test(t))
+      return "Мне очень жаль, что вам так тяжело 💛 Пожалуйста, не оставайтесь с этим одни — позвоните прямо сейчас: <b>112</b> (экстренные службы). " +
+        "Психологи центра тоже готовы поддержать — их телефоны в разделе «Экстренная помощь»." +
+        row([navBtn("🆘 Экстренная помощь", function(){ showEmergency(); }, "red")]);
+    if (/(мне плохо|плохо себя чувствую|болит сердце|сердце болит|задыхаюсь|не могу дышать|потерял сознание|упал[аи]? и не|инсульт|инфаркт|высокое давление|скорую|скорая)/.test(t))
+      return "Если нужна срочная медицинская помощь — звоните <b>103</b> или <b>112</b> прямо сейчас. Центр «Гармония» не оказывает экстренную медицинскую помощь." +
+        row([navBtn("🆘 Экстренная помощь", function(){ showEmergency(); }, "red")]);
+    return null;
+  }
+
+  /* ─────────── Справка о центре ─────────── */
+  function contactsText(){
+    var c = cd();
+    return "Филиал «" + esc(cityName()) + "»:<br>📍 " + esc(c.address||"") + "<br>📞 " + esc(c.phone||"") +
+      "<br>✉️ " + esc(c.email||"") + "<br>🕒 " + esc(c.hours||"");
+  }
+  function openNow(){
+    var c = cd(), now = new Date(), dow = now.getDay(), m = now.getHours()*60 + now.getMinutes();
+    if (c.openH == null) return "";
+    var o = c.openH*60 + c.openM, cl = c.closeH*60 + c.closeM;
+    var hhmm = String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+    if (dow === 0 || dow === 6) return "Сегодня выходной.";
+    if (m < o || m >= cl) return "Сейчас центр закрыт.";
+    if (isBreakTime(hhmm)) return "Сейчас обеденный перерыв, откроемся в " + WORK_BREAK.to + ".";
+    return "Сейчас центр открыт.";
+  }
+  function bookingDirs(){
+    if (structAvail()) {
+      var b = BOOKING_STRUCT.filter(function(d){ return svcData().some(function(c){ return c.id === d.catId; }); })
+        .map(function(d){ return btn(d.icon + " " + esc(d.title), function(){ return go(function(){ structGoto(d.catId); }); }, { cl: "outline" }); });
+      b.push(navBtn("👔 Приём у директора", function(){ showBooking(); }));
+      return "Выберите направление — покажу услуги, цены и свободное время. Запись по будням, обед с " + WORK_BREAK.from + " до " + WORK_BREAK.to + "." + row(b);
+    }
+    return "В филиале «" + esc(cityName()) + "» запись к специалисту — через прейскурант или по телефону <b>" + esc(cd().phone||"") + "</b>." +
+      row([navBtn("📋 Прейскурант", function(){ showServices(); }, "teal"), navBtn("👔 Приём у директора", function(){ showBooking(); })]);
+  }
+  function catAnswerById(re){
+    var cat = svcData().find(function(c){ return re.test(c.name.toLowerCase()); });
+    if (!cat) return "В филиале «" + esc(cityName()) + "» такого раздела нет." ;
+    var dir = structDirByCat(cat.id);
+    if (dir) { go(function(){ structGoto(cat.id); }); return "Открываю запись: " + esc(dir.title) + "."; }
+    return answerCategory(cat);
+  }
+  function taxiInfo(t){
+    var tar = (typeof getTaxiTariffs === "function") ? getTaxiTariffs() : { items: [] };
+    if (!tar.items.length) return "В филиале «" + esc(cityName()) + "» социальное такси не предоставляется. Уточните по телефону <b>" + esc(cd().phone||"") + "</b>.";
+    var lines = tar.items.map(function(x){
+      return "• " + esc(x.label) + " (" + x.duration + " мин) — <b>" + money(x.base) + "</b>" + (x.moroshka != null ? ' <span class="cf-mor">по «Морошке» ' + money(x.moroshka) + "</span>" : "");
+    }).join("<br>");
+    return "Социальное такси, филиал «" + esc(cityName()) + "»:<br>" + lines +
+      "<br>• Льготная поездка — <b>бесплатно</b> для пенсионеров, инвалидов и ветеранов, до " + FREE_TAXI_ANNUAL_LIMIT + " поездок в год (нужен СНИЛС)." +
+      "<br><br>Заявку принимают <b>накануне поездки с " + TAXI_RULES.orderFrom + " до " + TAXI_RULES.orderTo + "</b>. Машина работает " + taxiHoursText() + ". Пассажиров — не больше 2." +
+      row([btn("🚕 Заказать такси", function(){ return C.startTaxi(); }, { echo: "Заказать такси" })]);
+  }
+
+  var FAQ = [
+    [/((какие|все|список|перечень|каталог|весь)\s*(у вас\s*)?(есть\s*)?(услуг|направлени|раздел|прейскурант)|^что (у вас )?есть|чем (вы )?занимает|что (вы )?делаете|чем можете помочь|какая помощь)/, function(t){
+      if (topGroup(search(t)).length || (catByRules(t) && !catByRules(t).missing)) return null;
+      var cats = svcData();
+      if (!cats.length) return "В филиале «" + esc(cityName()) + "» прейскурант пока не заполнен. Позвоните: <b>" + esc(cd().phone||"") + "</b>.";
+      var b = cats.slice(0, 6).map(function(c){ return btn(c.icon + " " + esc(c.name), function(){ return answerCategory(c); }, { cl: "outline", echo: c.name }); });
+      return "В филиале «" + esc(cityName()) + "» " + cats.length + " " + plural(cats.length, ["раздел","раздела","разделов"]) + " услуг:<br>" +
+        cats.map(function(c){ return c.icon + " " + esc(c.name) + " — " + c.items.length; }).join("<br>") +
+        "<br><br>Нажмите на раздел или напишите, что нужно." + row(b.concat([navBtn("📋 Открыть прейскурант", function(){ showServices(); }, "teal")]));
+    }],
+    [/(адрес|где (вы|находит|расположен|центр)|как (вас |к вам |до вас )?(найти|добраться|доехать|проехать)|контакт|телефон центра|номер центра|ваш телефон|ваш номер|позвонить в центр|почта центра|email|электронн[а-яa-z0-9]* почт)/, function(){
+      return contactsText() + "<br>" + openNow() + row([navBtn("📍 Открыть контакты", function(){ showContacts(); }, "teal")]);
+    }],
+    [/(режим|график|часы работы|время работы|во сколько|до скольки|до какого часа|когда (вы )?(работает|работаете|открыва|закрыва|открыт)|работаете|работает ли центр|открыты|выходн|в субботу|в воскресенье|обед|перерыв)/, function(){
+      return "Режим работы филиала «" + esc(cityName()) + "»: <b>" + esc(cd().hours||"") + "</b>. Суббота и воскресенье — выходные. " + openNow();
+    }],
+    [/(морошк|единая карта|карта жителя|скидк)/, function(){
+      return "Карта жителя Ямала «Морошка» даёт скидку на платные услуги центра — примерно 5%. Цена по карте указана рядом с обычной в прейскуранте и в ответах бота. Карту покажите специалисту при получении услуги." +
+        row([navBtn("🍊 О карте «Морошка»", function(){ showMoroshkaInfo(); }, "teal")]);
+    }],
+    [/(бесплатн|льгот|положено|имею право|субсид|малоимущ)/, function(t){
+      if (/такси|поездк/.test(t)) return taxiInfo(t);
+      return "Бесплатно в приложении оформляется льготная поездка на социальном такси — для пенсионеров, инвалидов и ветеранов, до " + FREE_TAXI_ANNUAL_LIMIT + " поездок в год. " +
+        "Об остальных льготах и мерах поддержки подробно расскажет специалист по социальной работе — по телефону <b>" + esc(cd().phone||"") + "</b> или на приёме." +
+        row([btn("🚕 Льготное такси", function(){ return C.startTaxi(); }, { echo: "Заказать такси" }), navBtn("👥 Специалисты", function(){ showStaff(); })]);
+    }],
+    [/(как (оформить|сделать|подать|отправить) заявк|как заказать услуг|как получить услуг|как это работает|как пользоваться)/, function(){
+      return "Как оформить заявку:<br>1. Найдите услугу — в прейскуранте или спросите меня.<br>2. Нажмите «Добавить в заявку».<br>3. В корзине нажмите «Отправить заявку» и проверьте свои данные.<br>4. Откроется почта с готовым письмом — нажмите «Отправить».<br>После этого специалист центра свяжется с вами." +
+        row([navBtn("📋 Прейскурант", function(){ showServices(); }, "teal")]);
+    }],
+    [/(как (записаться|попасть на прием|попасть к)|хочу записаться|запиши меня|записаться на прием|записаться к специалисту|запись к специалисту|запись на прием|на прием)$/, function(){ return bookingDirs(); }],
+    [/(отменить запис|отмена запис|отменить заявк|передумал|не смогу прийти|перенести запис)/, function(){
+      return "Запись отменяется в разделе «Мои заявки» — кнопка «Отменить запись» под нужной записью. Центр получит письмо об отмене. Чтобы перенести — отмените и запишитесь на другое время." +
+        row([navBtn("📋 Мои заявки", function(){ openOrdersPanel(); }, "teal")]);
+    }],
+    [/(мои заявки|мои записи|мои заказы|статус заявк|статус запис|история заявок|где моя заявка|что с моей заявк)/, function(){
+      return "Все ваши заявки, записи и заказы такси — в разделе «Мои заявки». Статус заявки подтверждает специалист центра по телефону или письмом." +
+        row([navBtn("📋 Мои заявки", function(){ openOrdersPanel(); }, "teal")]);
+    }],
+    [/(какие документы|что взять с собой|нужен ли паспорт|паспорт нужен|снилс нужен)/, function(){
+      return "Обычно нужны паспорт и СНИЛС. Точный список для конкретной услуги уточнит специалист, когда свяжется по заявке, или по телефону <b>" + esc(cd().phone||"") + "</b>.";
+    }],
+    [/(сколько ждать|когда (мне )?(позвонят|перезвонят|ответят)|срок рассмотрения|как быстро)/, function(){
+      return "Заявки обрабатываются в рабочее время филиала (" + esc(cd().hours||"") + "). Если ответа долго нет — позвоните: <b>" + esc(cd().phone||"") + "</b>.";
+    }],
+    [/(перезвон|обратн[а-яa-z0-9]* звонок|позвоните мне|свяжитесь со мной)/, function(){
+      return "Оставьте заявку на обратный звонок — специалист перезвонит в удобное время." + row([navBtn("📞 Обратный звонок", function(){ showCallback(); }, "teal")]);
+    }],
+    [/(оператор|живой человек|живым человеком|поговорить с человеком|написать в центр|написать специалисту)/, function(){
+      return "Связаться с центром можно по телефону <b>" + esc(cd().phone||"") + "</b>, по почте " + esc(cd().email||"") + " или в мессенджере." +
+        row([navBtn("💬 Способы связи", function(){ showLiveChat(); }, "teal")]);
+    }],
+    [/(отзыв|оценить работу|поставить оценку|жалоб|недовол|претензи к центру)/, function(){
+      return "Оценку и отзыв можно оставить в форме обратной связи — их читает руководство центра." + row([navBtn("⭐ Оставить отзыв", function(){ showFeedback(); }, "teal")]);
+    }],
+    [/(новост|анонс|объявлен)/, function(){ return "Новости и анонсы центра — в разделе «Новости»." + row([navBtn("📰 Новости", function(){ showNews(); }, "teal")]); }],
+    [/(мероприят|афиш|концерт|событи)/, function(){ return "Афиша мероприятий центра — там же можно записаться." + row([navBtn("🎟️ Мероприятия", function(){ showEvents(); }, "teal")]); }],
+    [/(фотогалере|фото центра|как выглядит центр)/, function(){ return "Фотографии центра — в фотогалерее." + row([navBtn("🖼️ Фотогалерея", function(){ showGallery(); }, "teal")]); }],
+    [/(личный кабинет|мой профиль|мои данные|изменить (мои )?данные|анкет)/, function(t){
+      if (/(госуслуг|портал|электрон)/.test(t)) return null;
+      return "Личные данные и анкета получателя — в личном кабинете. Анкета заполняется по шагам и сама подставляется в заявки." +
+        row([btn("📋 Заполнить анкету", function(){ editQuestionnaire(); return ""; }, { cl: "teal" }), navBtn("👤 Личный кабинет", function(){ openProfilePanel(); })]);
+    }],
+    [/(корзин|что в заявке|моя заявка)/, function(){
+      if (!cart.length) return "Заявка пока пустая. Напишите, какая услуга нужна — найду и добавлю.";
+      return null; /* пусть chatflow покажет состав */
+    }],
+    [/(сменить|поменять|изменить|выбрать|другой) (филиал|город)|(какие|сколько) (у вас )?филиал|филиалы|в каких городах|другие города/, function(){
+      var b = Object.keys(CITY).filter(function(k){ return k !== currentCity; }).map(function(k){ return switchBtn(k); });
+      return "Центр «Гармония» работает в филиалах: Губкинский, мкр. Пурпе, Муравленко, Ноябрьск, Тарко-Сале, пгт. Уренгой. Сейчас выбран «" + esc(cityName()) + "». Сменить можно здесь или нажав на название города вверху." + row(b);
+    }],
+    [/(шрифт|крупнее|мелко|не вижу текст|язык интерфейса|сменить язык|на английском|english|удалить (мои )?данные|очистить данные)/, function(){
+      return "Размер шрифта, язык, филиал и очистка данных — в личном кабинете, раздел «Настройки»." + row([navBtn("⚙️ Открыть кабинет", function(){ openProfilePanel(); }, "teal")]);
+    }],
+    [/(персональн[а-яa-z0-9]* данн|мои данные защищ|конфиденциал|безопасно ли)/, function(){
+      return "Ваши данные хранятся на этом устройстве и отправляются только в центр — в письме с заявкой, по согласию на обработку персональных данных (152-ФЗ).";
+    }],
+    [/(оплат|как платить|чем платить|наличн|картой (можно|оплатить)|по карте оплат|безнал)/, function(){
+      return "Способ оплаты уточнит специалист центра, когда свяжется по вашей заявке. Можно также спросить по телефону <b>" + esc(cd().phone||"") + "</b>.";
+    }]
+  ];
+
+  /* Услуги, которых обычно ищут, но в прейскурантах филиалов их нет. */
+  var NOT_OFFERED = /(убор|уборк|помыть|помой|мыть|окна|полы|пыль|стирк|стирать|постират|глажк|погладить|химчистк|продукт|лекарств|аптек|покупк|доставк|готов(ить|ка)|приготов|еду(?= |$)|обед привез|парикмахер|подстрич|стрижк|ремонт|сантехник|электрик|дров|снег|огород|выгул|собак|кошк|юридическ[а-яa-z0-9]* защит в суде|кредит|займ|деньги в долг|бассейн|плаван|стоматолог|зуб|окулист|терапевт|анализ|прививк|узи|рентген)/;
+
+  /* ─────────── Главный разбор ─────────── */
+  function answer(raw){
+    var t = norm(raw);
+    if (!t) return "Напишите вопрос словами — например, «сколько стоит массаж шеи» или «как заказать такси».";
+
+    var u = urgent(t); if (u) return u;
+
+    /* Идёт оформление (такси, заявка) */
+    if (C.isActive()) {
+      if (/^(отмена|отменить|стоп|хватит|отмени|не надо|выход|назад в меню)$/.test(t)) { C.reset(); return "Оформление отменено. Чем ещё помочь?"; }
+      var stA = smallTalk(t);
+      if (stA && !/^(да|нет|один|двое|1|2)$/.test(t))
+        return stA + "<br><br>Мы как раз оформляем " + (C.mode() === "taxi" ? "такси" : "заявку") + " — ответьте на последний вопрос выше или напишите «отмена».";
+      if (C.mode() === "order" && C.step() === "pick") {
+        /* выбор услуги — нашим точным поиском, а не старым */
+        C.reset();
+        return coreAnswer(t, raw) || "Не нашёл такую услугу. Напишите по-другому — например «массаж шеи» или «коляска».";
+      }
+      var step = C.handleStep(raw);
+      if (step) return step;
+    }
+    if (/^(отмена|отменить|стоп|хватит|отмени)$/.test(t)) return "Сейчас ничего не оформляется — отменять нечего. Чем помочь?";
+
+    /* Разговорное целиком */
+    var st = smallTalk(t); if (st) return st;
+
+    /* Приветствие/вежливость в начале длинной фразы — отрезаем и отвечаем по сути */
+    var greet = "";
+    if (GREET_RE.test(t)) { greet = helloFor(t) + hi() + "! "; t = t.replace(GREET_RE, "").trim(); }
+    var guard = 0;
+    while (LEAD_RE.test(t) && guard++ < 4) t = t.replace(LEAD_RE, "").trim();
+    if (!t) return greet + "Чем могу помочь?";
+    var core = coreAnswer(t, raw);
+    return core ? greet + core : null;
+  }
+
+  function coreAnswer(t, raw){
+    var u = urgent(t); if (u) return u;
+
+    /* Такси: вопросы о правилах/цене — справка; иначе — оформление диалогом */
+    if (/(такси|подвез|довез|отвез|поездк|трансфер|перевозк|вызвать машину|заказать машину)/.test(t)) {
+      if (/(сколько|цена|стоимост|тариф|правил|когда|за сколько|во сколько|как заказ|можно ли|условия|льгот|бесплатн|кто может)/.test(t)) return taxiInfo(t);
+      return C.startTaxi();
+    }
+
+    var sa = staffAnswer(t); if (sa) return sa;
+
+    /* Оформить/отправить заявку целиком */
+    if (/^(оформ[а-яa-z0-9]*|отправ[а-яa-z0-9]*)( мою| свою)? (заявк[а-яa-z0-9]*|заказ[а-яa-z0-9]*)$|^оформить$|^отправить заявку$/.test(t)) return C.startOrder();
+
+    for (var i = 0; i < FAQ.length; i++) {
+      if (FAQ[i][0].test(t)) { var r = FAQ[i][1](t); if (r) return r; }
+    }
+
+    /* Запись/заявка на услугу — сценарии chatflow (состав корзины и т.п.) */
+    if (/(что в заявке|моя заявка|корзин)/.test(t) && cart.length) return C.route(raw);
+
+    var wantBook = /(запиш|записат|запис|на прием|к специалист|попасть к|хочу к|нужен|нужна|нужно)/.test(t);
+    var wantOrder = /(закаж|заказат|оформ|добав|в заявку)/.test(t);
+    var wantWho = /(кто (проводит|ведет|ведёт|занимается|делает)|какой специалист|у кого)/.test(t);
+
+    var r1 = search(t), g = topGroup(r1);
+    var cat = catByRules(t);
+
+    /* Раздела нет в этом филиале — сначала скажем, где он есть */
+    if (cat && cat.missing) {
+      var whereC = crossCat(cat.re);
+      if (whereC.length) return "В филиале «" + esc(cityName()) + "» такой услуги нет, но она есть в " +
+        whereC.map(function(k){ return "«" + CITY[k] + "»"; }).join(", ") + "." + row(whereC.slice(0,3).map(switchBtn));
+    }
+
+    /* Запрос про направление («к психологу», «логопед», «массаж»), без конкретной услуги */
+    if (cat && !cat.missing) {
+      var dir = structDirByCat(cat.id);
+      var generic = r1.n <= 1 || g.length > 4 || !g.length;
+      if (generic && (wantBook || wantWho) && dir) {
+        var people = staffByNames(dir.resp || []);
+        return (people.length ? "Направление «" + esc(dir.title) + "» ведёт " + people.map(function(p){ return esc(p.name); }).join(", ") + ". " : "") +
+          "Выберите услугу — затем дату и время." +
+          row([btn("📝 Записаться: " + esc(dir.title), function(){ return go(function(){ structGoto(cat.id); }); }),
+               btn("Показать услуги и цены", function(){ return answerCategory(cat); }, { cl: "outline", echo: "Показать услуги и цены" })]);
+      }
+      if (generic) {
+        var more = dir ? btn("📝 Записаться: " + esc(dir.title), function(){ return go(function(){ structGoto(cat.id); }); }) : null;
+        if (g.length > 1) return answerList(g, "Нашёл " + g.length + " " + plural(g.length, ["услугу","услуги","услуг"]) + " — раздел «" + esc(cat.name) + "»:" +
+          (wantBook && !dir ? "<br>Выберите услугу и добавьте в заявку — специалист свяжется и назначит время. Или позвоните: <b>" + esc(cd().phone||"") + "</b>." : ""), more);
+        if (!g.length) return answerCategory(cat);
+      }
+    }
+
+    if (g.length === 1 || (g.length > 1 && g.every(function(x){ return norm(x.name) === norm(g[0].name); }))) {
+      var it = g[0];
+      if (wantOrder && !structFor(it) && !/перевозк/i.test(it.catName)) return C.addService(asSvc(it));
+      return answerService(it, wantWho ? "Вот кто и как проводит эту услугу:" : null);
+    }
+    if (g.length > 1) {
+      var head = /(сколько|цена|стоим)/.test(t) ? "Цены по вашему запросу:" : "Нашёл " + g.length + " " + plural(g.length, ["услугу","услуги","услуг"]) + " по запросу:";
+      return answerList(g, head);
+    }
+
+    /* Раздела нет в этом филиале — подскажем, где есть */
+    if (cat && cat.missing) {
+      var where = crossCat(cat.re);
+      if (where.length) return "В филиале «" + esc(cityName()) + "» такого раздела нет, но он есть в " +
+        where.map(function(k){ return "«" + CITY[k] + "»"; }).join(", ") + "." + row(where.slice(0,3).map(switchBtn));
+    }
+
+    /* Услуги, которых в центре нет (уборка, продукты, бассейн…) — честно, без «похожих» */
+    if (NOT_OFFERED.test(t)) {
+      var cbN = crossBranch(t);
+      if (cbN) return "В филиале «" + esc(cityName()) + "» такой услуги нет. В филиале «" + CITY[cbN[0].city] + "» есть: <b>" + esc(cbN[0].items[0].name) + "</b> — " + money(cbN[0].items[0].price) + "." + row([switchBtn(cbN[0].city)]);
+      return "Такой услуги нет в прейскуранте филиала «" + esc(cityName()) + "». Уточните, пожалуйста, по телефону <b>" + esc(cd().phone||"") + "</b> — подскажут, куда обратиться." +
+        row([navBtn("📋 Все услуги и цены", function(){ showServices(); }, "teal"), navBtn("📞 Обратный звонок", function(){ showCallback(); })]);
+    }
+
+    /* Есть частичное совпадение — предложим, но честно скажем, что точного нет */
+    if (r1.list.length && r1.list[0].cov >= 0.5 && r1.n >= 2) {
+      var part = r1.list.filter(function(x){ return x.cov === r1.list[0].cov; }).slice(0, 6).map(function(x){ return x.it; });
+      return answerList(part, "Точно такой услуги не нашёл. Возможно, подойдёт что-то из этого:");
+    }
+
+    /* В других филиалах */
+    var cb = r1.n ? crossBranch(t) : null;
+    if (cb) {
+      var f = cb[0], x = f.items[0];
+      return "В филиале «" + esc(cityName()) + "» такой услуги нет. В филиале «" + CITY[f.city] + "» есть: <b>" + esc(x.name) + "</b> — " + money(x.price) + "." +
+        (cb.length > 1 ? " Также есть в: " + cb.slice(1).map(function(c){ return "«" + CITY[c.city] + "»"; }).join(", ") + "." : "") +
+        row([switchBtn(f.city)]);
+    }
+
+    if (NOT_OFFERED.test(t) || (wantBook || wantOrder || /(сколько|цена|стоим|есть ли|у вас есть)/.test(t)) && r1.n)
+      return "Такой услуги нет в прейскуранте филиала «" + esc(cityName()) + "». Уточните, пожалуйста, по телефону <b>" + esc(cd().phone||"") + "</b> — подскажут, куда обратиться." +
+        row([navBtn("📋 Все услуги и цены", function(){ showServices(); }, "teal"), navBtn("📞 Обратный звонок", function(){ showCallback(); })]);
+
+    return null;
+  }
+
+  function fallback(raw){
+    return "Не совсем понял вопрос" + hi() + ". Попробуйте написать проще — например:<br>• «сколько стоит массаж шеи»<br>• «нужна коляска напрокат»<br>• «записаться к логопеду»<br>• «как заказать такси»<br>Или позвоните: <b>" + esc(cd().phone||"") + "</b>." +
+      row([navBtn("📋 Все услуги и цены", function(){ showServices(); }, "teal"),
+           btn("📝 Записаться к специалисту", function(){ return bookingDirs(); }, { cl: "outline", echo: "Записаться к специалисту" })]);
+  }
+
+  /* ─────────── Подключение к чату ─────────── */
+  window.askFlow = function(query){
+    addMsg(esc(query), false);
+    var html = null;
+    try { html = answer(query); } catch (e) { console.error("botbrain:", e); }
+    C.say(html || fallback(query));
+  };
+
+  /* Для отладки и тестов */
+  window.BotBrain = { answer: answer, search: function(q){ return search(q).list.slice(0,5).map(function(x){ return [x.it.name, x.cov, +x.score.toFixed(2)]; }); }, facts: facts };
+})();
+
+;
+
+/* ───── js/ui.js ───── */
+/* ═══════════════════════════════════════════════════════════════════
+   ui.js — слой удобства навигации и ввода (подключается последним).
+   1. Новый раздел всегда открывается с начала, а не с места прошлой прокрутки.
+   2. Кнопка «Наверх» не перекрывает кнопки и не видна поверх панелей.
+   3. Закрыли корзину/заявки/профиль — подсветка вкладки возвращается.
+   4. Карточки-«кнопки» доступны с клавиатуры (Enter/Пробел), Esc закрывает окно.
+   5. Защита от двойного нажатия на кнопках отправки (дубли заявок).
+   ═══════════════════════════════════════════════════════════════════ */
+(function(){
+  "use strict";
+  if(window.__garmUI) return; window.__garmUI=true;
+  var chat=document.getElementById("chat");
+  var actions=document.getElementById("actions");
+  var tabBar=document.getElementById("tabBar");
+
+  /* ── 1. Прокрутка к началу при смене раздела ── */
+  var SCREENS=["showMainMenu","showMenuPage","showServices","showCategory","showTaxi","showTaxiTariff",
+    "showTaxiDateTime","showBooking","showServiceBookingItem","showBookingSpecialist","showBookingDate",
+    "showBookingTime","showStaff","showContacts","showEmergency","showMoroshkaInfo","showGallery",
+    "showFeedback","showNews","showEvents","showCallback","showCityPlaceholder"];
+  function toTop(){
+    if(chat){ var b=chat.style.scrollBehavior; chat.style.scrollBehavior="auto"; chat.scrollTop=0; chat.style.scrollBehavior=b; }
+    var bt=document.getElementById("backTop"); if(bt) bt.classList.remove("show");
+  }
+  function wrapScreens(){
+    SCREENS.forEach(function(n){
+      var f=window[n]; if(typeof f!=="function"||f.__uiTop) return;
+      var w=function(){ var r=f.apply(this,arguments); toTop(); requestAnimationFrame(toTop); return r; };
+      w.__uiTop=true; if(f.__garmWrapped) w.__garmWrapped=true;
+      window[n]=w;
+    });
+  }
+
+  /* ── 2. Высота нижней «док-зоны» (кнопки действий + меню) → CSS-переменная ── */
+  function dockH(){
+    var h=0;
+    if(actions&&actions.offsetParent!==null) h+=actions.getBoundingClientRect().height;
+    if(tabBar&&tabBar.offsetParent!==null&&!tabBar.classList.contains("nav-hidden")) h+=tabBar.getBoundingClientRect().height;
+    document.documentElement.style.setProperty("--dock-h",Math.round(h)+"px");
+  }
+  if(window.ResizeObserver){
+    var ro=new ResizeObserver(dockH);
+    if(actions) ro.observe(actions); if(tabBar) ro.observe(tabBar);
+  }
+  window.addEventListener("resize",dockH);
+
+  /* ── 3. Вкладки после закрытия панелей ── */
+  function restoreTab(){
+    var t=window.__screenTab||"home";
+    var btn=document.querySelector('.tb[onclick*="\''+t+'\'"]');
+    if(!btn) return;
+    document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");b.removeAttribute("aria-current");});
+    btn.classList.add("active"); btn.setAttribute("aria-current","page");
+    if(typeof window.movePillTo==="function") window.movePillTo(btn);
+  }
+  function wrapClose(){
+    ["closeCart","closeOrdersPanel","closeProfilePanel"].forEach(function(n){
+      var f=window[n]; if(typeof f!=="function"||f.__uiClose) return;
+      var w=function(){ var r=f.apply(this,arguments); restoreTab(); return r; };
+      w.__uiClose=true; window[n]=w;
+    });
+  }
+
+  /* ── 4. Клавиатура ── */
+  var CLICKABLE=".sp-item,.sp-g,.prof-nav-row,.prof-card,.pl-svc-row[onclick],.news-card[onclick],[data-a][onclick],div[onclick],span[onclick],li[onclick]";
+  function tagClickable(root){
+    (root||document).querySelectorAll(CLICKABLE).forEach(function(el){
+      if(el.tagName==="BUTTON"||el.tagName==="A"||el.hasAttribute("tabindex")) return;
+      el.setAttribute("tabindex","0");
+      if(!el.hasAttribute("role")) el.setAttribute("role","button");
+    });
+  }
+  document.addEventListener("keydown",function(e){
+    var el=e.target;
+    if((e.key==="Enter"||e.key===" ")&&el&&el.getAttribute&&el.getAttribute("role")==="button"&&el.tagName!=="BUTTON"){
+      e.preventDefault(); el.click(); return;
+    }
+    if(e.key==="Escape"){
+      // Закрываем самый верхний слой: модальное окно → панель.
+      var mo=document.querySelectorAll(".mo,.admin-ovl");
+      if(mo.length){ var top=mo[mo.length-1]; if(!top.querySelector(".pin-card")) top.remove(); return; }
+      var cp=document.getElementById("cartPanel"); if(cp&&cp.classList.contains("open")){ window.closeCart(); return; }
+      var op=document.getElementById("ordersPanel"); if(op&&op.classList.contains("open")){ window.closeOrdersPanel(); return; }
+      var pp=document.getElementById("profilePanel"); if(pp&&pp.classList.contains("open")&&window.closeProfilePanel){ window.closeProfilePanel(); return; }
+    }
+  });
+
+  /* ── 5. Двойное нажатие на кнопках отправки ── */
+  var SUBMIT=".book-send,.eq-save-btn,.cart-send,.taxi-order-bar-btn,.auth-btn,.fb-send,.admin-btn";
+  document.addEventListener("click",function(e){
+    var b=e.target&&e.target.closest&&e.target.closest(SUBMIT);
+    if(!b||b.classList.contains("qz-next")) return; // шаги анкеты — не отправка, не блокируем
+    var now=Date.now(), last=+(b.dataset.uiLast||0);
+    if(now-last<900){ e.stopImmediatePropagation(); e.preventDefault(); return; }
+    b.dataset.uiLast=String(now);
+  },true);
+
+  /* Наблюдаем за изменениями экрана: метки клавиатуры + пересчёт дока */
+  var moT=0;
+  var mo=new MutationObserver(function(){
+    clearTimeout(moT); moT=setTimeout(function(){ tagClickable(document); dockH(); },60);
+  });
+  function init(){
+    wrapScreens(); wrapClose(); tagClickable(document); dockH();
+    mo.observe(document.body,{childList:true,subtree:true});
+    if(!window.__screenTab) window.__screenTab="home";
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();

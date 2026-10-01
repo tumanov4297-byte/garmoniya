@@ -46,7 +46,6 @@ let fbRating=0,fbTags=[];
 let serviceRatings=JSON.parse(localStorage.getItem("serviceRatings")||"{}");
 const chatEl=document.getElementById("chat"),actionsEl=document.getElementById("actions");
 const badgeEl=document.getElementById("cartBadge");
-let ticketCounter=parseInt(localStorage.getItem("ticketCounter")||"100");
 
 const BOT_POSES=["img/bot-avatar.jpg","img/bot-tablet.jpg","img/bot-present.jpg","img/bot-meditate.jpg","img/bot-pray.jpg","img/bot-heart.jpg"];
 function randomBotPose(){return BOT_POSES[Math.floor(Math.random()*BOT_POSES.length)];}
@@ -295,7 +294,7 @@ function cancelBooking(idx){
   bh.splice(idx,1);
   localStorage.setItem("bookingsHistory",JSON.stringify(bh));
   bookingsHistory=bh;
-  const body=`${emailTemplates.cancelBooking.intro}\nТалон: ${b.num}\nПолучатель: ${clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${b.visitDate} в ${b.visitTime}\nСпециалист: ${b.spec}`;
+  const body=`${emailTemplates.cancelBooking.intro}\nНомер записи: ${b.num}\nПолучатель: ${b.recipient||clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${b.visitDate} в ${b.visitTime}\nСпециалист: ${b.spec}`;
   window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.cancelBooking.subject,{ticket:b.num}))}&body=${encodeURIComponent(body)}`;
   showToast("Запись отменена");
   if(document.getElementById("ordersPanel").classList.contains("open")){
@@ -359,7 +358,7 @@ function renderCart(){
   body.innerHTML=cart.map(it=>`
     <div class="cart-item" role="listitem">
       <div class="ci-name">${it.name}</div>
-      <div class="ci-price">${(it.price*it.qty).toLocaleString()} ₽</div>
+      <div class="ci-price">${(it.price*it.qty).toLocaleString("ru-RU")} ₽</div>
       <div class="qty-row" role="group" aria-label="Количество">
         <button class="qty-btn" onclick="chgQty(${it.id},-1)" aria-label="Уменьшить">−</button>
         <span class="qty-val" aria-live="polite">${it.qty}</span>
@@ -370,61 +369,68 @@ function renderCart(){
   const baseTotal=cart.reduce((s,i)=>s+(i.base!=null?i.base:i.price)*i.qty,0);
   const savings=baseTotal-total;
   const savingsHtml=(hasMoroshka&&savings>0)
-    ?`<div class="cart-save"><img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Скидка «Морошка»: −${savings.toLocaleString()} ₽ <span>(без скидки ${baseTotal.toLocaleString()} ₽)</span></div>`
+    ?`<div class="cart-save"><img src="img/moroshka-logo.jpg" class="moroshka-ico-sm" alt=""> Скидка «Морошка»: −${savings.toLocaleString("ru-RU")} ₽ <span>(без скидки ${baseTotal.toLocaleString("ru-RU")} ₽)</span></div>`
     :"";
   footer.innerHTML=`
-    <div class="cart-total"><span>Итого:</span><span aria-live="polite">${total.toLocaleString()} ₽</span></div>
+    <div class="cart-total"><span>Итого:</span><span aria-live="polite">${total.toLocaleString("ru-RU")} ₽</span></div>
     ${savingsHtml}
-    <div class="cart-rcpt">Заявка будет отправлена на <strong>${getOrderEmail()}</strong><br>Получатель: <strong>${clientName||"—"}</strong></div>
+    <div class="cart-rcpt">Заявка будет отправлена на <strong>${getOrderEmail()}</strong><br>Данные получателя проверим на следующем шаге</div>
     <button class="cart-send" onclick="sendOrder()" aria-label="${t("cart_send")}">${t("cart_send")}</button>
     <button class="cart-clr" onclick="clearCart()">${t("cart_clear")}</button>`;
 }
 function sendOrder(){
   if(!cart.length)return;
-  if(!clientSnils||clientSnils==="—"||clientSnils.replace(/\D/g,"").length<11){
-    askSnilsAndSend();return;
-  }
-  doSendOrder();
+  showOrderCheckout();
 }
-function askSnilsAndSend(){
-  var ovl=document.createElement("div");ovl.className="mo";
-  ovl.onclick=function(e){if(e.target===ovl)ovl.remove();};
-  ovl.innerHTML='<div class="mc" style="max-width:360px;text-align:center;padding:28px 22px"><h3>Укажите СНИЛС</h3><p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Для оформления заявки на социальные услуги необходимо указать СНИЛС получателя</p><input class="auth-inp" id="snilsInput" placeholder="000-000-000 00" inputmode="numeric" style="text-align:center;font-size:18px;letter-spacing:1px"><button class="auth-btn" id="snilsOk" disabled style="margin-top:12px">Продолжить</button><button class="rating-skip" onclick="this.closest(\'.mo\').remove()">Отмена</button></div>';
-  document.body.appendChild(ovl);
-  var inp=ovl.querySelector("#snilsInput"),btn=ovl.querySelector("#snilsOk");
-  inp.oninput=function(){
-    var v=inp.value.replace(/\D/g,"").substring(0,11),r="";
-    if(v.length>0)r+=v.substring(0,3);if(v.length>3)r+="-"+v.substring(3,6);
-    if(v.length>6)r+="-"+v.substring(6,9);if(v.length>9)r+=" "+v.substring(9,11);
-    inp.value=r;btn.disabled=v.length<11;
-  };
-  btn.onclick=function(){
-    clientSnils=inp.value.trim();
-    localStorage.setItem("clientSnils",clientSnils);
-    ovl.remove();doSendOrder();
-  };
-  inp.focus();
-}
-function doSendOrder(){
-  const cd=cityData[currentCity]||cityData.gubkin;
-  const items=cart.map(i=>`• ${i.name} (x${i.qty}) — ${(i.price*i.qty).toLocaleString()} руб.`).join("\n");
+// Оформление заявки из корзины: состав + карточка «Получатель» в одном листе.
+// СНИЛС обязателен для соцуслуг — спрашиваем здесь же, без отдельного окна.
+function showOrderCheckout(){
+  document.querySelectorAll(".mo.chk-mo").forEach(function(m){m.remove();});
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const body=`${emailTemplates.order.intro}\nДата: ${new Date().toLocaleString("ru-RU")}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\nСНИЛС: ${clientSnils}\nКарта «Морошка»: ${hasMoroshka?"Да":"Нет"}\nФилиал: г. ${currentCityName}\n\nУСЛУГИ\n${items}\n\nИТОГО: ${total.toLocaleString()} руб.`;
-  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.order.subject,{name:clientName,city:currentCityName}))}&body=${encodeURIComponent(body)}`;
-  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-  const orderNum="ЗАЯ-"+String(ticketCounter).padStart(4,"0");
+  const ovl=document.createElement("div");ovl.className="mo chk-mo";
+  ovl.setAttribute("role","dialog");ovl.setAttribute("aria-modal","true");ovl.setAttribute("aria-label","Оформление заявки");
+  ovl.onclick=function(e){if(e.target===ovl)ovl.remove();};
+  ovl.innerHTML=`<div class="mc chk-mc">
+    <div class="chk-title">Оформление заявки</div>
+    <div class="chk-items">${cart.map(i=>`<div class="chk-item"><span>${i.name}${i.qty>1?` <em>×${i.qty}</em>`:""}</span><b>${(i.price*i.qty).toLocaleString("ru-RU")} ₽</b></div>`).join("")}</div>
+    <div class="chk-total"><span>Итого</span><b>${total.toLocaleString("ru-RU")} ₽</b></div>
+    <div id="chkRcp"></div>
+    <button type="button" class="eq-save-btn" id="chkSend">Отправить заявку</button>
+    <button type="button" class="eq-cancel-btn" id="chkCancel">Вернуться к корзине</button>
+    <div class="chk-note">Заявка уйдёт на ${getOrderEmail()} — откроется почта, останется нажать «Отправить».</div>
+  </div>`;
+  document.body.appendChild(ovl);
+  const rcp=rcpMount(ovl.querySelector("#chkRcp"),{snils:true,address:true,title:"Получатель услуг"});
+  ovl.querySelector("#chkCancel").onclick=function(){ovl.remove();};
+  ovl.querySelector("#chkSend").onclick=function(){
+    const r=rcp.validate();
+    if(!r.ok){showToast(r.message);return;}
+    ovl.remove();
+    doSendOrder(r.data);
+  };
+}
+function doSendOrder(rcp){
+  if(!cart.length)return;
+  rcp=rcp||{name:clientName,phone:clientPhone,snils:clientSnils,address:""};
+  const cd=cityData[currentCity]||cityData.gubkin;
+  const items=cart.map(i=>`• ${i.name} (x${i.qty}) — ${(i.price*i.qty).toLocaleString("ru-RU")} руб.`).join("\n");
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const orderNum=newTicketNum();
+  const body=`${emailTemplates.order.intro}\nНомер заявки: ${orderNum}\nДата: ${new Date().toLocaleString("ru-RU")}\n\nПОЛУЧАТЕЛЬ\nФИО: ${rcp.name}\nТелефон: ${rcp.phone}\nСНИЛС: ${rcp.snils||"—"}${rcp.address?"\nАдрес оказания услуги: "+rcp.address:""}\nКарта «Морошка»: ${hasMoroshka?"Да":"Нет"}\nФилиал: г. ${currentCityName}\n\nУСЛУГИ\n${items}\n\nИТОГО: ${total.toLocaleString("ru-RU")} руб.`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.order.subject,{name:rcp.name,city:currentCityName}))}&body=${encodeURIComponent(body)}`;
   ordersHistory.unshift({
     num:orderNum,
     date:new Date().toLocaleString("ru-RU"),
-    sum:total.toLocaleString(),
+    sum:total.toLocaleString("ru-RU"),
     items:cart.map(i=>`<div class="ord-item-line">${i.name} <span class="ord-item-qty">×${i.qty}</span></div>`).join(""),
     itemsRaw:cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,base:i.base,mor:i.mor})),
+    recipient:rcp.name,
     status:"new"
   });
   localStorage.setItem("ordersHistory",JSON.stringify(ordersHistory));
 
   window.GarmoniyaDB?.saveOrder({
-    clientName, clientPhone, cityName:currentCityName, moroshka:hasMoroshka, total,
+    clientName:rcp.name, clientPhone:rcp.phone, cityName:currentCityName, moroshka:hasMoroshka, total,
     items:cart.map(i=>({name:i.name,qty:i.qty,price:i.price}))
   });
   cart=[];saveCart();updateBadge();renderCart();closeCart();
@@ -757,7 +763,7 @@ function showCategory(catId,highlightUid){
 let taxiState={tariffIdx:null,from:"",to:"",date:"",time:"",comment:""};
 
 let taxiShowMor=hasMoroshka;
-let taxiSelectedIdx=null,taxiSelectedIsFree=false;
+let taxiSelectedIdx=null,taxiSelectedIsFree=false,taxiRcpCtl=null;
 function showTaxi(keepState,prefillTo){
   clearActions();setNav(true);
   chatEl.innerHTML="";
@@ -778,7 +784,8 @@ function showTaxi(keepState,prefillTo){
   }
 
   w.innerHTML=`
-    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:0%"></div></div>
+    <h2 class="taxi-h">🚕 Социальное такси</h2>
+    <div class="taxi-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" aria-label="Шаг 1 из 3"><div class="taxi-progress-fill" style="width:33.3%"></div></div>
     <div class="taxi-step-lbl"><span class="taxi-step-num">1</span>Маршрут</div>
     <div class="taxi-route-visual">
       <div class="taxi-route-line">
@@ -852,11 +859,14 @@ function showTaxiTariff(tariffs){
   const w=document.createElement("div");w.className="taxi-page taxi-page-v2";
   const quota=getFreeTaxiQuota();
   const eligibility=checkFreeTaxiEligibility();
-  const freeDisabled=!eligibility.eligible||quota.remaining<=0;
+  // Если не хватает только данных (СНИЛС/категория) — даём выбрать льготу,
+  // недостающее спросим на следующем шаге. Блокируем, только если права точно нет.
+  const needsData=!eligibility.eligible&&(eligibility.reason==="snils_missing"||eligibility.reason==="category_missing");
+  const freeDisabled=(!eligibility.eligible&&!needsData)||quota.remaining<=0;
 
   w.innerHTML=`
     <button class="pl-back" onclick="showTaxi(true)">← Назад к маршруту</button>
-    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:33.3%"></div></div>
+    <div class="taxi-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="2" aria-label="Шаг 2 из 3"><div class="taxi-progress-fill" style="width:66.6%"></div></div>
     <div class="taxi-step-lbl"><span class="taxi-step-num">2</span>Выберите тариф</div>
     <button type="button" class="taxi-mor-toggle taxi-mor-toggle-main ${taxiShowMor?"on":""}" id="taxiMorToggleMain" aria-pressed="${taxiShowMor}"><img src="img/moroshka-logo.jpg" alt=""><span>Показывать цены по карте «Морошка»</span></button>
     <div class="taxi-select-list" id="taxiSelectList">
@@ -865,7 +875,8 @@ function showTaxiTariff(tariffs){
         <div class="taxi-tariff-body">
           <div class="taxi-tariff-top"><span class="taxi-tariff-name">Льготная поездка</span><span class="taxi-sel-check">✓</span></div>
           <div class="taxi-tariff-price"><span class="ttp-main free-price">Бесплатно</span></div>
-          ${!eligibility.eligible?`<div class="taxi-free-eligibility not-ok"><span>🔒</span> ${eligibility.message}</div>`
+          ${needsData?`<div class="taxi-free-eligibility ok"><span>📇</span> Для пенсионеров, инвалидов и ветеранов. Понадобятся СНИЛС и категория — укажете на следующем шаге</div>`
+            :!eligibility.eligible?`<div class="taxi-free-eligibility not-ok"><span>🔒</span> ${eligibility.message}</div>`
             :`<div class="taxi-free-eligibility ok"><span>✅</span> ${quota.remaining>0?"Осталось "+quota.remaining+" из "+quota.limit+" поездок":"Лимит на этот год исчерпан"}</div>`}
         </div>
       </button>
@@ -919,11 +930,11 @@ function showTaxiDateTime(tariffs){
   clearActions();setNav(true);
   chatEl.innerHTML="";
   const w=document.createElement("div");w.className="taxi-page taxi-page-v2";
-  const today=new Date().toISOString().split("T")[0];
+  const today=taxiEarliestRideDate();
 
   w.innerHTML=`
     <button class="pl-back" onclick="showTaxiTariff(getTaxiTariffs())">← Назад к тарифу</button>
-    <div class="taxi-progress"><div class="taxi-progress-fill" style="width:66.6%"></div></div>
+    <div class="taxi-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="3" aria-label="Шаг 3 из 3"><div class="taxi-progress-fill" style="width:100%"></div></div>
     <div class="taxi-step-lbl"><span class="taxi-step-num">3</span>Когда подать машину</div>
     <div class="taxi-dt-section">
       <div class="taxi-date-scroll" id="taxiDateScroll"></div>
@@ -931,6 +942,7 @@ function showTaxiDateTime(tariffs){
       <input type="hidden" id="taxiDate" value="${today}">
       <input type="hidden" id="taxiTime" value="">
     </div>
+    <div class="taxi-rcp" id="taxiRcp"></div>
     <div class="eq-field"><span class="eq-field-ico">👥</span><div class="eq-field-body"><label class="eq-field-lbl">Количество пассажиров</label>
       <div class="taxi-pax-stepper">
         <button type="button" class="taxi-pax-btn" id="taxiPaxMinus">−</button>
@@ -939,13 +951,18 @@ function showTaxiDateTime(tariffs){
         <span class="taxi-pax-hint">макс. 2 места</span>
       </div>
     </div></div>
-    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 1</label><input class="eq-input" id="taxiPax1Name" value="${(clientName||"").replace(/"/g,"&quot;")}" placeholder="ФИО пассажира"></div></div>
+    <div class="eq-field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 1</label><input class="eq-input" id="taxiPax1Name" value="${(recipientHasName()?clientName:"").replace(/"/g,"&quot;")}" placeholder="Если едет не заказчик — ФИО пассажира"></div></div>
     <div class="eq-field gone" id="taxiPax2Field"><span class="eq-field-ico">🪪</span><div class="eq-field-body"><label class="eq-field-lbl">Пассажир 2</label><input class="eq-input" id="taxiPax2Name" placeholder="ФИО второго пассажира"></div></div>
     <div class="eq-field"><span class="eq-field-ico">💬</span><div class="eq-field-body"><label class="eq-field-lbl">Комментарий (необязательно)</label><textarea class="eq-input" id="taxiComment" rows="2" placeholder="Особые пожелания..."></textarea></div></div>
     <input type="hidden" id="taxiPax" value="1">
   `;
   chatEl.appendChild(w);
   taxiRenderDateTimePicker();
+  // Заказчик поездки: ФИО и телефон нужны диспетчеру всегда,
+  // для льготной поездки дополнительно — СНИЛС и категория.
+  taxiRcpCtl=rcpMount(document.getElementById("taxiRcp"),{
+    title:"Кто заказывает поездку",snils:taxiSelectedIsFree,category:taxiSelectedIsFree
+  });
 
   function updatePax(delta){
     const paxVal=document.getElementById("taxiPaxVal");
@@ -998,7 +1015,6 @@ function taxiTariffCardHtml(t){
     +'</div></div></button>';
 }
 function taxiRenderDateTimePicker(){
-  const cd=cityData[currentCity]||cityData.gubkin;
   const dateScroll=document.getElementById("taxiDateScroll");
   const timeGrid=document.getElementById("taxiTimeGrid");
   const dateHidden=document.getElementById("taxiDate");
@@ -1006,49 +1022,51 @@ function taxiRenderDateTimePicker(){
   const dayNames=["вс","пн","вт","ср","чт","пт","сб"];
   const monthNames=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
   const days=[];
-  const now=new Date();
   // Заявку принимают накануне поездки с 08:30 до 12:30, поэтому первая доступная
   // дата — завтра, а если приём на сегодня уже закрыт (после 12:30) — послезавтра.
   const firstIso=taxiEarliestRideDate();
   const first=new Date(firstIso+"T00:00:00");
   for(let i=0;i<14;i++){
-    const d=new Date(first.getFullYear(),first.getMonth(),first.getDate()+i);
-    days.push(d);
+    days.push(new Date(first.getFullYear(),first.getMonth(),first.getDate()+i));
   }
   if(!document.getElementById("taxiPreNote")){
-    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">Заявку принимают накануне поездки с '+TAXI_RULES.orderFrom+' до '+TAXI_RULES.orderTo+'. Машина работает с '+TAXI_RULES.rideFrom+' до '+TAXI_RULES.rideTo+'. Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для уточнения деталей.</div>');
+    dateScroll.insertAdjacentHTML("beforebegin",'<div class="bk-group-note" id="taxiPreNote">Заявку принимают накануне поездки с '+TAXI_RULES.orderFrom+' до '+TAXI_RULES.orderTo+'. Машина работает '+taxiHoursText()+'. Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для уточнения деталей.</div>');
   }
+  // Дата берётся по местному времени (taxiIso), а не через toISOString():
+  // в ЯНАО (UTC+5) полночь по UTC — это ещё вчерашний день, и даты «съезжали» на сутки.
+  const tomorrowIso=(function(){var n=new Date();return taxiIso(new Date(n.getFullYear(),n.getMonth(),n.getDate()+1));})();
   dateScroll.innerHTML=days.map(function(d,i){
-    const iso=d.toISOString().split("T")[0];
-    const tomorrowIso=(function(){var n=new Date();var t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);return taxiIso(t);})();
+    const iso=taxiIso(d);
     const lbl=(iso===tomorrowIso)?"Завтра":dayNames[d.getDay()];
     return '<button type="button" class="taxi-date-chip'+(i===0?" sel":"")+'" data-iso="'+iso+'"><span class="taxi-date-chip-dow">'+lbl+'</span><span class="taxi-date-chip-num">'+d.getDate()+' '+monthNames[d.getMonth()]+'</span></button>';
   }).join("");
-  dateHidden.value=days[0].toISOString().split("T")[0];
+  dateHidden.value=taxiIso(days[0]);
 
-  function renderTimeGrid(selectedIso){
-    // Машина работает с 08:30 до 18:00 — показываем слоты по 30 минут.
+  function renderTimeGrid(){
+    // Слоты по 30 минут с 08:30 до 18:00; обеденные (12:30–13:30) — неактивны.
     const slots=taxiTimeSlots();
-    const cur=slots.indexOf(timeHidden.value)>=0?timeHidden.value:slots[0];
+    const free=slots.filter(function(t){return !isBreakTime(t);});
+    const cur=free.indexOf(timeHidden.value)>=0?timeHidden.value:free[0];
     timeGrid.innerHTML=slots.map(function(t){
-      return '<button type="button" class="taxi-time-chip'+(t===cur?" sel":"")+'" data-time="'+t+'">'+t+'</button>';
-    }).join("");
+      const br=isBreakTime(t);
+      return '<button type="button" class="taxi-time-chip'+(br?" busy":"")+(t===cur?" sel":"")+'"'+(br?' disabled aria-disabled="true" title="Обеденный перерыв"':'')+' data-time="'+t+'" aria-label="Подача в '+t+(br?' — обеденный перерыв':'')+'">'+t+'</button>';
+    }).join("")+'<div class="taxi-break-note">🍽 '+TAXI_RULES.breakFrom+'–'+TAXI_RULES.breakTo+' — обеденный перерыв, машину не подают</div>';
     timeHidden.value=cur;
-    timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(b){
+    timeGrid.querySelectorAll(".taxi-time-chip:not(.busy)").forEach(function(b){
       b.onclick=function(){
         timeGrid.querySelectorAll(".taxi-time-chip").forEach(function(x){x.classList.remove("sel");});
         b.classList.add("sel");timeHidden.value=b.dataset.time;
       };
     });
   }
-  renderTimeGrid(dateHidden.value);
+  renderTimeGrid();
 
   dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(btn){
     btn.onclick=function(){
       dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(b){b.classList.remove("sel");});
       btn.classList.add("sel");
       dateHidden.value=btn.dataset.iso;
-      renderTimeGrid(btn.dataset.iso);
+      renderTimeGrid();
     };
   });
 }
@@ -1268,18 +1286,18 @@ function taxiReverseGeocodeOSM(lat,lon,inputEl){
 function taxiSubmitOrder(o){
   const t=o.tariff, isFree=!!o.isFree;
   if(isFree)useFreeTaxiTrip();
-  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-  const ticketNum="ТАК-"+String(ticketCounter).padStart(4,"0");
+  const ticketNum=newTicketNum();
   const price=isFree?0:(o.price!=null?o.price:t.base);
   const cd=cityData[currentCity]||cityData.gubkin;
   const passengerNames=o.passengerNames||[];
-  const body=`Заказ социального такси\nТалон: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
-  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси "+ticketNum+" — "+clientName)}&body=${encodeURIComponent(body)}`;
+  const r=o.recipient||{name:clientName,phone:clientPhone,snils:clientSnils};
+  const body=`Заказ социального такси\nНомер заявки: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nЗАКАЗЧИК\nФИО: ${r.name}\nТелефон: ${r.phone}${isFree&&r.snils?"\nСНИЛС: "+r.snils:""}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси № "+ticketNum+" — "+r.name)}&body=${encodeURIComponent(body)}`;
   const taxiHistory=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   taxiHistory.unshift({
     num:ticketNum,tariff:t.label,duration:t.duration,price:price,isFree:isFree,from:o.from,to:o.to,
     pax:o.pax||1,passengerNames:passengerNames,date:o.date,time:o.time,comment:o.comment||"",
-    createdAt:new Date().toISOString(),cityName:currentCityName,status:"new"
+    createdAt:new Date().toISOString(),cityName:currentCityName,recipient:r.name,status:"new"
   });
   localStorage.setItem("taxiHistory",JSON.stringify(taxiHistory));
   return {ticketNum:ticketNum,price:price,tariff:t,isFree:isFree,
@@ -1310,7 +1328,10 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const comment=document.getElementById("taxiComment").value.trim();
   const paxEl=document.getElementById("taxiPax");
   const pax=paxEl?parseInt(paxEl.value)||1:1;
-  const pax1Name=(document.getElementById("taxiPax1Name")?.value||clientName||"").trim();
+  const rcpRes=taxiRcpCtl?taxiRcpCtl.validate():{ok:recipientHasName()&&recipientHasPhone(),data:{name:clientName,phone:clientPhone,snils:clientSnils},message:"Укажите ФИО и телефон"};
+  if(!rcpRes.ok){showToast(rcpRes.message||"Проверьте данные заказчика");return;}
+  const rcp=rcpRes.data;
+  const pax1Name=(document.getElementById("taxiPax1Name")?.value||rcp.name||"").trim();
   const pax2Name=pax>1?(document.getElementById("taxiPax2Name")?.value||"").trim():"";
   const passengerNames=[pax1Name,pax2Name].filter(Boolean);
   if(!from||!to){showToast("Укажите адрес отправления и назначения");return;}
@@ -1320,11 +1341,11 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const existingTaxi=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   const timeConflict=existingTaxi.find(function(o){return o.date===date&&o.time===time&&o.status!=="cancelled";});
   if(timeConflict){
-    showToast("На это время у вас уже есть заказ такси ("+timeConflict.num+") — выберите другое время");
+    showToast("На это время у вас уже есть заказ такси ("+ticketLabel(timeConflict.num)+") — выберите другое время");
     return;
   }
   if(isFree){
-    const elig=checkFreeTaxiEligibility();
+    const elig=checkFreeTaxiEligibility({snils:rcp.snils,category:rcp.category});
     if(!elig.eligible){showToast(""+elig.message);return;}
     const q=getFreeTaxiQuota();
     if(q.remaining<=0){showToast("Лимит бесплатных поездок на этот год исчерпан");return;}
@@ -1332,7 +1353,7 @@ function taxiConfirmBooking(tariffIdx,isFree){
 
   const useMor0=taxiState.moroshkaView&&t.moroshka!=null;
   const res=taxiSubmitOrder({tariff:t,isFree:isFree,price:useMor0?t.moroshka:t.base,
-    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames});
+    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames,recipient:rcp});
   const ticketNum=res.ticketNum, price=res.price;
 
   chatEl.innerHTML="";
@@ -1344,7 +1365,7 @@ function taxiConfirmBooking(tariffIdx,isFree){
     <div class="taxi-confirm-card">
       <div class="taxi-confirm-check">✅</div>
       <div class="taxi-confirm-title">Заявка отправлена</div>
-      <div class="taxi-confirm-ticket">Талон ${ticketNum}</div>
+      <div class="taxi-confirm-ticket">Заявка № ${ticketNum}</div>
       <div class="taxi-eta-banner"><span class="taxi-eta-ico">📞</span><div><span class="taxi-eta-lbl">Что дальше</span><span class="taxi-eta-val">Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для подтверждения поездки</span></div></div>
       <div class="taxi-confirm-row"><span>Тариф</span><b>${t.label}</b></div>
       <div class="taxi-confirm-row"><span>Стоимость</span><b>${isFree?"Бесплатно 🎁":price+" ₽"}</b></div>
@@ -1413,7 +1434,7 @@ function showServiceBookingItem(catId){
   w.innerHTML=`
     <button class="pl-back" onclick="showServices();setTimeout(function(){plOpenCat(${cat.id});},220);">← Назад к услугам</button>
     <h2>📝 ${cat.icon} ${cat.name}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:0%"></div></div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:25%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">1</span>Выберите услугу</div>
     <div class="bk-spec-list" id="bkItemList">
       ${cat.items.map((it,idx)=>`<button class="bk-spec-card bk-item-card" data-idx="${idx}"><span class="bk-spec-ava bk-item-ava">📄</span><span class="bk-spec-txt"><b>${it.n}</b><span>${it.p} ₽</span></span></button>`).join("")}
@@ -1441,7 +1462,7 @@ function showBookingSpecialist(specialists){
   w.innerHTML=`
     <button class="pl-back" onclick="${backFn}">${backLabel}</button>
     <h2>📝 ${bkState.catName}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isSvcFlow?25:0}%"></div></div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isSvcFlow?50:33.3}%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">${isSvcFlow?2:1}</span>Выберите специалиста</div>
     <div class="bk-spec-list" id="bkSpecList">
       ${specialists.map(s=>{
@@ -1475,11 +1496,11 @@ function showBookingDate(){
   w.innerHTML=`
     <button class="pl-back" onclick="showBookingSpecialist(bkState.specialists)">← Назад к специалисту</button>
     <h2>📝 ${bkState.spec}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?50:33.3}%"></div></div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?75:66.6}%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">${isService?3:2}</span>Выберите дату</div>
     <div class="bk-days-scroll" id="bkDays">
       ${days.map(dt=>{
-        const iso=dt.toISOString().split("T")[0];
+        const iso=taxiIso(dt); // местная дата, без сдвига UTC
         const dayName=dt.toLocaleDateString("ru-RU",{weekday:"short"});
         const dayNum=dt.getDate();
         const monShort=dt.toLocaleDateString("ru-RU",{month:"short"});
@@ -1501,23 +1522,23 @@ function showBookingTime(){
   clearActions();setNav(true);
   chatEl.innerHTML="";
   const w=document.createElement("div");w.className="booking-page";
-  const dObj=new Date(bkState.date);
+  const dObj=new Date(bkState.date+"T00:00:00");
   const dateStr=dObj.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
   const isService=bkState.flow==="service"||bkState.flow==="struct";
   const isGroup=bkState.flow==="struct"&&bkState.mode==="group";
-  const slots=isGroup?["09:00"]:["09:00","09:30","10:00","10:30","11:00","11:30","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
-  const lunchIdxs=isGroup?new Set():new Set([6,7,8]);
+  // Приём с 09:00 до 17:30 шагом 30 мин; обед 12:30–14:00 (общий WORK_BREAK) — слоты неактивны.
+  const slots=isGroup?["09:00"]:halfHourSlots("09:00","17:30");
   const groupNote=isGroup?`<div class="bk-group-note">👥 Занятие групповое${bkState.cap?" (до "+bkState.cap+" мест)":""}. Единое время начала для всех участников — 09:00.</div>`:"";
   w.innerHTML=`
     <button class="pl-back" onclick="showBookingDate()">← Назад к дате</button>
     <h2>📝 ${dateStr}</h2>
-    <div class="bk-progress"><div class="bk-progress-fill" style="width:${isService?75:66.6}%"></div></div>
+    <div class="bk-progress"><div class="bk-progress-fill" style="width:100%"></div></div>
     <div class="bk-step-lbl"><span class="taxi-step-num">${isService?4:3}</span>${isGroup?"Время занятия — единое для группы":"Выберите время"}</div>
     ${groupNote}
     <div class="bk-time-wrap" id="bkTimeWrap">
       <div class="time-grid" role="group" aria-label="Выберите время приёма">
         ${slots.map((sl,idx)=>{
-          const busy=lunchIdxs.has(idx);
+          const busy=!isGroup&&isBreakTime(sl);
           return `<button type="button" class="time-slot${busy?" busy":""}" ${busy?"disabled":""} data-time="${sl}" aria-label="Время ${sl}${busy?" — обед":""}">${sl}</button>`;
         }).join("")}
       </div>
@@ -1527,10 +1548,16 @@ function showBookingTime(){
       <textarea class="fb-inp" id="bkComment" placeholder="Цель визита, особые потребности…" style="min-height:70px"></textarea>
     </div>
     <div class="bk-summary gone" id="bkSummary"></div>
+    <div class="bk-rcp-wrap gone" id="bkRcpWrap">
+      <div id="bkRcp"></div>
+      <button type="button" class="book-send" id="bkSendBtn">📧 Подтвердить запись</button>
+    </div>
   `;
   chatEl.appendChild(w);
   const commentWrapEl=w.querySelector("#bkCommentWrap");
   const summaryEl=w.querySelector("#bkSummary");
+  const rcpWrapEl=w.querySelector("#bkRcpWrap");
+  let bkRcp=null;
   w.querySelectorAll(".time-slot:not(.busy)").forEach(btn=>{
     btn.onclick=()=>{
       w.querySelectorAll(".time-slot").forEach(b=>{b.classList.remove("sel");b.setAttribute("aria-pressed","false");});
@@ -1544,11 +1571,17 @@ function showBookingTime(){
         ${bkState.price!=null?`<div class="bk-sum-row"><span>Цена</span><b>${bkState.price} ₽${bkState.priceM!=null?" · по «Морошке» "+bkState.priceM+" ₽":""}</b></div>`:""}
         <div class="bk-sum-row"><span>Специалист</span><b>${bkState.spec}</b></div>
         <div class="bk-sum-row"><span>Дата и время</span><b>${dateStr}, ${bkState.time}</b></div>
-        <button class="book-send" id="bkSendBtn">📧 Подтвердить запись</button>
       `;
       summaryEl.classList.remove("gone");
-      summaryEl.scrollIntoView({behavior:"smooth",block:"end"});
-      summaryEl.querySelector("#bkSendBtn").onclick=doSendBooking;
+      rcpWrapEl.classList.remove("gone");
+      // Карточка получателя создаётся один раз — при смене времени введённое не теряется.
+      if(!bkRcp)bkRcp=rcpMount(w.querySelector("#bkRcp"),{title:"Кто придёт на приём"});
+      rcpWrapEl.scrollIntoView({behavior:"smooth",block:"end"});
+      w.querySelector("#bkSendBtn").onclick=function(){
+        const r=bkRcp.validate();
+        if(!r.ok){showToast(r.message);return;}
+        doSendBooking(r.data);
+      };
     };
   });
   if(isGroup){
@@ -1558,35 +1591,41 @@ function showBookingTime(){
   actionsEl.innerHTML='<button class="act-btn" onclick="goBack()" style="width:100%">← Назад в меню</button>';
 }
 
-function doSendBooking(){
+function doSendBooking(rcp){
+  rcp=rcp||{name:clientName,phone:clientPhone};
   bkState.comment=(document.getElementById("bkComment")||{}).value||"";
   if(!bkState.spec||!bkState.date||!bkState.time){showToast("Заполните все поля");return;}
-  ticketCounter++;localStorage.setItem("ticketCounter",String(ticketCounter));
-  const ticketNum="ТАЛ-"+String(ticketCounter).padStart(4,"0");
+  if(bkState.flow!=="struct"||bkState.mode!=="group"){
+    if(isBreakTime(bkState.time)){showToast("С "+WORK_BREAK.from+" до "+WORK_BREAK.to+" обеденный перерыв — выберите другое время");return;}
+  }
+  const bh0=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
+  const dup=bh0.find(function(b){return b.visitDate===bkState.date&&b.visitTime===bkState.time&&b.status!=="cancelled";});
+  if(dup){showToast("На это время у вас уже есть запись ("+ticketLabel(dup.num)+") — выберите другое время");return;}
+  const ticketNum=newTicketNum();
   const cd2=cityData[currentCity]||cityData.gubkin;
   const structExtra=bkState.flow==="struct"
     ?`${bkState.subName?"\nПодгруппа: "+bkState.subName:""}${bkState.num?"\nПункт прейскуранта: "+bkState.num:""}${bkState.price!=null?"\nЦена: "+bkState.price+" ₽"+(bkState.priceM!=null?" (по карте «Морошка»: "+bkState.priceM+" ₽)":""):""}\nФормат: ${bkState.mode==="group"?"групповое занятие, общее время"+(bkState.cap?" (до "+bkState.cap+" мест)":""):"индивидуальный приём"}${bkState.resp?"\nОтветственный: "+bkState.resp:""}`
     :"";
-  const body=`${emailTemplates.booking.intro}\nТалон: ${ticketNum}\nНаправление: ${bkState.catName}${bkState.serviceItem?"\nУслуга: "+bkState.serviceItem:""}${structExtra}\nДата: ${bkState.date}, Время: ${bkState.time}\n\nПОЛУЧАТЕЛЬ\nФИО: ${clientName}\nТелефон: ${clientPhone}\n\nСПЕЦИАЛИСТ: ${bkState.spec}\nКОММЕНТАРИЙ: ${bkState.comment||"—"}`;
-  window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:clientName,date:bkState.date,time:bkState.time,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
+  const body=`${emailTemplates.booking.intro}\nНомер записи: ${ticketNum}\nНаправление: ${bkState.catName}${bkState.serviceItem?"\nУслуга: "+bkState.serviceItem:""}${structExtra}\nДата: ${bkState.date}, Время: ${bkState.time}\n\nПОЛУЧАТЕЛЬ\nФИО: ${rcp.name}\nТелефон: ${rcp.phone}\n\nСПЕЦИАЛИСТ: ${bkState.spec}\nКОММЕНТАРИЙ: ${bkState.comment||"—"}`;
+  window.location.href=`mailto:${cd2.orderEmail||cd2.email}?subject=${encodeURIComponent(fillTemplate(emailTemplates.booking.subject,{name:rcp.name,date:bkState.date,time:bkState.time,ticket:ticketNum}))}&body=${encodeURIComponent(body)}`;
   bookingsHistory=JSON.parse(localStorage.getItem("bookingsHistory")||"[]");
   bookingsHistory.unshift({
     num:ticketNum,
     date:new Date().toLocaleString("ru-RU"),
     visitDate:bkState.date,visitTime:bkState.time,
     dept:bkState.catName,spec:bkState.spec,
-    comment:bkState.comment
+    comment:bkState.comment,recipient:rcp.name
   });
   localStorage.setItem("bookingsHistory",JSON.stringify(bookingsHistory));
   window.GarmoniyaDB?.saveBooking({
-    num:ticketNum, clientName, clientPhone, cityName:currentCityName,
+    num:ticketNum, clientName:rcp.name, clientPhone:rcp.phone, cityName:currentCityName,
     dept:bkState.catName, spec:bkState.spec, visitDate:bkState.date, visitTime:bkState.time,
     comment:bkState.comment
   });
   chatEl.innerHTML="";
   showSuccessAnim("Запись оформлена!");
-  addMsg(`✅ Запись оформлена!<br>📋 Талон: <b>${ticketNum}</b><br>📅 <b>${bkState.date}</b> в <b>${bkState.time}</b><br>👤 ${bkState.spec}<br>🏷️ ${bkState.catName}`,true);
-  showToast("Талон "+ticketNum+" сохранён!");
+  addMsg(`✅ Запись оформлена!<br>📋 Номер записи: <b>${ticketNum}</b><br>📅 <b>${bkState.date}</b> в <b>${bkState.time}</b><br>👤 ${bkState.spec}<br>🏷️ ${bkState.catName}`,true);
+  showToast("Запись № "+ticketNum+" сохранена");
   clearActions();
   const calBtn=document.createElement("button");calBtn.type="button";calBtn.className="act-btn teal";
   calBtn.style.width="100%";
@@ -1840,7 +1879,7 @@ function renderOrdersPanel(filter){
       <div class="ord-card-top">
         <div class="ord-ico ord-ico-cart">🛒</div>
         <div class="ord-card-main">
-          <div class="ord-card-title">${o.num?"Заявка "+o.num:"Заявка на услуги"}</div>
+          <div class="ord-card-title">${o.num?"Заявка "+ticketLabel(o.num):"Заявка на услуги"}</div>
           <div class="ord-card-date">📅 ${o.date}</div>
         </div>
         ${statusBadge(o.status)}
@@ -1862,7 +1901,7 @@ function renderOrdersPanel(filter){
       <div class="ord-card-top">
         <div class="ord-ico ord-ico-cal">📅</div>
         <div class="ord-card-main">
-          <div class="ord-card-title">Талон ${b.num}</div>
+          <div class="ord-card-title">Запись ${ticketLabel(b.num)}</div>
           <div class="ord-card-date">Оформлен ${b.date}</div>
         </div>
         <span class="st-badge st-new">Записан</span>
@@ -1885,7 +1924,7 @@ function renderOrdersPanel(filter){
       <div class="ord-card-top">
         <div class="ord-ico ord-ico-taxi">🚕</div>
         <div class="ord-card-main">
-          <div class="ord-card-title">Такси ${tx.num}</div>
+          <div class="ord-card-title">Такси ${ticketLabel(tx.num)}</div>
           <div class="ord-card-date">📅 ${tx.date} в ${tx.time}</div>
         </div>
         <span class="st-badge st-new">Заказано</span>
@@ -2028,7 +2067,6 @@ function renderProfilePanel(){
       <button class="prof-chip" onclick="showProfileSection('favorites')"><b>${fav.length}</b><span>Избранное</span></button>
     </div>
 
-    ${!anketaDone?`<button class="prof-nudge" onclick="editQuestionnaire()"><span class="prof-nudge-ico">${ico("list")}</span><span class="prof-nudge-txt"><b>Заполните анкету получателя</b><span>Данные сами подставятся в заявки и такси</span></span><span class="prof-nudge-arr">→</span></button>`:""}
 
     <div class="prof-nav-list">
       <button class="prof-nav-row" onclick="closeProfilePanel();pushNav(showMainMenu);showTyping(showServices);">
@@ -2038,7 +2076,7 @@ function renderProfilePanel(){
       </button>
       <button class="prof-nav-row" onclick="showProfileSection('personal')">
         <span class="prof-nav-ico">${ico("user")}</span>
-        <span class="prof-nav-txt"><b>Личные данные и анкета</b><span>${anketaDone?"Заполнена":"Не заполнена"}</span></span>
+        <span class="prof-nav-txt"><b>Личные данные и анкета</b><span>${anketaDone?"Заполнена":"Заполнится при первой заявке"}</span></span>
         <span class="prof-nav-arr">›</span>
       </button>
       <button class="prof-nav-row" onclick="openProfileSwitcher()">
@@ -2075,7 +2113,7 @@ function showProfileSection(section){
     const fav=JSON.parse(localStorage.getItem("favorites")||"[]");
     const favHtml=fav.length===0
       ?'<div class="hist-empty">'+emptyIllustration()+'<div class="empty-title">Нет избранных</div><div class="empty-sub">Нажмите ★ у любой услуги в прейскуранте</div></div>'
-      :fav.map(f=>`<div class="pcard-item"><div class="pcard-item-txt"><b>${f.n}</b><span>${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString()} ₽</span></div><button class="pcard-item-act" onclick="addFavToCart('${f.id}')">🛒</button></div>`).join("");
+      :fav.map(f=>`<div class="pcard-item"><div class="pcard-item-txt"><b>${f.n}</b><span>${(hasMoroshka&&f.m!=null?f.m:f.p).toLocaleString("ru-RU")} ₽</span></div><button class="pcard-item-act" onclick="addFavToCart('${f.id}')">🛒</button></div>`).join("");
     body.innerHTML=back+`<h2 class="prof-sec-title">Избранное</h2><div class="pcard">${favHtml}</div>`;
     return;
   }
@@ -2095,7 +2133,7 @@ function showProfileSection(section){
     const catLabels={pensioner:"Пенсионер",disabled:"Инвалид",family:"Семья с детьми",large_family:"Многодетная семья",veteran:"Ветеран",other:"Другое"};
     const anketaBody=(userProfile.category||userProfile.address||userProfile.birthDate)?`
         ${userProfile.category?`<div class="pinfo-row"><span class="pinfo-ico">🏷️</span><span class="pinfo-txt"><span class="pinfo-lbl">Категория</span><span class="pinfo-val">${catLabels[userProfile.category]||userProfile.category}</span></span></div>`:""}
-        ${userProfile.birthDate?`<div class="pinfo-row"><span class="pinfo-ico">🎂</span><span class="pinfo-txt"><span class="pinfo-lbl">Дата рождения</span><span class="pinfo-val">${userProfile.birthDate}</span></span></div>`:""}
+        ${userProfile.birthDate?`<div class="pinfo-row"><span class="pinfo-ico">🎂</span><span class="pinfo-txt"><span class="pinfo-lbl">Дата рождения</span><span class="pinfo-val">${fmtBirth(userProfile.birthDate)}</span></span></div>`:""}
         ${userProfile.address?`<div class="pinfo-row"><span class="pinfo-ico">🏠</span><span class="pinfo-txt"><span class="pinfo-lbl">Адрес</span><span class="pinfo-val">${userProfile.address}</span></span></div>`:""}
         ${userProfile.contactName?`<div class="pinfo-row"><span class="pinfo-ico">👤</span><span class="pinfo-txt"><span class="pinfo-lbl">Контактное лицо</span><span class="pinfo-val">${userProfile.contactName}${userProfile.contactPhone?" · "+userProfile.contactPhone:""}</span></span></div>`:""}`
       :`<button class="pinfo-fill-btn" onclick="editQuestionnaire()">📋 Заполнить анкету получателя <span class="pinfo-fill-arr">→</span></button>`;
@@ -2148,14 +2186,14 @@ function exportMyData(){
   if(clientSnils&&clientSnils!=="—")lines.push("СНИЛС: "+clientSnils);
   lines.push("Филиал: г. "+currentCityName);
   if(userProfile.category)lines.push("Категория: "+userProfile.category);
-  if(userProfile.birthDate)lines.push("Дата рождения: "+userProfile.birthDate);
+  if(userProfile.birthDate)lines.push("Дата рождения: "+fmtBirth(userProfile.birthDate));
   if(userProfile.address)lines.push("Адрес: "+userProfile.address);
   lines.push("");
   lines.push("=== ЗАЯВКИ ("+oh.length+") ===");
-  oh.forEach(o=>{lines.push((o.num||"Заявка")+" от "+o.date+" — "+o.sum+" ₽ — "+o.status);});
+  oh.forEach(o=>{lines.push((o.num?"Заявка "+ticketLabel(o.num):"Заявка")+" от "+o.date+" — "+o.sum+" ₽ — "+o.status);});
   lines.push("");
   lines.push("=== ЗАПИСИ ("+bh.length+") ===");
-  bh.forEach(b=>{lines.push("Талон "+b.num+" — "+b.visitDate+" "+b.visitTime+" — "+b.spec);});
+  bh.forEach(b=>{lines.push("Запись "+ticketLabel(b.num)+" — "+b.visitDate+" "+b.visitTime+" — "+b.spec);});
   lines.push("");
   lines.push("=== ИЗБРАННОЕ ("+fav.length+") ===");
   fav.forEach(f=>{lines.push(f.n+" — "+f.p+" ₽");});
@@ -2359,9 +2397,12 @@ function movePillTo(btn){
 }
 function tabGo(t){
   var _nav=document.getElementById("tabBar");if(_nav)_nav.classList.remove("nav-hidden");
-  document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");});
-  event.currentTarget.classList.add("active");
-  movePillTo(event.currentTarget);
+  // Кнопка вкладки: из события клика, а если вызвали из кода — находим по onclick.
+  var ev=window.event,tbBtn=(ev&&ev.currentTarget&&ev.currentTarget.classList&&ev.currentTarget.classList.contains("tb"))
+    ?ev.currentTarget:document.querySelector('.tb[onclick*="\''+t+'\'"]');
+  document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");b.removeAttribute("aria-current");});
+  if(tbBtn){tbBtn.classList.add("active");tbBtn.setAttribute("aria-current","page");movePillTo(tbBtn);}
+  if(t==="home"||t==="menu")window.__screenTab=t;
   var _run=function(){
     if(t==="home")showMainMenu();
     else if(t==="menu")showMenuPage();

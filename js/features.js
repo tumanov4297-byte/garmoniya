@@ -955,7 +955,7 @@ function signupEvent(id){
   const e=(typeof eventsData!=="undefined"?eventsData:[]).find(x=>x.id===id);if(!e)return;
   const body=`${emailTemplates.event.intro}\nМероприятие: ${e.title}\nКогда: ${e.date}\nМесто: ${e.place}\n\nУчастник: ${clientName}\nТелефон: ${clientPhone}\nФилиал: г. ${currentCityName}`;
   window.location.href=`mailto:${getOrderEmail()}?subject=${encodeURIComponent(fillTemplate(emailTemplates.event.subject,{title:e.title}))}&body=${encodeURIComponent(body)}`;
-  window.GarmoniyaDB?.saveBooking?.({num:"МЕР-"+id,clientName,clientPhone,cityName:currentCityName,dept:"Мероприятие",spec:e.title,visitDate:e.date,visitTime:"",comment:e.place});
+  window.GarmoniyaDB?.saveBooking?.({num:newTicketNum(),clientName,clientPhone,cityName:currentCityName,dept:"Мероприятие",spec:e.title,visitDate:e.date,visitTime:"",comment:e.place});
   addMsg(`✅ Заявка на участие в «${e.title}» отправлена!`,true);
   showToast("Вы записаны");
 }

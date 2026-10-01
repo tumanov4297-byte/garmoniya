@@ -185,8 +185,8 @@
   function addService(s){
     addToCart(s.uid, s.name, (hasMoroshka && s.mor != null) ? s.mor : s.price, null, s.price, s.mor);
     var total = cart.reduce(function(a,i){ return a + i.price*i.qty; }, 0);
-    return "Добавил в заявку: <b>" + esc(s.name) + "</b>.<br>Сейчас в заявке " + cart.length +
-      (cart.length === 1 ? " услуга" : " услуг") + " на " + money(total) + "." +
+    var n = cart.length, w = (n%10===1&&n%100!==11) ? " услуга" : (n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)) ? " услуги" : " услуг";
+    return "Добавил в заявку: <b>" + esc(String(s.name).replace(/[.\s]+$/,"")) + "</b>.<br>Сейчас в заявке " + n + w + " на " + money(total) + "." +
       row([
         btn("Оформить заявку", function(){ return startOrder(); }, { echo:"Оформить заявку" }),
         btn("Добавить ещё услугу", function(){ CF.mode="order"; CF.step="pick";
@@ -202,9 +202,9 @@
       CF.mode = "order"; CF.step = "pick";
       return "В заявке пока пусто. Напишите, какая услуга нужна — найду её в прейскуранте и добавлю.";
     }
-    if (!clientName || clientName === "Гость") { CF.mode="order"; CF.step="name";
+    if (!recipientHasName()) { CF.mode="order"; CF.step="name";
       return "Оформляю заявку. Напишите, пожалуйста, <b>фамилию, имя и отчество</b> получателя услуг."; }
-    if (!clientPhone) { CF.mode="order"; CF.step="phone";
+    if (!recipientHasPhone()) { CF.mode="order"; CF.step="phone";
       return "Остался телефон для связи — напишите номер, например +7 (999) 000-00-00."; }
     return orderSummary();
   }
@@ -240,9 +240,12 @@
     var m = t.match(/(\d{1,2})[.\-\/\s](\d{1,2})(?:[.\-\/\s](\d{2,4}))?/);
     if (m) {
       var y = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3])) : now.getFullYear();
-      var d = new Date(y, parseInt(m[2]) - 1, parseInt(m[1]));
+      var dayN = parseInt(m[1]), monN = parseInt(m[2]);
+      var d = new Date(y, monN - 1, dayN);
+      // 31.02 и т. п. Date «перекатывает» в март — такую дату не принимаем.
+      if (isNaN(d) || d.getDate() !== dayN || d.getMonth() !== monN - 1) return null;
       if (!m[3] && d < now) d.setFullYear(y + 1);
-      return isNaN(d) ? null : iso(d);
+      return iso(d);
     }
     var m2 = t.match(/(\d{1,2})\s+([а-я]+)/);
     if (m2) {
@@ -278,7 +281,7 @@
   function earliestRide(){ return taxiEarliestRideDate(); }
   function rulesLine(){
     return "Заявку принимают <b>накануне поездки с " + TAXI_RULES.orderFrom + " до " + TAXI_RULES.orderTo +
-           "</b>, машина работает <b>с " + TAXI_RULES.rideFrom + " до " + TAXI_RULES.rideTo + "</b>.";
+           "</b>, машина работает <b>" + taxiHoursText() + "</b>.";
   }
 
   function startTaxi(){
@@ -321,8 +324,13 @@
   }
 
   function taxiConfirmStep(){
-    CF.step = "confirm";
     var d = CF.data;
+    // Диспетчеру нужны ФИО и телефон — у гостя их нет, спрашиваем прямо в диалоге.
+    if (!recipientHasName()) { CF.step = "tname";
+      return "Почти готово. Напишите <b>фамилию, имя и отчество</b> пассажира — диспетчер оформит поездку на него."; }
+    if (!recipientHasPhone()) { CF.step = "tphone";
+      return "И телефон для связи — диспетчер позвонит, чтобы подтвердить поездку. Например, +7 (999) 000-00-00."; }
+    CF.step = "confirm";
     return "Проверьте заказ:" +
       '<div class="cf-card">' +
       '<div class="cf-row"><span>Откуда</span><b>' + esc(d.from) + "</b></div>" +
@@ -342,18 +350,23 @@
   function taxiSend(){
     var d = CF.data;
     var rule = taxiCheckRide(d.date, d.time);
-    if (!rule.ok) { CF.step = "date"; return '<div class="cf-warn">' + esc(rule.message) + "</div>Напишите другую дату."; }
+    if (!rule.ok) {
+      if (rule.code === "break" || rule.code === "hours" || rule.code === "time") {
+        CF.step = "time"; return '<div class="cf-warn">' + esc(rule.message) + "</div>Напишите другое время.";
+      }
+      CF.step = "date"; return '<div class="cf-warn">' + esc(rule.message) + "</div>Напишите другую дату.";
+    }
     var existing = JSON.parse(localStorage.getItem("taxiHistory") || "[]");
     var clash = existing.find(function(o){ return o.date === d.date && o.time === d.time && o.status !== "cancelled"; });
     if (clash) { CF.step = "time";
-      return "На это время у вас уже есть заказ " + esc(clash.num) + ". Напишите другое время поездки."; }
+      return "На это время у вас уже есть заказ " + esc(ticketLabel(clash.num)) + ". Напишите другое время поездки."; }
     var res = taxiSubmitOrder({
       tariff:d.tariff, isFree:d.isFree, price:d.price, from:d.from, to:d.to,
       date:d.date, time:d.time, comment:"Заказ оформлен через чат-бота",
       pax:d.pax||1, passengerNames:[clientName].filter(Boolean)
     });
     reset();
-    return "Готово! Заказ такси оформлен, талон <b>" + res.ticketNum + "</b>." +
+    return "Готово! Заказ такси оформлен, номер заявки <b>№ " + res.ticketNum + "</b>." +
       '<div class="cf-card"><div class="cf-row"><span>Маршрут</span><b>' + esc(d.from) + " → " + esc(d.to) + "</b></div>" +
       '<div class="cf-row"><span>Подача</span><b>' + fmtDate(d.date) + ", " + d.time + "</b></div>" +
       '<div class="cf-row"><span>Стоимость</span><b>' + (d.isFree ? "Бесплатно" : money(d.price)) + "</b></div></div>" +
@@ -380,13 +393,13 @@
       if (CF.step === "name") {
         if (t.split(/\s+/).length < 2) return "Напишите фамилию, имя и отчество полностью — так специалист найдёт вас в базе.";
         clientName = t; localStorage.setItem("clientName", clientName);
-        if (!clientPhone) { CF.step = "phone"; return "Записал. Теперь номер телефона для связи."; }
+        if (!recipientHasPhone()) { CF.step = "phone"; return "Записал. Теперь номер телефона для связи."; }
         return orderSummary();
       }
       if (CF.step === "phone") {
         var digits = t.replace(/\D/g, "");
         if (digits.length < 10) return "Похоже, в номере не хватает цифр. Напишите телефон полностью, например +7 (999) 000-00-00.";
-        clientPhone = t; localStorage.setItem("clientPhone", clientPhone);
+        clientPhone = formatPhone(t); localStorage.setItem("clientPhone", clientPhone);
         return orderSummary();
       }
       if (CF.step === "confirm") return orderSummary();
@@ -415,8 +428,8 @@
             fmtDate(chk.min) + "</b>. Напишите другую дату.";
         }
         CF.data.date = d; CF.step = "time";
-        return "Дата: <b>" + fmtDate(d) + "</b>.<br><b>Во сколько подать машину?</b> Машина работает с " +
-          TAXI_RULES.rideFrom + " до " + TAXI_RULES.rideTo + " — например, 09:30.";
+        return "Дата: <b>" + fmtDate(d) + "</b>.<br><b>Во сколько подать машину?</b> Машина работает " +
+          taxiHoursText() + " — например, 09:30 или 14:30.";
       }
       if (CF.step === "time") {
         var tm = parseTime(t);
@@ -426,6 +439,10 @@
           if (check.code === "hours")
             return '<div class="cf-warn">Машина работает с ' + TAXI_RULES.rideFrom + " до " + TAXI_RULES.rideTo +
               ", позже подачи нет.</div>Напишите время в этом промежутке — например, 09:30 или 17:00.";
+          if (check.code === "break")
+            return '<div class="cf-warn">С ' + TAXI_RULES.breakFrom + " до " + TAXI_RULES.breakTo +
+              " обеденный перерыв — машину не подают.</div>Напишите время до " + TAXI_RULES.breakFrom +
+              " или с " + TAXI_RULES.breakTo + " — например, 11:30 или 14:00.";
           CF.step = "date";
           return '<div class="cf-warn">' + esc(check.message) + "</div>Напишите другую дату.";
         }
@@ -442,6 +459,16 @@
         return taxiTariffStep();
       }
       if (CF.step === "tariff") return taxiTariffStep();
+      if (CF.step === "tname") {
+        if (t.split(/\s+/).length < 2) return "Напишите фамилию, имя и отчество полностью.";
+        clientName = t; localStorage.setItem("clientName", clientName);
+        return taxiConfirmStep();
+      }
+      if (CF.step === "tphone") {
+        if (t.replace(/\D/g, "").length < 10) return "В номере не хватает цифр. Напишите телефон полностью, например +7 (999) 000-00-00.";
+        clientPhone = formatPhone(t); localStorage.setItem("clientPhone", clientPhone);
+        return taxiConfirmStep();
+      }
       if (CF.step === "confirm") return taxiConfirmStep();
     }
     return null;
@@ -523,6 +550,16 @@
       }
       addMsg(out, true);
     });
+  };
+
+  /* Доступ для «мозга» бота (botbrain.js): состояние диалога и готовые сценарии. */
+  window.CFX = {
+    isActive:function(){ return !!CF.mode; },
+    mode:function(){ return CF.mode; },
+    step:function(){ return CF.step; },
+    reset:reset, handleStep:handleStep, route:route,
+    startTaxi:startTaxi, startOrder:startOrder, addService:addService,
+    btn:btn, row:row, say:say, esc:esc, money:money
   };
 
   /* Быстрые подсказки под приветствием бота. */

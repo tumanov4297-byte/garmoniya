@@ -8,12 +8,12 @@ const ORDER_EMAIL="aidavydenko@yanao.ru",ORG_EMAIL="cson-gub@yanao.ru",MAIN_PHON
 const VK_GROUP={numericId:127392806,screen:"cson_noyabrsk",url:"https://vk.ru/cson_noyabrsk"};
 
 const cityData={
-  gubkin:{address:"629830, ЯНАО, г. Губкинский, 3-й мкрн, д. 42",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
-  purpe:{address:"ЯНАО, мкр. Пурпе (уточните точный адрес здания в админ-панели)",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
-  muravlenko:{address:"629605, ЯНАО, г. Муравленко, ул. Нефтяников, д. 12",phone:"8(34938)5-18-00",phoneRaw:"73493851800",email:"cson-mur@yanao.ru",orderEmail:"cson-mur@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
-  noyabrsk:{address:"629806, ЯНАО, г. Ноябрьск, ул. Советская, д. 24",phone:"8(34963)3-40-80",phoneRaw:"73496334080",email:"cson-noy@yanao.ru",orderEmail:"cson-noy@yanao.ru",hours:"Пн–Пт: 08:30–17:30",openH:8,openM:30,closeH:17,closeM:30,hasStaff:true,hasServices:false},
-  tarko:{address:"629850, ЯНАО, г. Тарко-Сале, ул. Геологов, д. 8",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-tarko@yanao.ru",orderEmail:"cson-tarko@yanao.ru",hours:"Пн–Пт: 08:00–18:30",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true},
-  urengoy:{address:"629650, ЯНАО, пгт. Уренгой, ул. Ленина, д. 5",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-urengoy@yanao.ru",orderEmail:"cson-urengoy@yanao.ru",hours:"Пн–Пт: 08:00–18:30",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true}
+  gubkin:{address:"629830, ЯНАО, г. Губкинский, 3-й мкрн, д. 42",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00, обед 12:30–14:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
+  purpe:{address:"ЯНАО, мкр. Пурпе (уточните точный адрес здания в админ-панели)",phone:MAIN_PHONE,phoneRaw:MAIN_PHONE_RAW,email:ORG_EMAIL,orderEmail:ORG_EMAIL,hours:"Пн–Пт: 08:30–18:00, обед 12:30–14:00",openH:8,openM:30,closeH:18,closeM:0,hasStaff:true,hasServices:true},
+  muravlenko:{address:"629605, ЯНАО, г. Муравленко, ул. Нефтяников, д. 12",phone:"8(34938)5-18-00",phoneRaw:"73493851800",email:"cson-mur@yanao.ru",orderEmail:"cson-mur@yanao.ru",hours:"Пн–Пт: 08:30–17:30, обед 12:30–14:00",openH:8,openM:30,closeH:17,closeM:30,hasStaff:false,hasServices:false},
+  noyabrsk:{address:"629806, ЯНАО, г. Ноябрьск, ул. Советская, д. 24",phone:"8(34963)3-40-80",phoneRaw:"73496334080",email:"cson-noy@yanao.ru",orderEmail:"cson-noy@yanao.ru",hours:"Пн–Пт: 08:30–17:30, обед 12:30–14:00",openH:8,openM:30,closeH:17,closeM:30,hasStaff:true,hasServices:false},
+  tarko:{address:"629850, ЯНАО, г. Тарко-Сале, ул. Геологов, д. 8",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-tarko@yanao.ru",orderEmail:"cson-tarko@yanao.ru",hours:"Пн–Пт: 08:00–18:30, обед 12:30–14:00",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true},
+  urengoy:{address:"629650, ЯНАО, пгт. Уренгой, ул. Ленина, д. 5",phone:"8(34997)2-83-08",phoneRaw:"73499728308",email:"cson-urengoy@yanao.ru",orderEmail:"cson-urengoy@yanao.ru",hours:"Пн–Пт: 08:00–18:30, обед 12:30–14:00",openH:8,openM:0,closeH:18,closeM:30,hasStaff:true,hasServices:true}
 };
 
 function getOrderEmail(){
@@ -570,12 +570,52 @@ function getTaxiTariffs(){
   })};
 }
 
+// ═══ НОМЕРА ЗАЯВОК ═══
+// Случайный 6-значный номер (100000–999999) вместо «ЗАЯ-0001»/«ТАК-0001»:
+// по номеру нельзя угадать, сколько заявок было до этой, и он одинаково
+// выглядит для заявок, записей и такси. Повтор с уже выданными номерами исключён.
+function newTicketNum(){
+  var used={};
+  ["ordersHistory","bookingsHistory","taxiHistory"].forEach(function(k){
+    try{(JSON.parse(localStorage.getItem(k)||"[]")||[]).forEach(function(x){if(x&&x.num)used[String(x.num)]=1;});}catch(e){}
+  });
+  for(var i=0;i<50;i++){
+    var n;
+    if(window.crypto&&crypto.getRandomValues){var a=new Uint32Array(1);crypto.getRandomValues(a);n=100000+(a[0]%900000);}
+    else n=100000+Math.floor(Math.random()*900000);
+    if(!used[String(n)])return String(n);
+  }
+  return String(Date.now()).slice(-6);
+}
+// Для показа: «№ 482913». Старые номера вида «ЗАЯ-0101» показываем как есть.
+function ticketLabel(num){return num?(/^\d+$/.test(String(num))?"№ "+num:String(num)):"";}
+
+// ═══ РЕЖИМ РАБОТЫ: ОБЕДЕННЫЙ ПЕРЕРЫВ ═══
+// Единый перерыв для записи к специалистам, такси и статуса «Открыто/Закрыто».
+// Время в интервале [from; to) недоступно: 12:30, 13:00, 13:30 — нельзя, 14:00 — можно.
+const WORK_BREAK={from:"12:30",to:"14:00"};
+function isBreakTime(hhmm){
+  var t=taxiMinutes(hhmm);
+  return t>=taxiMinutes(WORK_BREAK.from)&&t<taxiMinutes(WORK_BREAK.to);
+}
+// Слоты по 30 минут от a до b включительно (строки "ЧЧ:ММ").
+function halfHourSlots(a,b){
+  var out=[],x=taxiMinutes(a),y=taxiMinutes(b);
+  for(var m=x;m<=y;m+=30)out.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
+  return out;
+}
+
 // ═══ ПРАВИЛА СОЦИАЛЬНОГО ТАКСИ ═══
 // Заявку принимают в день, предшествующий поездке, с 08:30 до 12:30.
-// Машина работает с 08:30 до 18:00 — позже подачи нет.
-const TAXI_RULES={orderFrom:"08:30",orderTo:"12:30",rideFrom:"08:30",rideTo:"18:00"};
-function taxiMinutes(hhmm){var p=String(hhmm||"").split(":");return parseInt(p[0]||0)*60+parseInt(p[1]||0);}
+// Машина работает с 08:30 до 18:00 — позже подачи нет. Обед 12:30–14:00 — подачи нет.
+const TAXI_RULES={orderFrom:"08:30",orderTo:"12:30",rideFrom:"08:30",rideTo:"18:00",
+                  breakFrom:WORK_BREAK.from,breakTo:WORK_BREAK.to};
+function taxiMinutes(hhmm){var p=String(hhmm||"").split(":");return parseInt(p[0]||0,10)*60+parseInt(p[1]||0,10);}
 function taxiIso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+// Строка с режимом работы машины — одна на все экраны и чат-бот.
+function taxiHoursText(){
+  return "с "+TAXI_RULES.rideFrom+" до "+TAXI_RULES.rideTo+", перерыв с "+TAXI_RULES.breakFrom+" до "+TAXI_RULES.breakTo;
+}
 // Открыт ли сейчас приём заявок (08:30–12:30).
 function taxiOrderWindowOpen(){
   var n=new Date(),m=n.getHours()*60+n.getMinutes();
@@ -590,23 +630,23 @@ function taxiEarliestRideDate(){
 }
 // Проверка даты и времени поездки по всем правилам.
 function taxiCheckRide(date,time){
-  if(!date)return {ok:false,code:"date",message:"Укажите дату поездки"};
+  if(!date||!/^\d{4}-\d{2}-\d{2}$/.test(date))return {ok:false,code:"date",message:"Укажите дату поездки"};
   var min=taxiEarliestRideDate();
   if(date<min)return {ok:false,code:"early",min:min,
     message:"Заявку принимают накануне поездки с "+TAXI_RULES.orderFrom+" до "+TAXI_RULES.orderTo+
             ". Ближайшая доступная дата — "+min.split("-").reverse().slice(0,2).join(".")};
-  if(!time)return {ok:false,code:"time",message:"Укажите время подачи"};
+  if(!time||!/^\d{2}:\d{2}$/.test(time))return {ok:false,code:"time",message:"Укажите время подачи"};
   var t=taxiMinutes(time);
   if(t<taxiMinutes(TAXI_RULES.rideFrom)||t>taxiMinutes(TAXI_RULES.rideTo))
     return {ok:false,code:"hours",message:"Машина работает с "+TAXI_RULES.rideFrom+" до "+TAXI_RULES.rideTo+" — выберите время в этом промежутке"};
+  if(isBreakTime(time))
+    return {ok:false,code:"break",message:"С "+TAXI_RULES.breakFrom+" до "+TAXI_RULES.breakTo+" обеденный перерыв — машину не подают. Выберите время до "+TAXI_RULES.breakFrom+" или с "+TAXI_RULES.breakTo};
   return {ok:true,min:min};
 }
-// Слоты подачи по 30 минут от 08:30 до 18:00.
-function taxiTimeSlots(){
-  var out=[],a=taxiMinutes(TAXI_RULES.rideFrom),b=taxiMinutes(TAXI_RULES.rideTo);
-  for(var m=a;m<=b;m+=30)out.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
-  return out;
-}
+// Слоты подачи по 30 минут от 08:30 до 18:00 (включая обеденные — они показываются неактивными).
+function taxiTimeSlots(){return halfHourSlots(TAXI_RULES.rideFrom,TAXI_RULES.rideTo);}
+// Только доступные слоты (без обеда).
+function taxiFreeTimeSlots(){return taxiTimeSlots().filter(function(t){return !isBreakTime(t);});}
 
 // ═══ Бесплатное такси — лимит 96 поездок в год на человека ═══
 const FREE_TAXI_ANNUAL_LIMIT=96;
@@ -629,19 +669,22 @@ function useFreeTaxiTrip(){
   localStorage.setItem(getFreeTaxiQuotaKey(),String(q.used+1));
   return true;
 }
-function checkFreeTaxiEligibility(){
-  var snils=(typeof clientSnils!=="undefined"?clientSnils:"")||"";
+// over — необязательные данные, введённые прямо в заявке: {snils, category}.
+function checkFreeTaxiEligibility(over){
+  over=over||{};
+  var snils=over.snils||(typeof clientSnils!=="undefined"?clientSnils:"")||"";
   var snilsDigits=snils.replace(/\D/g,"");
   if(snilsDigits.length<11){
-    return {eligible:false,reason:"snils_missing",message:"Для бесплатной поездки нужен СНИЛС в профиле — заполните его в личном кабинете."};
+    return {eligible:false,reason:"snils_missing",message:"Для бесплатной поездки нужен СНИЛС — укажите его при оформлении поездки."};
   }
   var profile={};
-  try{profile=JSON.parse(localStorage.getItem("userProfile")||"{}");}catch(e){}
+  try{profile=JSON.parse(localStorage.getItem("userProfile")||"{}")||{};}catch(e){}
+  if(over.category)profile.category=over.category;
   if(!profile.category){
-    return {eligible:false,reason:"category_missing",message:"Заполните анкету получателя в личном кабинете, чтобы система проверила право на льготу."};
+    return {eligible:false,reason:"category_missing",message:"Укажите категорию получателя — это можно сделать прямо при оформлении поездки."};
   }
   if(FREE_TAXI_ELIGIBLE_CATEGORIES.indexOf(profile.category)<0){
-    return {eligible:false,reason:"category_not_eligible",message:"По указанной категории («"+profile.category+"») бесплатная поездка не положена — доступны платные тарифы."};
+    return {eligible:false,reason:"category_not_eligible",message:"По указанной категории («"+({pensioner:"Пенсионер",disabled:"Инвалид",veteran:"Ветеран",family:"Семья с детьми",large_family:"Многодетная семья",other:"Другое"}[profile.category]||profile.category)+"») бесплатная поездка не положена — доступны платные тарифы."};
   }
   return {eligible:true,reason:"ok",message:"Право на бесплатную поездку подтверждено по СНИЛС."};
 }

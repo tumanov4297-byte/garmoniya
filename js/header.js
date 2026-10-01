@@ -64,7 +64,14 @@
     var dot=st.querySelector(".hdr-status-dot"), txt=st.querySelector(".hdr-status-txt");
     var closeStr=cd.closeH+":"+String(cd.closeM).padStart(2,"0");
     st.classList.remove("is-open","is-soon","is-closed");
-    if(isOpen){
+    var hhmm=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+    var onBreak=isOpen&&typeof isBreakTime==="function"&&typeof WORK_BREAK!=="undefined"&&isBreakTime(hhmm);
+    if(onBreak){
+      // Обеденный перерыв 12:30–14:00 — центр в это время не принимает.
+      var toBack=taxiMinutes(WORK_BREAK.to)-mins;
+      st.classList.add("is-soon");
+      txt.innerHTML="Обед · откроется через "+fmtDur(toBack);
+    }else if(isOpen){
       var toClose=closeMins-mins;
       st.classList.add(toClose<=60?"is-soon":"is-open");
       txt.innerHTML = toClose<=60
@@ -168,8 +175,8 @@
   /* ─────────── Уведомления (лента активности) ─────────── */
   function collectNotifs(){
     var items=[];
-    readHist("ordersHistory").forEach(function(o){ items.push({t:o.createdAt||o.date, ico:"🛍️", title:"Заявка "+(o.num||""), sub:(o.status==="new"?"Отправлена":o.status||"")+(o.sum?" · "+o.sum+" ₽":"")}); });
-    readHist("bookingsHistory").forEach(function(b){ items.push({t:b.createdAt||b.visitDate, ico:"📅", title:"Запись "+(b.num||""), sub:(b.visitDate||"")+" "+(b.visitTime||"")+" · "+(b.spec||b.dept||"")}); });
+    readHist("ordersHistory").forEach(function(o){ items.push({t:o.createdAt||o.date, ico:"🛍️", title:"Заявка "+ticketLabel(o.num), sub:(o.status==="new"?"Отправлена":o.status||"")+(o.sum?" · "+o.sum+" ₽":"")}); });
+    readHist("bookingsHistory").forEach(function(b){ items.push({t:b.createdAt||b.visitDate, ico:"📅", title:"Запись "+ticketLabel(b.num), sub:(b.visitDate||"")+" "+(b.visitTime||"")+" · "+(b.spec||b.dept||"")}); });
     readHist("taxiHistory").forEach(function(x){ items.push({t:x.createdAt||x.date, ico:"🚕", title:"Такси"+(x.date?" "+x.date:""), sub:(x.from||"")+" → "+(x.to||"")}); });
     items.sort(function(a,b){ return new Date(b.t||0)-new Date(a.t||0); });
     return items;

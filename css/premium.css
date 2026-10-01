@@ -186,3 +186,61 @@ html body .hdr-status-txt{overflow:visible !important;text-overflow:clip !import
 /* Кнопка «наверх» не перекрывает кнопки в чате */
 html body #backTop{bottom:calc(env(safe-area-inset-bottom,0px) + 122px) !important;right:12px !important;
   width:40px !important;height:40px !important;opacity:.92}
+
+/* ═══ Карточка «Получатель» в заявках (корзина, запись, такси) ═══ */
+html body .rcp{margin:16px 0 4px;background:var(--it-surface);border:1.5px dashed var(--it-accent);
+  border-radius:20px;padding:14px;transition:border-color .2s,background .2s}
+html body .rcp.is-done{border-style:solid;border-color:var(--it-line);background:var(--it-surface2)}
+html body .rcp-head{display:flex;align-items:center;gap:12px}
+html body .rcp-ava{width:44px;height:44px;flex:0 0 44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--it-brand);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px}
+html body .rcp-ava.empty{background:var(--it-accent-soft);color:var(--it-accent);font-size:20px}
+html body .rcp-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+html body .rcp-cap{font-size:12px;color:var(--it-muted);font-weight:600}
+html body .rcp-id b{font-size:15.5px;color:var(--it-ink);font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+html body .rcp-id b.rcp-ask{color:var(--it-accent)}
+html body .rcp-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:3px;font-size:12.5px;color:var(--it-muted)}
+html body .rcp-meta span{overflow-wrap:anywhere}
+html body .rcp-edit{flex:0 0 auto;border:1px solid var(--it-line);background:var(--it-surface);color:var(--it-accent);
+  font:inherit;font-size:13px;font-weight:700;padding:8px 12px;border-radius:12px;cursor:pointer;min-height:36px}
+html body .rcp-edit:focus-visible,html body .rcp-cat:focus-visible,html body .rcp-inp:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+html body .rcp-form{margin-top:12px;padding-top:12px;border-top:1px solid var(--it-line);animation:rcpIn .22s ease-out both}
+html body .rcp-hint{font-size:13px;line-height:1.4;color:var(--it-muted);margin-bottom:4px}
+html body .rcp-fld{margin-top:10px}
+html body .rcp-lbl{display:block;font-size:12.5px;font-weight:600;color:var(--it-muted);margin-bottom:5px}
+html body .rcp-inp{width:100%;box-sizing:border-box;border:1.5px solid var(--it-line);border-radius:12px;padding:11px 12px;
+  font:inherit;font-size:16px;color:var(--it-ink);background:#fff}
+html body .rcp-inp:focus{border-color:var(--it-accent)}
+html body .rcp-inp.bad{border-color:var(--it-red);background:#FFF8F5}
+html body .rcp-err{display:block;font-size:12.5px;color:#B35A3E;margin-top:4px;min-height:0}
+html body .rcp-err:empty{display:none}
+html body .rcp-cats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+html body .rcp-cat{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px;border-radius:12px;
+  border:1.5px solid var(--it-line);background:#fff;font:inherit;font-size:11.5px;font-weight:600;color:var(--it-ink);
+  cursor:pointer;line-height:1.2;text-align:center}
+html body .rcp-cat span{font-size:18px}
+html body .rcp-cat.sel{border-color:var(--it-accent);background:var(--it-accent-soft)}
+html body .rcp-remember{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--it-muted);cursor:pointer}
+html body .rcp-remember input{width:18px;height:18px;accent-color:var(--it-accent)}
+html body .rcp.shake{animation:rcpShake .32s ease}
+@keyframes rcpIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes rcpShake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+@media (prefers-reduced-motion:reduce){html body .rcp-form,html body .rcp.shake{animation:none}}
+
+/* Запись: карточка получателя + кнопка под сводкой */
+html body .bk-rcp-wrap .book-send{margin-top:12px}
+
+/* Лист оформления заявки из корзины */
+html body .chk-title{font-size:19px;font-weight:800;color:var(--it-ink);margin-bottom:12px}
+html body .chk-items{border-top:1px solid var(--it-line)}
+html body .chk-item{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--it-line);font-size:13.5px;color:var(--it-ink)}
+html body .chk-item span{min-width:0;overflow-wrap:anywhere;line-height:1.35}
+html body .chk-item em{font-style:normal;color:var(--it-muted);font-weight:600}
+html body .chk-item b{white-space:nowrap}
+html body .chk-total{display:flex;justify-content:space-between;padding:10px 0 2px;font-size:16px;font-weight:800;color:var(--it-ink)}
+html body .chk-note{font-size:12px;color:var(--it-muted);text-align:center;margin-top:6px;line-height:1.4;overflow-wrap:anywhere}
+
+/* Такси: обеденный перерыв в сетке времени */
+html body .taxi-time-chip.busy{background:repeating-linear-gradient(-45deg,#F3F6F5 0 6px,#ECF1EF 6px 12px);
+  color:#A9BDBB;border-color:#E3ECE9;cursor:not-allowed;text-decoration:line-through}
+html body .taxi-break-note{grid-column:1/-1;font-size:12.5px;color:var(--it-muted);padding:2px 2px 0}

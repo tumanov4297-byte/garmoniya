@@ -1,0 +1,230 @@
+/* ═══════════════════════════════════════════════════════════════
+   «Гармония» — единый слой элементов управления (подключается последним).
+   Цель: одинаковые кнопки, поля ввода, «назад», подписи и фокус
+   на всех экранах. Цвета — из it-theme (--it-*).
+   Правила:
+   • главная кнопка — бирюзовый градиент, одна на экран;
+   • второстепенная — белая с тонким контуром и бирюзовым текстом;
+   • все поля — 16px (iOS не зумит), высота от 48px, один стиль фокуса;
+   • подписи — обычным регистром, без КАПСА.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --ui-h:48px;
+  --ui-r:14px;
+  --ui-ring:0 0 0 3px rgba(63,143,135,.28);
+  --dock-h:140px;
+}
+
+/* ── Фокус с клавиатуры: видно всегда, мышью — не мешает ── */
+html body :focus{outline:none}
+html body :focus-visible{outline:3px solid rgba(63,143,135,.55) !important;outline-offset:2px !important;border-radius:10px}
+html body [role="button"]{cursor:pointer}
+
+/* ── Второстепенная кнопка (в т.ч. «← Назад в меню») ── */
+html body .act-btn:not(.teal):not(.green):not(.gold):not(.red):not(.outline):not(.logout){
+  background:var(--it-surface) !important;color:var(--it-ink) !important;
+  border:1px solid var(--it-line) !important;box-shadow:0 1px 2px rgba(43,101,112,.05) !important;
+}
+html body .act-btn{min-height:var(--ui-h) !important;height:auto !important;font-size:15px !important;
+  font-weight:700 !important;letter-spacing:-.005em;line-height:1.25 !important;padding:12px 18px !important;
+  transition:background .15s ease,border-color .15s ease,transform .1s ease,box-shadow .15s ease !important}
+html body .act-btn:hover{transform:none !important;filter:none !important}
+html body .act-btn:not(.teal):not(.green):not(.gold):not(.red):not(.logout):hover{border-color:var(--it-accent) !important}
+html body .act-btn:active{transform:scale(.985) !important}
+html body .act-btn.outline{background:var(--it-surface) !important;border:1px solid var(--it-line) !important;color:var(--it-ink) !important}
+html body .actions .act-btn + .act-btn{margin-top:8px !important}
+
+/* Все кнопки: неактивное состояние одинаковое */
+html body button:disabled,html body button[aria-disabled="true"]{cursor:not-allowed !important}
+html body .act-btn:disabled,html body .auth-btn:disabled,html body .book-send:disabled,
+html body .eq-save-btn:disabled,html body .admin-btn:disabled{opacity:.45 !important;box-shadow:none !important;filter:grayscale(.3)}
+
+/* Главные кнопки форм — одна высота и скругление */
+html body .book-send,html body .eq-save-btn,html body .cart-send,html body .auth-btn,
+html body .admin-btn:not(.ghost),html body .fb-send,html body .taxi-order-bar-btn{
+  min-height:var(--ui-h) !important;border-radius:999px !important;font-size:15px !important;font-weight:700 !important;
+  background:var(--it-brand) !important;color:#fff !important;border:0 !important;
+  box-shadow:0 14px 30px -16px rgba(43,101,112,.85),inset 0 1px 0 rgba(255,255,255,.28) !important;
+}
+html body .admin-btn.ghost,html body .cart-clr{
+  min-height:var(--ui-h) !important;border-radius:999px !important;background:var(--it-surface) !important;
+  border:1px solid var(--it-line) !important;color:var(--it-ink) !important;box-shadow:none !important;font-weight:700 !important}
+html body .cart-clr{color:var(--it-red) !important}
+html body .eq-cancel-btn,html body .rating-skip{min-height:44px !important;font-size:14px !important;color:var(--it-muted) !important}
+
+/* ── «Назад» внутри разделов — одна аккуратная капсула ── */
+html body .pl-back{
+  display:inline-flex !important;align-items:center;gap:6px;min-height:40px !important;padding:0 14px 0 12px !important;
+  margin:0 0 14px !important;background:var(--it-surface) !important;border:1px solid var(--it-line) !important;
+  border-radius:999px !important;color:var(--it-ink) !important;font-size:14px !important;font-weight:600 !important;
+  box-shadow:0 1px 2px rgba(43,101,112,.05) !important;cursor:pointer}
+html body .pl-back:hover{background:var(--it-accent-soft) !important;color:var(--it-ink) !important;border-color:var(--it-accent) !important}
+
+/* ── Поля ввода: один стиль на всё приложение ── */
+html body .eq-input,html body .auth-inp,html body .admin-inp,html body .fb-inp,html body .rcp-inp,
+html body .pl-search,html body .pl-search-inp,html body textarea.eq-input,
+html body .chat input[type="text"],html body .chat input[type="tel"],html body .chat input[type="email"],
+html body .chat input[type="date"],html body .chat input[type="number"],html body .chat textarea,html body .chat select,
+html body .mc input[type="text"],html body .mc input[type="tel"],html body .mc input[type="email"],html body .mc input[type="date"],
+html body .mc textarea,html body .mc select,html body .admin-fs input[type="text"],html body .admin-fs textarea,html body .admin-fs select{
+  font-size:16px !important;font-family:inherit !important;color:var(--it-ink) !important;
+  background:#fff !important;border:1.5px solid var(--it-line) !important;border-radius:var(--ui-r) !important;
+  box-shadow:none !important;transition:border-color .15s ease,box-shadow .15s ease !important;box-sizing:border-box;
+}
+html body .eq-input,html body .auth-inp,html body .admin-inp,html body .rcp-inp,
+html body .chat input[type="text"],html body .chat input[type="tel"],html body .chat input[type="email"],
+html body .chat input[type="date"],html body .chat select,html body .mc input[type="text"],html body .mc input[type="tel"],
+html body .mc input[type="email"],html body .mc input[type="date"],html body .mc select{min-height:var(--ui-h) !important}
+html body textarea{min-height:84px;line-height:1.45 !important;resize:vertical}
+html body .eq-input:focus,html body .auth-inp:focus,html body .admin-inp:focus,html body .fb-inp:focus,html body .rcp-inp:focus,
+html body .chat input:focus,html body .chat textarea:focus,html body .chat select:focus,
+html body .mc input:focus,html body .mc textarea:focus,html body .mc select:focus,
+html body .admin-fs input:focus,html body .admin-fs textarea:focus{
+  border-color:var(--it-accent) !important;box-shadow:var(--ui-ring) !important;outline:none !important}
+html body ::placeholder{color:#9DB5B3 !important;opacity:1}
+html body input[type="checkbox"],html body input[type="radio"]{accent-color:var(--it-accent);width:20px;height:20px;flex-shrink:0}
+/* Поиск и чат-строка уже оформлены своей капсулой — рамку не дублируем */
+html body .search-bar input,html body .asst-input-row input,html body .asst-input-row textarea{
+  border:0 !important;box-shadow:none !important;background:transparent !important;min-height:0 !important}
+
+/* ── Подписи полей и шагов: без КАПСА ── */
+html body .eq-field-lbl,html body .eq-lbl,html body .bk-step-lbl,html body .fb-step-lbl,html body .c-lbl,
+html body .admin-lbl,html body .pinfo-lbl,html body .taxi-eta-lbl{
+  text-transform:none !important;letter-spacing:0 !important;font-size:13px !important;font-weight:600 !important;
+  color:var(--it-muted) !important}
+html body .bk-step-lbl,html body .fb-step-lbl,html body .taxi-step-lbl{
+  display:flex;align-items:center;gap:8px;font-size:15px !important;font-weight:700 !important;color:var(--it-ink) !important;
+  margin:18px 0 10px !important}
+html body .bk-step-lbl .taxi-step-num,html body .taxi-step-lbl .taxi-step-num{flex:0 0 auto}
+html body .sec-title,html body .news-sec-title,html body .sp-sub,html body .sp-more{
+  text-transform:none !important;letter-spacing:0 !important;font-size:14px !important;font-weight:700 !important;color:var(--it-muted) !important}
+
+/* ── Ссылки в тексте: бирюзовые, без «браузерного синего» ── */
+html body .pinfo-val a,html body .c-val a,html body .bubble a:not([class]),html body .chat p a:not([class]),
+html body .news-text a,html body .cb-row a,html body .auth-card a{
+  color:var(--it-accent) !important;text-decoration:underline !important;text-decoration-thickness:1px !important;
+  text-underline-offset:3px !important;font-weight:600}
+html body .pinfo-val a[href^="tel:"],html body .pinfo-val a[href^="mailto:"]{text-decoration:none !important;
+  border-bottom:1px dashed rgba(63,143,135,.45)}
+
+/* ── Нижняя зона действий: аккуратная плашка над меню ── */
+html body .actions{padding:10px 12px 8px !important}
+html body .actions:empty{padding:0 !important;border:0 !important}
+
+/* ── Кнопка «Наверх»: над док-зоной, не поверх кнопок и окон ── */
+html body #backTop{right:14px !important;bottom:calc(var(--dock-h) + 14px + env(safe-area-inset-bottom,0px)) !important;
+  width:42px !important;height:42px !important}
+html body:has(.cart-panel.open) #backTop,html body:has(.orders-panel.open) #backTop,
+html body:has(.profile-panel.open) #backTop,html body:has(.mo) #backTop,html body:has(.admin-ovl) #backTop,
+html body:has(.admin-fs) #backTop,html body:has(.auth-ovl) #backTop,html body:has(.onb-ovl) #backTop,
+html body:has(#asstFsHdr:not(.gone)) #backTop{opacity:0 !important;pointer-events:none !important}
+
+/* ── Вкладки нижнего меню: зона нажатия не меньше 44px ── */
+html body .tb{min-height:48px}
+
+/* ── Панели: крестик и нижняя кнопка «Закрыть» ── */
+html body .panel-close-btn{min-height:var(--ui-h) !important;border-radius:999px !important;
+  background:var(--it-surface) !important;border:1px solid var(--it-line) !important;color:var(--it-ink) !important;
+  font-weight:700 !important;font-size:15px !important;box-shadow:none !important}
+
+/* ── Модальные окна: ручка сверху и аккуратные поля ── */
+html body .mc{border-radius:26px 26px 0 0 !important;padding-top:26px !important;position:relative}
+html body .mc::before{content:"";position:absolute;top:9px;left:50%;width:38px;height:4px;margin-left:-19px;
+  border-radius:4px;background:var(--it-line)}
+html body .mc h3{font-size:19px !important;font-weight:800 !important;color:var(--it-ink) !important;letter-spacing:-.02em}
+
+/* ── Такси: заголовок первого шага ── */
+html body .taxi-h{font-size:20px !important;font-weight:700 !important;color:var(--it-ink) !important;margin:2px 0 12px !important}
+
+/* ── Чипы выбора (даты, время, быстрые адреса) — зона нажатия 44px ── */
+html body .taxi-time-chip,html body .time-slot{min-height:44px !important;font-size:14px !important;border-radius:12px !important}
+html body .taxi-chip,html body .fb-chip,html body .of-btn{min-height:40px !important}
+html body .taxi-time-chip.sel,html body .time-slot.sel{box-shadow:0 8px 18px -10px rgba(43,101,112,.8) !important}
+html body .time-slot.busy{background:repeating-linear-gradient(-45deg,#F3F6F5 0 6px,#ECF1EF 6px 12px) !important;
+  color:#A9BDBB !important;border-color:#E3ECE9 !important;text-decoration:line-through}
+
+/* ═══ Вход администратора: пин-пад ═══ */
+html body .pin-card{text-align:center;max-width:340px !important;padding:26px 22px 22px !important}
+html body .pin-ico{width:56px;height:56px;margin:0 auto 10px;border-radius:18px;display:flex;align-items:center;
+  justify-content:center;font-size:26px;background:var(--it-accent-soft)}
+html body .pin-title{font-size:19px !important;margin:0 0 4px !important;color:var(--it-ink) !important}
+html body .pin-sub{font-size:14px;color:var(--it-muted);margin:0 0 18px;min-height:20px;line-height:1.4}
+html body .pin-card.locked .pin-sub{color:#B35A3E}
+html body .pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:22px}
+html body .pin-dots span{width:14px;height:14px;border-radius:50%;border:2px solid var(--it-faint);transition:background .12s,border-color .12s,transform .12s}
+html body .pin-dots span.on{background:var(--it-accent);border-color:var(--it-accent);transform:scale(1.08)}
+html body .pin-card.err .pin-dots{animation:pinShake .38s ease}
+html body .pin-card.err .pin-dots span{border-color:var(--it-red)}
+html body .pin-card.ok .pin-dots span{background:var(--it-green);border-color:var(--it-green)}
+html body .pin-hidden{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;left:-9999px}
+html body .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+html body .pin-key{height:58px;border-radius:18px;border:1px solid var(--it-line);background:var(--it-surface);
+  font:inherit;font-size:22px;font-weight:600;color:var(--it-ink);cursor:pointer;
+  transition:background .12s,transform .08s;-webkit-tap-highlight-color:transparent}
+html body .pin-key:hover{background:var(--it-surface2)}
+html body .pin-key:active{transform:scale(.95);background:var(--it-accent-soft)}
+html body .pin-key-txt{font-size:14px;font-weight:600;color:var(--it-muted);background:transparent;border-color:transparent}
+html body .pin-card.locked .pin-key:not(.pin-key-txt){opacity:.4;pointer-events:none}
+@keyframes pinShake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+
+@media (prefers-reduced-motion:reduce){
+  html body .pin-card.err .pin-dots{animation:none}
+  html body .act-btn,html body .pin-key{transition:none !important}
+}
+
+/* premium.css задавал #backTop постоянную непрозрачность — кнопка висела даже вверху страницы */
+html body #backTop:not(.show){opacity:0 !important;pointer-events:none !important;transform:translateY(12px) scale(.85) !important}
+html body #backTop.show{opacity:.95 !important}
+
+/* ═══ Анкета получателя — пошаговая ═══ */
+html body .qz-mc{max-width:440px !important;padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px)) !important;
+  min-height:min(560px,88vh);display:flex;flex-direction:column}
+html body .qz-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+html body .qz-back,html body .qz-x{width:40px;height:40px;border-radius:50%;border:1px solid var(--it-line);
+  background:var(--it-surface);color:var(--it-ink);font:inherit;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+html body .qz-x{font-size:15px;color:var(--it-muted)}
+html body .qz-back-ph{width:40px}
+html body .qz-count{font-size:14px;font-weight:600;color:var(--it-muted)}
+html body .qz-bar{height:6px;border-radius:6px;background:var(--it-bg2);overflow:hidden;margin-bottom:22px}
+html body .qz-bar i{display:block;height:100%;background:var(--it-brand);border-radius:6px;transition:width .3s ease}
+html body .qz-step{flex:1;animation:qzIn .22s ease-out both}
+html body .qz-step.shake{animation:rcpShake .32s ease}
+html body .qz-ico{width:56px;height:56px;border-radius:18px;background:var(--it-accent-soft);display:flex;
+  align-items:center;justify-content:center;font-size:28px;margin-bottom:14px}
+html body .qz-title{font-size:22px !important;font-weight:800 !important;line-height:1.2 !important;color:var(--it-ink) !important;
+  margin:0 0 6px !important;letter-spacing:-.02em}
+html body .qz-sub{font-size:15px;line-height:1.45;color:var(--it-muted);margin:0 0 18px}
+html body .qz-fld{margin-bottom:14px}
+html body .qz-lbl{display:block;font-size:14px;font-weight:600;color:var(--it-ink);margin-bottom:6px}
+html body .qz-inp{width:100%;box-sizing:border-box;min-height:54px;padding:13px 14px;font:inherit;font-size:18px !important;
+  color:var(--it-ink);background:#fff;border:1.5px solid var(--it-line);border-radius:16px;transition:border-color .15s,box-shadow .15s}
+html body textarea.qz-inp{min-height:80px;font-size:16px !important;resize:vertical}
+html body .qz-inp:focus{border-color:var(--it-accent);box-shadow:var(--ui-ring);outline:none}
+html body .qz-inp.bad{border-color:var(--it-red);background:#FFF8F5}
+html body .qz-err{display:block;font-size:13.5px;color:#B35A3E;margin-top:5px}
+html body .qz-err:empty{display:none}
+html body .qz-cats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+html body .qz-cat{display:flex;align-items:center;gap:10px;min-height:60px;padding:10px 12px;border-radius:16px;
+  border:1.5px solid var(--it-line);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--it-ink);
+  text-align:left;cursor:pointer;line-height:1.25}
+html body .qz-cat-ico{font-size:24px;flex:0 0 auto}
+html body .qz-cat.sel{border-color:var(--it-accent);background:var(--it-accent-soft);box-shadow:0 8px 18px -12px rgba(43,101,112,.7)}
+html body .qz-nav{margin-top:18px}
+html body .qz-nav .eq-save-btn{margin-top:0 !important;min-height:54px !important;font-size:16px !important}
+html body .qz-sum{border:1px solid var(--it-line);border-radius:18px;background:var(--it-surface2);padding:2px 14px}
+html body .qz-sum-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--it-line)}
+html body .qz-sum-row:last-child{border-bottom:0}
+html body .qz-sum-row > div{min-width:0;display:flex;flex-direction:column;gap:2px}
+html body .qz-sum-row span{font-size:13px;color:var(--it-muted)}
+html body .qz-sum-row b{font-size:15px;color:var(--it-ink);font-weight:600;overflow-wrap:anywhere}
+html body .qz-sum-row i{font-style:normal;color:var(--it-faint);font-weight:500}
+html body .qz-edit{flex:0 0 auto;border:0;background:none;color:var(--it-accent);font:inherit;font-size:14px;font-weight:700;
+  padding:8px 4px;min-height:40px;cursor:pointer}
+@keyframes qzIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html body .qz-step,html body .qz-step.shake{animation:none}html body .qz-bar i{transition:none}}
+@media (min-width:600px){html body .qz-mo{align-items:center !important}html body .qz-mc{border-radius:26px !important}}
+/* Поля анкеты и карточки получателя: перебиваем общий стиль .mc input — ошибка и крупный шрифт видны */
+html body .mc input.qz-inp,html body .mc textarea.qz-inp{font-size:18px !important;min-height:54px !important;border-radius:16px !important}
+html body .mc textarea.qz-inp{font-size:16px !important;min-height:80px !important}
+html body .mc input.qz-inp.bad,html body .mc textarea.qz-inp.bad,html body input.rcp-inp.bad,html body .mc input.rcp-inp.bad{
+  border-color:var(--it-red) !important;background:#FFF8F5 !important}

@@ -2,7 +2,13 @@
 (function(){
   "use strict";
 
-  const ADMIN={email:"iatumanov@yanao.ru",pass:"300897"};
+  // Вход в админ-панель — только по 6-значному коду. В коде хранится не сам код,
+  // а SHA-256 от "garmoniya-admin:<код>". Сменить код: посчитать новый хэш
+  //   echo -n "garmoniya-admin:НОВЫЙКОД" | sha256sum
+  // и заменить строку ниже.
+  const ADMIN_CODE_HASH="8a623844da4d793a79260c2ef7e4de62633d12a55ddf5cc22ae8e695513363f9";
+  const ADMIN_CODE_LEN=6;
+  const ADMIN_MAX_TRIES=5, ADMIN_LOCK_MS=60*1000;
   const CITY_NAMES={gubkin:"Губкинский",purpe:"мкр. Пурпе",muravlenko:"Муравленко",noyabrsk:"Ноябрьск",tarko:"Тарко-Сале",urengoy:"Уренгой"};
   const CONTACT_FIELDS=[["address","Адрес"],["phone","Телефон (для показа)"],["phoneRaw","Телефон (цифры, для звонка)"],["email","Email"],["orderEmail","Email для приёма заявок (куда улетают заявки)"],["hours","Часы работы"]];
 
@@ -102,29 +108,124 @@
     }
   };
 
+  /* SHA-256: через WebCrypto, а если страница открыта не по HTTPS — запасная JS-реализация. */
+  function sha256Fallback(str){
+    const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    const bytes=Array.from(new TextEncoder().encode(str));
+    const bitLen=bytes.length*8;
+    bytes.push(0x80);while(bytes.length%64!==56)bytes.push(0);
+    for(let i=7;i>=0;i--)bytes.push(Math.floor(bitLen/Math.pow(2,i*8))&255);
+    let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    const r=(x,n)=>(x>>>n)|(x<<(32-n));
+    for(let o=0;o<bytes.length;o+=64){
+      const W=new Array(64);
+      for(let i=0;i<16;i++)W[i]=(bytes[o+i*4]<<24)|(bytes[o+i*4+1]<<16)|(bytes[o+i*4+2]<<8)|bytes[o+i*4+3];
+      for(let i=16;i<64;i++){const s0=r(W[i-15],7)^r(W[i-15],18)^(W[i-15]>>>3),s1=r(W[i-2],17)^r(W[i-2],19)^(W[i-2]>>>10);W[i]=(W[i-16]+s0+W[i-7]+s1)|0;}
+      let [a,b,c,d,e,f,g,h]=H;
+      for(let i=0;i<64;i++){
+        const S1=r(e,6)^r(e,11)^r(e,25),ch=(e&f)^(~e&g),t1=(h+S1+ch+K[i]+W[i])|0;
+        const S0=r(a,2)^r(a,13)^r(a,22),mj=(a&b)^(a&c)^(b&c),t2=(S0+mj)|0;
+        h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;
+      }
+      H=[H[0]+a,H[1]+b,H[2]+c,H[3]+d,H[4]+e,H[5]+f,H[6]+g,H[7]+h].map(x=>x|0);
+    }
+    return H.map(x=>(x>>>0).toString(16).padStart(8,"0")).join("");
+  }
+  async function sha256Hex(str){
+    try{
+      if(window.crypto&&crypto.subtle){
+        const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+        return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+      }
+    }catch(e){}
+    return sha256Fallback(str);
+  }
+  function lockLeft(){
+    const until=parseInt(localStorage.getItem("admLockUntil")||"0",10);
+    return Math.max(0,until-Date.now());
+  }
+
   function renderLogin(ovl){
-    ovl.innerHTML=`<div class="admin-card">
-      <h3>🔐 Вход для администратора</h3>
-      <div class="admin-warn">Внимание: Вход только Администратору!</div>
-      <label class="admin-lbl">Email</label>
-      <input class="admin-inp" id="admEmail" type="email" placeholder="email@yanao.ru" autocomplete="username">
-      <label class="admin-lbl">Пароль</label>
-      <input class="admin-inp" id="admPass" type="password" placeholder="••••••" autocomplete="current-password">
-      <button class="admin-btn" id="admGo">Войти</button>
-      <button class="admin-btn ghost" id="admCancel">Отмена</button>
+    ovl.innerHTML=`<div class="admin-card pin-card">
+      <div class="pin-ico" aria-hidden="true">🔐</div>
+      <h3 class="pin-title">Вход для администратора</h3>
+      <p class="pin-sub" id="pinSub">Введите код доступа</p>
+      <div class="pin-dots" id="pinDots" aria-hidden="true">${"<span></span>".repeat(ADMIN_CODE_LEN)}</div>
+      <input class="pin-hidden" id="pinInp" type="password" inputmode="numeric" autocomplete="one-time-code"
+        maxlength="${ADMIN_CODE_LEN}" aria-label="Код доступа, ${ADMIN_CODE_LEN} цифр">
+      <div class="pin-pad" role="group" aria-label="Цифровая клавиатура">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" class="pin-key" data-k="${n}">${n}</button>`).join("")}
+        <button type="button" class="pin-key pin-key-txt" data-k="cancel">Отмена</button>
+        <button type="button" class="pin-key" data-k="0">0</button>
+        <button type="button" class="pin-key pin-key-txt" data-k="del" aria-label="Стереть цифру">⌫</button>
+      </div>
     </div>`;
-    const em=ovl.querySelector("#admEmail"),pw=ovl.querySelector("#admPass");
-    const go=()=>{
-      if(em.value.trim().toLowerCase()===ADMIN.email&&pw.value===ADMIN.pass){
+    const inp=ovl.querySelector("#pinInp"),dots=ovl.querySelectorAll("#pinDots span"),sub=ovl.querySelector("#pinSub");
+    const card=ovl.querySelector(".pin-card");
+    let code="",busy=false,lockTimer=null;
+    function paint(){
+      dots.forEach((d,i)=>d.classList.toggle("on",i<code.length));
+      inp.value=code;
+    }
+    function showLock(){
+      const left=lockLeft();
+      card.classList.toggle("locked",left>0);
+      if(left>0){
+        sub.textContent="Слишком много попыток. Повторите через "+Math.ceil(left/1000)+" с";
+        clearTimeout(lockTimer);lockTimer=setTimeout(showLock,1000);
+      }else{
+        sub.textContent="Введите код доступа";
+        localStorage.removeItem("admTries");
+      }
+      return left>0;
+    }
+    async function check(){
+      if(busy)return;busy=true;
+      const ok=(await sha256Hex("garmoniya-admin:"+code))===ADMIN_CODE_HASH;
+      if(ok){
+        localStorage.removeItem("admTries");localStorage.removeItem("admLockUntil");
         sessionStorage.setItem("adminAuthed","1");
-        ovl.remove();
-        openFullPanel();
-      }else{showToast("Неверный email или пароль");}
-    };
-    ovl.querySelector("#admGo").onclick=go;
-    pw.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
-    ovl.querySelector("#admCancel").onclick=()=>ovl.remove();
-    em.focus();
+        card.classList.add("ok");
+        setTimeout(()=>{ovl.remove();openFullPanel();},180);
+        return;
+      }
+      const tries=parseInt(localStorage.getItem("admTries")||"0",10)+1;
+      localStorage.setItem("admTries",String(tries));
+      if(tries>=ADMIN_MAX_TRIES){localStorage.setItem("admLockUntil",String(Date.now()+ADMIN_LOCK_MS));}
+      card.classList.remove("err");void card.offsetWidth;card.classList.add("err");
+      if(navigator.vibrate)try{navigator.vibrate(120);}catch(e){}
+      setTimeout(()=>{
+        code="";paint();busy=false;
+        if(!showLock())sub.textContent="Неверный код. Осталось попыток: "+(ADMIN_MAX_TRIES-tries);
+      },420);
+    }
+    function press(k){
+      if(k==="cancel"){clearTimeout(lockTimer);ovl.remove();return;}
+      if(busy||lockLeft()>0){showLock();return;}
+      if(k==="del"){code=code.slice(0,-1);paint();return;}
+      if(!/^\d$/.test(k)||code.length>=ADMIN_CODE_LEN)return;
+      code+=k;paint();
+      if(code.length===ADMIN_CODE_LEN)check();
+    }
+    ovl.querySelectorAll(".pin-key").forEach(b=>b.onclick=()=>press(b.dataset.k));
+    // Физическая клавиатура (ПК) и ввод в скрытое поле
+    inp.addEventListener("input",()=>{
+      const v=inp.value.replace(/\D/g,"").slice(0,ADMIN_CODE_LEN);
+      if(busy||lockLeft()>0){inp.value=code;return;}
+      code=v;paint();if(code.length===ADMIN_CODE_LEN)check();
+    });
+    ovl.addEventListener("keydown",e=>{
+      if(e.target===inp)return;
+      if(/^\d$/.test(e.key)){press(e.key);e.preventDefault();}
+      else if(e.key==="Backspace"){press("del");e.preventDefault();}
+      else if(e.key==="Escape"){press("cancel");}
+    });
+    showLock();
+    // На ПК фокус в скрытое поле — можно печатать цифры с клавиатуры.
+    // На телефоне не фокусируем, чтобы системная клавиатура не закрыла наш пин-пад.
+    if(window.matchMedia&&matchMedia("(pointer:fine)").matches){
+      setTimeout(()=>{try{inp.focus({preventScroll:true});}catch(e){}},60);
+    }
   }
 
   function openFullPanel(){
