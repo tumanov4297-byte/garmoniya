@@ -370,6 +370,7 @@
       '<div class="cf-card"><div class="cf-row"><span>Маршрут</span><b>' + esc(d.from) + " → " + esc(d.to) + "</b></div>" +
       '<div class="cf-row"><span>Подача</span><b>' + fmtDate(d.date) + ", " + d.time + "</b></div>" +
       '<div class="cf-row"><span>Стоимость</span><b>' + (d.isFree ? "Бесплатно" : money(d.price)) + "</b></div></div>" +
+      (res.tx && typeof carCardHtml === "function" ? carCardHtml(res.tx) : "") +
       "Открылся почтовый клиент — нажмите «Отправить», и заявка уйдёт диспетчеру. Он свяжется с вами для подтверждения." +
       row([ btn("Мои заказы", function(){ openOrdersPanel(); return ""; }, { cl:"outline" }) ]);
   }
@@ -439,6 +440,8 @@
           if (check.code === "hours")
             return '<div class="cf-warn">Машина работает с ' + TAXI_RULES.rideFrom + " до " + TAXI_RULES.rideTo +
               ", позже подачи нет.</div>Напишите время в этом промежутке — например, 09:30 или 17:00.";
+          if (check.code === "noshift")
+            return '<div class="cf-warn">' + esc(check.message) + "</div>Напишите другое время или другую дату.";
           if (check.code === "break")
             return '<div class="cf-warn">С ' + TAXI_RULES.breakFrom + " до " + TAXI_RULES.breakTo +
               " обеденный перерыв — машину не подают.</div>Напишите время до " + TAXI_RULES.breakFrom +

@@ -812,11 +812,13 @@ function showTaxi(keepState,prefillTo){
     </div>
     <div class="taxi-quick-dest">
       <div class="taxi-quick-dest-chips" id="taxiQuickDest">
-        <button type="button" class="taxi-chip" data-q="Больница">🏥 Больница</button>
+        ${placesOf().length
+          ? placesOf().map(function(pl,i){return '<button type="button" class="taxi-chip" data-place="'+i+'" title="'+String(pl.address||"").replace(/"/g,"&quot;")+'">'+placeIcon(pl.type)+' '+String(pl.name||"").replace(/</g,"&lt;")+'</button>';}).join("")
+          : `<button type="button" class="taxi-chip" data-q="Больница">🏥 Больница</button>
         <button type="button" class="taxi-chip" data-q="Поликлиника">🩺 Поликлиника</button>
         <button type="button" class="taxi-chip" data-q="Аптека">💊 Аптека</button>
         <button type="button" class="taxi-chip" data-q="МФЦ">📄 МФЦ</button>
-        <button type="button" class="taxi-chip" data-q="Пенсионный фонд">💰 Пенсионный фонд</button>
+        <button type="button" class="taxi-chip" data-q="Пенсионный фонд">💰 Пенсионный фонд</button>`}
         <button type="button" class="taxi-chip" data-cson="1">🏢 ЦСОН «Гармония»</button>
       </div>
     </div>
@@ -834,6 +836,12 @@ function showTaxi(keepState,prefillTo){
         const cd=cityData[currentCity]||cityData.gubkin;
         toInput.value=cleanAddressLabel(cd.address);
         toSuggest.classList.add("gone");
+      }else if(chip.dataset.place!=null){
+        // Соцобъект из админки: точный адрес, без поиска на карте
+        const pl=placesOf()[+chip.dataset.place];
+        toInput.value=pl.name+", "+pl.address;
+        toSuggest.classList.add("gone");
+        taxiState.to=toInput.value;
       }else{
         toInput.value=chip.dataset.q+" "+currentCityName;
         taxiFetchSuggestions(chip.dataset.q,toSuggest,toInput);
@@ -947,6 +955,7 @@ function showTaxiDateTime(tariffs){
       <input type="hidden" id="taxiDate" value="${today}">
       <input type="hidden" id="taxiTime" value="">
     </div>
+    ${fleetHasWheelchair()?`<label class="taxi-wheel"><input type="checkbox" id="taxiWheel"${taxiState.wheelchair?" checked":""}><span><b>♿ Нужна машина для инвалидной коляски</b><small>Назначим машину, приспособленную для коляски</small></span></label>`:""}
     <div class="taxi-rcp" id="taxiRcp"></div>
     <div class="eq-field"><span class="eq-field-ico">👥</span><div class="eq-field-body"><label class="eq-field-lbl">Количество пассажиров</label>
       <div class="taxi-pax-stepper">
@@ -1047,15 +1056,40 @@ function taxiRenderDateTimePicker(){
   }).join("");
   dateHidden.value=taxiIso(days[0]);
 
+  function wheelNeeded(){const w=document.getElementById("taxiWheel");return !!(w&&w.checked);}
+  /* Дни без машин на линии (по сменам из админки) — неактивны. */
+  function markDates(){
+    let firstOk=null;
+    dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(btn){
+      const sl=taxiSlotsFor(btn.dataset.iso,{wheelchair:wheelNeeded()});
+      const off=sl!==null&&!Object.keys(sl).length;
+      btn.classList.toggle("off",off);btn.disabled=off;
+      btn.title=off?"В этот день машин на линии нет":"";
+      if(!off&&!firstOk)firstOk=btn;
+    });
+    const sel=dateScroll.querySelector(".taxi-date-chip.sel");
+    if((!sel||sel.disabled)&&firstOk){
+      dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(b){b.classList.remove("sel");});
+      firstOk.classList.add("sel");dateHidden.value=firstOk.dataset.iso;
+    }
+  }
   function renderTimeGrid(){
     // Слоты по 30 минут с 08:30 до 18:00; обеденные (12:30–13:30) — неактивны.
+    // Если в админке заданы смены — доступны только часы, когда машина на линии.
     const slots=taxiTimeSlots();
-    const free=slots.filter(function(t){return !isBreakTime(t);});
-    const cur=free.indexOf(timeHidden.value)>=0?timeHidden.value:free[0];
+    const shiftOk=taxiSlotsFor(dateHidden.value,{wheelchair:wheelNeeded()});
+    const avail=function(t){return !isBreakTime(t)&&(shiftOk===null||!!shiftOk[t]);};
+    const free=slots.filter(avail);
+    const cur=free.indexOf(timeHidden.value)>=0?timeHidden.value:(free[0]||"");
+    if(!free.length){
+      timeGrid.innerHTML='<div class="taxi-break-note taxi-noslots">🚫 На эту дату свободных машин нет'+(wheelNeeded()?" для коляски":"")+' — выберите другой день.</div>';
+      timeHidden.value="";return;
+    }
     timeGrid.innerHTML=slots.map(function(t){
-      const br=isBreakTime(t);
-      return '<button type="button" class="taxi-time-chip'+(br?" busy":"")+(t===cur?" sel":"")+'"'+(br?' disabled aria-disabled="true" title="Обеденный перерыв"':'')+' data-time="'+t+'" aria-label="Подача в '+t+(br?' — обеденный перерыв':'')+'">'+t+'</button>';
-    }).join("")+'<div class="taxi-break-note">🍽 '+TAXI_RULES.breakFrom+'–'+TAXI_RULES.breakTo+' — обеденный перерыв, машину не подают</div>';
+      const br=isBreakTime(t),na=!br&&!avail(t),dis=br||na;
+      const why=br?"Обеденный перерыв":"Машин на линии нет";
+      return '<button type="button" class="taxi-time-chip'+(dis?" busy":"")+(t===cur?" sel":"")+'"'+(dis?' disabled aria-disabled="true" title="'+why+'"':'')+' data-time="'+t+'" aria-label="Подача в '+t+(dis?' — '+why.toLowerCase():'')+'">'+t+'</button>';
+    }).join("")+'<div class="taxi-break-note">🍽 '+TAXI_RULES.breakFrom+'–'+TAXI_RULES.breakTo+' — обеденный перерыв, машину не подают'+(shiftOk!==null?'<br>🚐 Показано время, когда машины на линии':'')+'</div>';
     timeHidden.value=cur;
     timeGrid.querySelectorAll(".taxi-time-chip:not(.busy)").forEach(function(b){
       b.onclick=function(){
@@ -1064,7 +1098,10 @@ function taxiRenderDateTimePicker(){
       };
     });
   }
+  markDates();
   renderTimeGrid();
+  window.taxiRefreshAvailability=function(){markDates();renderTimeGrid();};
+  setTimeout(function(){const w=document.getElementById("taxiWheel");if(w)w.addEventListener("change",function(){window.taxiRefreshAvailability();});},0);
 
   dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(btn){
     btn.onclick=function(){
@@ -1296,16 +1333,19 @@ function taxiSubmitOrder(o){
   const cd=cityData[currentCity]||cityData.gubkin;
   const passengerNames=o.passengerNames||[];
   const r=o.recipient||{name:clientName,phone:clientPhone,snils:clientSnils};
-  const body=`Заказ социального такси\nНомер заявки: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nЗАКАЗЧИК\nФИО: ${r.name}\nТелефон: ${r.phone}${isFree&&r.snils?"\nСНИЛС: "+r.snils:""}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
+  const car=fleetPick({wheelchair:!!o.wheelchair,date:o.date,time:o.time});
+  const carTxt=`\nМашина (предварительно): ${car?carLine(car):"не назначена — назначьте при подтверждении"}${o.wheelchair?"\nНужна машина для инвалидной коляски: ДА":""}`;
+  const body=`Заказ социального такси\nНомер заявки: ${ticketNum}${carTxt}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nЗАКАЗЧИК\nФИО: ${r.name}\nТелефон: ${r.phone}${isFree&&r.snils?"\nСНИЛС: "+r.snils:""}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
   window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси № "+ticketNum+" — "+r.name)}&body=${encodeURIComponent(body)}`;
   const taxiHistory=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   taxiHistory.unshift({
     num:ticketNum,tariff:t.label,duration:t.duration,price:price,isFree:isFree,from:o.from,to:o.to,
     pax:o.pax||1,passengerNames:passengerNames,date:o.date,time:o.time,comment:o.comment||"",
-    createdAt:new Date().toISOString(),cityName:currentCityName,recipient:r.name,status:"new"
+    createdAt:new Date().toISOString(),cityName:currentCityName,recipient:r.name,status:"new",
+    car:car,wheelchair:!!o.wheelchair
   });
   localStorage.setItem("taxiHistory",JSON.stringify(taxiHistory));
-  return {ticketNum:ticketNum,price:price,tariff:t,isFree:isFree,
+  return {ticketNum:ticketNum,price:price,tariff:t,isFree:isFree,car:car,tx:taxiHistory[0],
           freeQuotaAfter:isFree?getFreeTaxiQuota():null};
 }
 
@@ -1333,6 +1373,8 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const comment=document.getElementById("taxiComment").value.trim();
   const paxEl=document.getElementById("taxiPax");
   const pax=paxEl?parseInt(paxEl.value)||1:1;
+  const wheelEl=document.getElementById("taxiWheel");
+  const wheelchair=!!(wheelEl&&wheelEl.checked);taxiState.wheelchair=wheelchair;
   const rcpRes=taxiRcpCtl?taxiRcpCtl.validate():{ok:recipientHasName()&&recipientHasPhone(),data:{name:clientName,phone:clientPhone,snils:clientSnils},message:"Укажите ФИО и телефон"};
   if(!rcpRes.ok){showToast(rcpRes.message||"Проверьте данные заказчика");return;}
   const rcp=rcpRes.data;
@@ -1341,7 +1383,7 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const passengerNames=[pax1Name,pax2Name].filter(Boolean);
   if(!from||!to){showToast("Укажите адрес отправления и назначения");return;}
   if(!date||!time){showToast("Укажите дату и время поездки");return;}
-  const rules=taxiCheckRide(date,time);
+  const rules=taxiCheckRide(date,time,{wheelchair:wheelchair});
   if(!rules.ok){showToast(rules.message);return;}
   const existingTaxi=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   const timeConflict=existingTaxi.find(function(o){return o.date===date&&o.time===time&&o.status!=="cancelled";});
@@ -1358,7 +1400,7 @@ function taxiConfirmBooking(tariffIdx,isFree){
 
   const useMor0=taxiState.moroshkaView&&t.moroshka!=null;
   const res=taxiSubmitOrder({tariff:t,isFree:isFree,price:useMor0?t.moroshka:t.base,
-    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames,recipient:rcp});
+    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames,recipient:rcp,wheelchair:wheelchair});
   const ticketNum=res.ticketNum, price=res.price;
 
   chatEl.innerHTML="";
@@ -1371,7 +1413,8 @@ function taxiConfirmBooking(tariffIdx,isFree){
       <div class="taxi-confirm-check">✅</div>
       <div class="taxi-confirm-title">Заявка отправлена</div>
       <div class="taxi-confirm-ticket">Заявка № ${ticketNum}</div>
-      <div class="taxi-eta-banner"><span class="taxi-eta-ico">📞</span><div><span class="taxi-eta-lbl">Что дальше</span><span class="taxi-eta-val">Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для подтверждения поездки</span></div></div>
+      ${carCardHtml(res.tx)}
+      <div class="taxi-eta-banner"><span class="taxi-eta-ico">📞</span><div><span class="taxi-eta-lbl">Что дальше</span><span class="taxi-eta-val">Диспетчер позвонит, чтобы подтвердить поездку${res.car?" и машину":" и назвать машину"}. Если машину заменят — сообщит.</span></div></div>
       <div class="taxi-confirm-row"><span>Тариф</span><b>${t.label}</b></div>
       <div class="taxi-confirm-row"><span>Стоимость</span><b>${isFree?"Бесплатно 🎁":price+" ₽"}</b></div>
       ${freeQuotaAfter?`<div class="taxi-confirm-row"><span>Осталось поездок</span><b>${freeQuotaAfter.remaining} из ${freeQuotaAfter.limit}</b></div>`:""}
@@ -1930,18 +1973,21 @@ function renderOrdersPanel(filter){
         <div class="ord-ico ord-ico-taxi">🚕</div>
         <div class="ord-card-main">
           <div class="ord-card-title">Такси ${ticketLabel(tx.num)}</div>
-          <div class="ord-card-date">📅 ${tx.date} в ${tx.time}</div>
+          <div class="ord-card-date">📅 ${rideDateHuman(tx.date,tx.time)}</div>
         </div>
-        <span class="st-badge st-new">Заказано</span>
+        ${(function(){const st=taxiRideState(tx);return `<span class="st-badge st-taxi-${st.key}" data-eta-badge="${tx.num}">${st.label}</span>`;})()}
       </div>
       <div class="ord-card-body">
+        ${tx.status!=="cancelled"?carCardHtml(tx):""}
         <div class="ord-card-sum">${tx.isFree?"Бесплатно 🎁":tx.price+" ₽"} <span class="ord-card-pax">· 👥 ${tx.pax||1}</span></div>
         ${tx.isFree?'<div class="taxi-ord-free-badge">Льготная поездка</div>':""}
         <div class="taxi-ord-route"><span class="taxi-ord-route-from">📍 ${tx.from}</span><span class="taxi-ord-route-to">🏁 ${tx.to}</span></div>
         ${tx.driverName?`<div class="ord-card-detail">🚗 Водитель: ${tx.driverName}</div>`:""}
       </div>
       <div class="ord-card-actions">
-        <button class="ord-act danger" onclick="removeTaxiOrder(${i})">🗑 Удалить</button>
+        ${(function(){const k=taxiRideState(tx).key;return (k==="upcoming"||k==="soon")
+          ?`<button class="ord-act danger" data-taxi-cancel="${i}" onclick="cancelTaxiOrder(${i})">✕ Отменить поездку</button>`
+          :`<button class="ord-act danger" onclick="removeTaxiOrder(${i})">🗑 Убрать из списка</button>`;})()}
       </div>
     </div>`
   }));
@@ -1979,6 +2025,25 @@ function removeOneOrder(idx){
   localStorage.setItem("ordersHistory",JSON.stringify(oh));
   ordersHistory=oh;
   showToast("Заявка удалена");
+  const activeF=document.querySelector(".of-btn.active");
+  renderOrdersPanel(activeF?activeF.dataset.f:"all");
+}
+function cancelTaxiOrder(idx){
+  const btn=document.querySelector('[data-taxi-cancel="'+idx+'"]');
+  if(btn&&!btn.dataset.confirm){
+    btn.dataset.confirm="1";btn.textContent="⚠️ Точно отменить?";btn.classList.add("confirm");
+    setTimeout(()=>{if(btn.dataset.confirm){delete btn.dataset.confirm;btn.textContent="✕ Отменить поездку";btn.classList.remove("confirm");}},4000);
+    return;
+  }
+  const th=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
+  const tx=th[idx];if(!tx)return;
+  tx.status="cancelled";tx.cancelledAt=new Date().toISOString();
+  localStorage.setItem("taxiHistory",JSON.stringify(th));
+  if(tx.isFree&&typeof refundFreeTaxiTrip==="function")refundFreeTaxiTrip();
+  const cd=cityData[currentCity]||cityData.gubkin;
+  const body=`ОТМЕНА ЗАКАЗА ТАКСИ\nНомер заявки: ${tx.num}\nЗаказчик: ${tx.recipient||clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${tx.date} в ${tx.time}\nМаршрут: ${tx.from} → ${tx.to}${tx.car?"\nМашина: "+carLine(tx.car):""}`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Отмена такси № "+tx.num)}&body=${encodeURIComponent(body)}`;
+  showToast("Поездка отменена — письмо в центр готово к отправке");
   const activeF=document.querySelector(".of-btn.active");
   renderOrdersPanel(activeF?activeF.dataset.f:"all");
 }

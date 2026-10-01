@@ -271,3 +271,47 @@ textarea.adm2-inp{resize:vertical;line-height:1.4;min-height:40px;overflow:hidde
   .adm2-save .adm2-unpub{display:none}
 }
 @media (prefers-reduced-motion:reduce){.adm2 *{transition:none!important;animation:none!important}}
+
+/* ── Автопарк ── */
+.adm2-check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--a-ink);cursor:pointer;padding:6px 0}
+.adm2-check input{width:18px;height:18px;accent-color:var(--a-accent)}
+.adm2-car-head{display:flex;align-items:center;gap:12px}
+.adm2-car-ico{font-size:26px}
+.adm2-car-prev{flex:1;min-width:0}
+.adm2-car-moves{display:flex;gap:2px}
+.adm2-car-moves .adm2-icon-btn:disabled{opacity:.3;cursor:default}
+.adm2-car.off{opacity:.65}
+.adm2-car .adm2-form{grid-template-columns:1fr 1fr}
+@media (max-width:899px){.adm2-car .adm2-form{grid-template-columns:1fr}}
+
+/* ── Соц. такси: вкладки, смены, неделя, соцобъекты ── */
+.adm2-seg{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--a-surface);border:1px solid var(--a-line);margin-bottom:16px;flex-wrap:wrap}
+.adm2-seg-b{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border:0;border-radius:10px;background:transparent;
+  font:inherit;font-size:14px;font-weight:700;color:var(--a-muted);cursor:pointer}
+.adm2-seg-b.on{background:var(--a-accent-d);color:#fff}
+.adm2-seg-b.on .adm2-count{background:rgba(255,255,255,.2);color:#fff}
+.adm2-days{display:flex;gap:6px;flex-wrap:wrap}
+.adm2-day{width:44px;height:38px;border-radius:10px;border:1.5px solid var(--a-line);background:#fff;font:inherit;font-weight:700;color:var(--a-muted);cursor:pointer}
+.adm2-day.on{background:var(--a-soft);border-color:var(--a-accent);color:var(--a-accent-d)}
+.adm2-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.adm2-wday{background:var(--a-surface);border:1px solid var(--a-line);border-radius:12px;padding:8px;min-height:90px}
+.adm2-wday.today{border-color:var(--a-accent);box-shadow:inset 0 0 0 1px var(--a-accent)}
+.adm2-wday-h{font-size:12px;color:var(--a-muted);margin-bottom:6px}
+.adm2-wday-h b{color:var(--a-ink);font-size:14px}
+.adm2-wday-empty{font-size:12px;color:var(--a-faint);padding-top:10px}
+.adm2-bar-row{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.adm2-bar-lbl{font-size:11.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adm2-bar-line{position:relative;height:8px;border-radius:4px;background:var(--a-bg)}
+.adm2-bar-line i{position:absolute;top:0;bottom:0;background:var(--a-accent);border-radius:4px}
+.adm2-bar-line em{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(-45deg,#fff 0 3px,#DCE8E6 3px 6px);opacity:.9}
+.adm2-bar-t{font-size:10.5px;color:var(--a-muted)}
+.adm2-shifts td small{color:var(--a-muted)}
+.adm2-shifts tr.bad td{background:var(--a-red-bg)}
+.adm2-shifts td,.adm2-shifts th{text-align:left !important}
+.adm2-places{display:flex;flex-direction:column;gap:8px}
+.adm2-place{display:grid;grid-template-columns:80px 1fr 1.3fr auto;gap:8px;align-items:center;background:var(--a-surface);border:1px solid var(--a-line);border-radius:12px;padding:8px}
+@media (max-width:899px){
+  .adm2-week{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .adm2-place{grid-template-columns:70px 1fr auto}
+  .adm2-place > input[data-f="address"]{grid-column:1/-1}
+}

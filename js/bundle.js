@@ -740,6 +740,11 @@ function taxiCheckRide(date,time){
     return {ok:false,code:"hours",message:"Машина работает с "+TAXI_RULES.rideFrom+" до "+TAXI_RULES.rideTo+" — выберите время в этом промежутке"};
   if(isBreakTime(time))
     return {ok:false,code:"break",message:"С "+TAXI_RULES.breakFrom+" до "+TAXI_RULES.breakTo+" обеденный перерыв — машину не подают. Выберите время до "+TAXI_RULES.breakFrom+" или с "+TAXI_RULES.breakTo};
+  if(typeof taxiSlotsFor==="function"){
+    var sl=taxiSlotsFor(date,{wheelchair:!!(arguments[2]&&arguments[2].wheelchair)});
+    if(sl!==null&&!sl[time])return {ok:false,code:"noshift",
+      message:Object.keys(sl).length?"В "+time+" машин на линии нет. Свободное время: "+Object.keys(sl).slice(0,6).join(", ")+(Object.keys(sl).length>6?"…":""):"На эту дату машин на линии нет — выберите другой день"};
+  }
   return {ok:true,min:min};
 }
 // Слоты подачи по 30 минут от 08:30 до 18:00 (включая обеденные — они показываются неактивными).
@@ -767,6 +772,11 @@ function useFreeTaxiTrip(){
   if(q.remaining<=0)return false;
   localStorage.setItem(getFreeTaxiQuotaKey(),String(q.used+1));
   return true;
+}
+// Отменили льготную поездку — возвращаем её в годовой лимит.
+function refundFreeTaxiTrip(){
+  var q=getFreeTaxiQuota();
+  if(q.used>0)localStorage.setItem(getFreeTaxiQuotaKey(),String(q.used-1));
 }
 // over — необязательные данные, введённые прямо в заявке: {snils, category}.
 function checkFreeTaxiEligibility(over){
@@ -827,6 +837,210 @@ const newsData=[
 const eventsData=[];
 
 let galleryData=[];
+
+;
+
+/* ───── js/fleet.js ───── */
+/* ═══════════════════════════════════════════════════════════════════
+   fleet.js — автопарк социального такси.
+
+   • Машины каждого филиала задаются в админпанели (вкладка «Автопарк»):
+     модель, госномер, цвет, «для колясок», водитель, «на линии».
+   • При заказе машина назначается ПРЕДВАРИТЕЛЬНО по правилу:
+     нужна коляска → машина с отметкой «для колясок», иначе — первая
+     обычная машина на линии. Диспетчер подтверждает или меняет её.
+   • Время до подачи считается по дате и времени заказа — такси
+     заказывается накануне. Отслеживать машину в пути (GPS) приложение
+     не может: для этого нужен сервер и трекер в машине.
+   ═══════════════════════════════════════════════════════════════════ */
+const FLEET_PRESETS=[
+  {model:"ГАЗель Next",wheelchair:true},
+  {model:"Лада Ларгус",wheelchair:false}
+];
+const PLATE_LETTERS="АВЕКМНОРСТУХ";
+const PLATE_LAT={A:"А",B:"В",E:"Е",K:"К",M:"М",H:"Н",O:"О",P:"Р",C:"С",T:"Т",Y:"У",X:"Х"};
+
+function fleetBranch(city){return (typeof branchContent!=="undefined"&&branchContent[city||currentCity])||null;}
+function fleetOf(city){
+  const b=fleetBranch(city);
+  if(!b)return [];
+  if(!Array.isArray(b.fleet))b.fleet=[];
+  b.fleet.forEach(function(c){if(c&&!c.id)c.id="car_"+Math.random().toString(36).slice(2,8);});
+  return b.fleet;
+}
+function fleetCarById(id,city){return fleetOf(city).find(function(c){return c.id===id;})||null;}
+
+/* ═══ Соцобъекты — быстрые адреса назначения ═══ */
+const PLACE_TYPES=[["hospital","🏥","Больница"],["clinic","🩺","Поликлиника"],["pharmacy","💊","Аптека"],["mfc","📄","МФЦ"],
+  ["sfr","💰","Соцфонд"],["social","🏢","Соцучреждение"],["other","📍","Другое"]];
+function placeIcon(type){const t=PLACE_TYPES.find(function(x){return x[0]===type;});return t?t[1]:"📍";}
+function placesOf(city){
+  const b=fleetBranch(city);if(!b)return [];
+  if(!Array.isArray(b.places))b.places=[];
+  return b.places;
+}
+
+/* ═══ Смены машин ═══
+   Смена: {id, car, driver, days:[1..7] (1 — пн) ИЛИ date:"ГГГГ-ММ-ДД", from:"08:30", to:"18:00"}.
+   Если в филиале нет ни одной смены — работает обычное расписание такси (08:30–18:00),
+   ничего не ломается и заявки не «падают в лист ожидания». */
+function shiftsOf(city){
+  const b=fleetBranch(city);if(!b)return [];
+  if(!Array.isArray(b.shifts))b.shifts=[];
+  return b.shifts;
+}
+function shiftsEnabled(city){
+  return shiftsOf(city).some(function(sh){const c=fleetCarById(sh.car,city);return c&&c.active!==false;});
+}
+function isoDow(iso){const d=new Date(iso+"T00:00:00");const w=d.getDay();return w===0?7:w;}
+/* Смены, которые работают в этот день (машина на линии; при нужде в коляске — только такие машины). */
+function shiftsOn(iso,opts,city){
+  opts=opts||{};
+  const dow=isoDow(iso);
+  return shiftsOf(city).filter(function(sh){
+    const car=fleetCarById(sh.car,city);
+    if(!car||car.active===false)return false;
+    if(opts.wheelchair&&!car.wheelchair)return false;
+    if(sh.date)return sh.date===iso;
+    return Array.isArray(sh.days)&&sh.days.indexOf(dow)>=0;
+  });
+}
+function tMin(hhmm){const p=String(hhmm||"").split(":");return (+p[0]||0)*60+(+p[1]||0);}
+/* Свободные слоты подачи в этот день по сменам. null — смены не заданы, работает обычное расписание. */
+function taxiSlotsFor(iso,opts,city){
+  if(!shiftsEnabled(city))return null;
+  const list=shiftsOn(iso,opts,city);
+  const ok={};
+  taxiTimeSlots().forEach(function(t){
+    if(isBreakTime(t))return;
+    const m=tMin(t);
+    if(list.some(function(sh){return m>=tMin(sh.from)&&m<=tMin(sh.to);}))ok[t]=1;
+  });
+  return ok;
+}
+function fleetActive(city){return fleetOf(city).filter(function(c){return c&&c.active!==false&&String(c.model||"").trim();});}
+function fleetHasWheelchair(city){return fleetActive(city).some(function(c){return c.wheelchair;});}
+
+/* Госномер: латиница → кириллица, без пробелов, верхний регистр. */
+function plateNormalize(p){
+  return String(p||"").toUpperCase().replace(/[ABEKMHOPCTYX]/g,function(ch){return PLATE_LAT[ch]||ch;}).replace(/[^А-ЯЁ0-9]/g,"");
+}
+function plateValid(p){
+  const n=plateNormalize(p);
+  return new RegExp("^["+PLATE_LETTERS+"]\\d{3}["+PLATE_LETTERS+"]{2}\\d{2,3}$").test(n);
+}
+/* Номер в виде российского знака: «А 123 ВС | 89 RUS». */
+function plateHtml(p){
+  const n=plateNormalize(p);
+  if(!plateValid(n))return n?'<span class="plate plate-raw">'+n+'</span>':"";
+  return '<span class="plate" aria-label="Госномер '+n+'"><span class="plate-main">'+n[0]+'<b>'+n.slice(1,4)+'</b>'+n.slice(4,6)+'</span>'+
+    '<span class="plate-reg"><b>'+n.slice(6)+'</b><i>RUS</i></span></span>';
+}
+
+/* Предварительное назначение машины на заказ. */
+function fleetPick(opts,city){
+  opts=opts||{};
+  /* Есть смены — берём машину, чья смена покрывает время подачи. */
+  if(opts.date&&opts.time&&shiftsEnabled(city)){
+    const m=tMin(opts.time);
+    const cover=shiftsOn(opts.date,{wheelchair:!!opts.wheelchair},city).filter(function(sh){return m>=tMin(sh.from)&&m<=tMin(sh.to);});
+    if(cover.length){
+      const sh=cover.find(function(x){const c=fleetCarById(x.car,city);return opts.wheelchair||!c.wheelchair;})||cover[0];
+      const car=fleetCarById(sh.car,city);
+      return {model:car.model,plate:plateNormalize(car.plate),color:car.color||"",wheelchair:!!car.wheelchair,driver:sh.driver||car.driver||"",note:""};
+    }
+  }
+  const list=fleetActive(city);
+  if(!list.length)return null;
+  let car=null,note="";
+  if(opts.wheelchair){
+    car=list.find(function(c){return c.wheelchair;});
+    if(!car){car=list[0];note="Машины для коляски на линии нет — диспетчер уточнит возможность поездки.";}
+  }else{
+    car=list.find(function(c){return !c.wheelchair;})||list[0];
+  }
+  return {model:car.model,plate:plateNormalize(car.plate),color:car.color||"",wheelchair:!!car.wheelchair,driver:car.driver||"",note:note};
+}
+function carLine(car){
+  if(!car)return "";
+  return car.model+(car.color?", "+car.color:"")+(car.plate?", госномер "+car.plate:"")+(car.wheelchair?" (для колясок)":"");
+}
+
+/* ── Время до подачи ── */
+function taxiRideStart(tx){
+  const d=new Date(String(tx.date)+"T"+(tx.time||"00:00")+":00");
+  return isNaN(d)?null:d;
+}
+/* Состояние поездки: upcoming / soon / now / done / cancelled */
+function taxiRideState(tx,now){
+  if(tx.status==="cancelled")return {key:"cancelled",label:"Отменено",eta:""};
+  const st=taxiRideStart(tx);if(!st)return {key:"upcoming",label:"Заказано",eta:""};
+  now=now||new Date();
+  const mins=Math.round((st-now)/60000);
+  const dur=parseInt(tx.duration,10)||30;
+  if(mins>120)return {key:"upcoming",label:"Заказано",eta:"Подача "+etaHuman(mins)};
+  if(mins>0)return {key:"soon",label:"Скоро подача",eta:"Подача "+etaHuman(mins)};
+  if(mins>-(dur+15))return {key:"now",label:"Машина подаётся",eta:"Машина должна подъехать к "+tx.time};
+  return {key:"done",label:"Поездка прошла",eta:""};
+}
+function etaHuman(mins){
+  if(mins<1)return "сейчас";
+  const d=Math.floor(mins/1440),h=Math.floor((mins%1440)/60),m=mins%60;
+  if(d>=1)return "через "+d+" "+fleetPlural(d,["день","дня","дней"])+(h?" "+h+" ч":"");
+  if(h>=1)return "через "+h+" ч"+(m?" "+m+" мин":"");
+  return "через "+m+" мин";
+}
+function fleetPlural(n,f){const a=n%10,b=n%100;return (a===1&&b!==11)?f[0]:(a>=2&&a<=4&&(b<10||b>=20))?f[1]:f[2];}
+function rideDateHuman(date,time){
+  const d=new Date(String(date)+"T00:00:00");if(isNaN(d))return date+" "+(time||"");
+  const today=new Date();today.setHours(0,0,0,0);
+  const diff=Math.round((d-today)/864e5);
+  const day=diff===0?"сегодня":diff===1?"завтра":diff===2?"послезавтра":d.toLocaleDateString("ru-RU",{day:"numeric",month:"long",weekday:"short"});
+  return day+" в "+(time||"");
+}
+
+/* Карточка машины для экрана подтверждения и «Моих заявок». */
+function carCardHtml(tx){
+  const car=tx.car;
+  const state=taxiRideState(tx);
+  const when=rideDateHuman(tx.date,tx.time);
+  if(!car){
+    return '<div class="car-card car-none"><div class="car-ico" aria-hidden="true">🚕</div><div class="car-main">'+
+      '<b>Машину назначит диспетчер</b><span>Модель и госномер сообщат при подтверждении поездки.</span>'+
+      '<span class="car-eta" data-eta="'+tx.num+'">'+(state.eta||("Подача "+when))+'</span></div></div>';
+  }
+  return '<div class="car-card'+(state.key==="now"?" car-now":"")+'">'+
+    '<div class="car-ico" aria-hidden="true">'+(car.wheelchair?"🚐":"🚗")+'</div>'+
+    '<div class="car-main"><span class="car-lbl">Ваша машина'+(tx.carConfirmed?"":" · предварительно")+'</span>'+
+      '<b class="car-model">'+car.model+(car.color?' <em>'+car.color+'</em>':'')+'</b>'+
+      (car.plate?plateHtml(car.plate):'<span class="car-noplate">госномер сообщит диспетчер</span>')+
+      (car.wheelchair?'<span class="car-tag">♿ Для колясок</span>':'')+
+      (car.driver?'<span class="car-driver">Водитель: '+car.driver+'</span>':'')+
+      '<span class="car-eta" data-eta="'+tx.num+'">'+(state.eta||("Подача "+when))+'</span>'+
+      (car.note?'<span class="car-note">'+car.note+'</span>':'')+
+    '</div></div>';
+}
+
+/* Обновление отсчёта «через N мин» на открытом экране раз в 30 секунд. */
+setInterval(function(){
+  const els=document.querySelectorAll("[data-eta]");if(!els.length)return;
+  let hist=[];try{hist=JSON.parse(localStorage.getItem("taxiHistory")||"[]");}catch(e){}
+  els.forEach(function(el){
+    const tx=hist.find(function(x){return x.num===el.dataset.eta;});if(!tx)return;
+    const s=taxiRideState(tx);
+    el.textContent=s.eta||("Подача "+rideDateHuman(tx.date,tx.time));
+    const badge=document.querySelector('[data-eta-badge="'+tx.num+'"]');
+    if(badge){badge.textContent=s.label;badge.className="st-badge st-taxi-"+s.key;}
+  });
+},30000);
+
+/* Ближайшая предстоящая поездка — для чат-бота. */
+function nextTaxiRide(){
+  let hist=[];try{hist=JSON.parse(localStorage.getItem("taxiHistory")||"[]");}catch(e){}
+  const now=new Date();
+  return hist.filter(function(t){const s=taxiRideState(t,now);return s.key==="upcoming"||s.key==="soon"||s.key==="now";})
+    .sort(function(a,b){return (taxiRideStart(a)||0)-(taxiRideStart(b)||0);})[0]||null;
+}
 
 ;
 
@@ -3671,6 +3885,9 @@ function signupEvent(id){
       const o=ov.branchContent[c];
       if(o.services){b.services.length=0;o.services.forEach(x=>b.services.push(x));}
       if(o.staff){b.staff.length=0;o.staff.forEach(x=>b.staff.push(x));}
+      if(Array.isArray(o.fleet))b.fleet=o.fleet.slice();
+      if(Array.isArray(o.shifts))b.shifts=o.shifts.slice();
+      if(Array.isArray(o.places))b.places=o.places.slice();
     }
     if(ov.newsData&&typeof newsData!=="undefined"){newsData.length=0;ov.newsData.forEach(x=>newsData.push(x));}
     if(ov.eventsData&&typeof eventsData!=="undefined"){eventsData.length=0;ov.eventsData.forEach(x=>eventsData.push(x));}
@@ -3690,7 +3907,7 @@ function signupEvent(id){
       TIME_FIELDS.forEach(f=>{if(cityData[c][f]!=null)ov.cityData[c][f]=cityData[c][f];});
     }
     for(const c in branchContent){
-      ov.branchContent[c]={services:branchContent[c].services,staff:branchContent[c].staff};
+      ov.branchContent[c]={services:branchContent[c].services,staff:branchContent[c].staff,fleet:branchContent[c].fleet||[],shifts:branchContent[c].shifts||[],places:branchContent[c].places||[]};
     }
     if(typeof newsData!=="undefined")ov.newsData=newsData;
     if(typeof eventsData!=="undefined")ov.eventsData=eventsData;
@@ -3919,6 +4136,7 @@ function signupEvent(id){
     ["contacts","📍","Контакты",true],
     ["services","📋","Услуги",true],
     ["staff","👥","Сотрудники",true],
+    ["fleet","🚐","Соц. такси",true],
     ["news","📰","Новости"],
     ["events","🎟️","Мероприятия"],
     ["gallery","🖼️","Галерея"],
@@ -4037,7 +4255,7 @@ function signupEvent(id){
     const body=document.getElementById("admBody");
     if(!body)return;
     body.scrollTop=0;
-    ({overview:renderOverview,contacts:renderContacts,services:renderServices,staff:renderStaff,news:renderNews,
+    ({overview:renderOverview,contacts:renderContacts,services:renderServices,staff:renderStaff,fleet:renderFleet,news:renderNews,
       events:renderEvents,gallery:renderGallery,templates:renderTemplates,stats:renderStats,publish:renderPublish}[editTab]||renderOverview)(body);
   }
   function head(title,sub){
@@ -4063,6 +4281,16 @@ function signupEvent(id){
         if(k&&seen[k]!=null&&seen[k]!==it.p)out.push(["services","Одна услуга с разными ценами ("+seen[k]+" и "+it.p+" ₽): «"+n.slice(0,60)+"»",n.slice(0,30)]);
         if(k)seen[k]=it.p;
       });
+    });
+    const hasTaxi=b.services.some(cat=>/перевозк/i.test(cat.name)&&cat.items.length);
+    const fl=(b.fleet||[]).filter(x=>x.active!==false&&String(x.model||"").trim());
+    if(hasTaxi&&!fl.length)out.push(["fleet","Не заполнен автопарк такси — клиенты не видят, какая машина приедет",""]);
+    if(hasTaxi&&fl.length&&!(b.shifts||[]).length)out.push(["fleet","Смены такси не заданы — жители видят всё время 08:30–18:00",""]);
+    (b.shifts||[]).forEach(sh=>{if(!(b.fleet||[]).some(c=>c.id===sh.car))out.push(["fleet","Смена без машины (машину удалили)",""]);});
+    (b.fleet||[]).forEach(x=>{
+      if(!String(x.model||"").trim())out.push(["fleet","Машина без модели",""]);
+      else if(!x.plate)out.push(["fleet","Нет госномера: "+x.model,""]);
+      else if(typeof plateValid==="function"&&!plateValid(x.plate))out.push(["fleet","Госномер записан с ошибкой: "+x.model+" "+x.plate,""]);
     });
     b.staff.forEach(p=>{
       if(!String(p.name||"").trim()||p.name==="Новый сотрудник")out.push(["staff","Сотрудник без ФИО",""]);
@@ -4335,6 +4563,174 @@ function signupEvent(id){
     body.querySelector("#staffSearch").oninput=e=>{staffFilter=e.target.value;draw();};
     body.querySelector("#addSt").onclick=()=>add("");
     draw();
+  }
+
+  /* ═══ Соц. такси: машины, смены, соцобъекты ═══ */
+  let taxiSub="cars";
+  function renderFleet(body){
+    if(typeof fleetOf==="function")fleetOf(editCity); /* выдаём машинам id */
+    const subs=[["cars","🚗","Машины",(branchContent[editCity].fleet||[]).length],["shifts","🗓️","Смены",(branchContent[editCity].shifts||[]).length],["places","📍","Соцобъекты",(branchContent[editCity].places||[]).length]];
+    body.innerHTML=head("Соц. такси — "+CITY_NAMES[editCity],"Машины, смены и быстрые адреса. После изменений опубликуйте данные — жители увидят их в приложении.")+
+      `<div><div class="adm2-seg" role="tablist">${subs.map(([k,i,l,n])=>`<button type="button" role="tab" class="adm2-seg-b${k===taxiSub?" on":""}" data-sub="${k}" aria-selected="${k===taxiSub}">${i} ${l}<span class="adm2-count">${n}</span></button>`).join("")}</div></div><div id="taxiSubBody"></div>`;
+    body.querySelectorAll("[data-sub]").forEach(b=>b.onclick=()=>{flushSave();taxiSub=b.dataset.sub;renderFleet(body);});
+    const sb=body.querySelector("#taxiSubBody");
+    if(taxiSub==="shifts")return renderShifts(sb,body);
+    if(taxiSub==="places")return renderPlaces(sb);
+    renderCars(sb);
+  }
+  function renderCars(body){
+    const b=branchContent[editCity];if(!Array.isArray(b.fleet))b.fleet=[];
+    const fleet=b.fleet;
+    let html=`<div class="adm2-banner ok" style="margin-bottom:14px"><span class="adm2-banner-ico">ℹ️</span><div><b>Как назначается машина</b>
+      <span>Если клиенту нужна машина для коляски — назначается машина с отметкой «Для колясок». Иначе — первая обычная машина «на линии» (порядок — как в списке). Это предварительное назначение: диспетчер подтверждает его по телефону.</span></div></div>`;
+    html+=`<div class="adm2-toolbar">${FLEET_PRESETS.map((p,i)=>`<button type="button" class="adm2-btn ghost" data-preset="${i}">+ ${p.model}</button>`).join("")}
+      <button type="button" class="adm2-btn" id="addCar">+ Другая машина</button></div>
+      <datalist id="admCarModels">${FLEET_PRESETS.map(p=>`<option value="${p.model}">`).join("")}<option value="Лада Гранта"><option value="Hyundai Solaris"><option value="Volkswagen Caddy"></datalist>
+      <div id="flList"></div>`;
+    body.innerHTML=html;
+    const list=body.querySelector("#flList");
+    const draw=()=>{
+      if(!fleet.length){list.innerHTML='<div class="adm2-empty">Машин пока нет. Добавьте ГАЗель Next, Ладу Ларгус или другую машину кнопками выше.</div>';return;}
+      list.innerHTML=fleet.map((c,i)=>`<article class="adm2-post adm2-car${c.active===false?" off":""}">
+        <div class="adm2-car-head">
+          <span class="adm2-car-ico">${c.wheelchair?"🚐":"🚗"}</span>
+          <div class="adm2-car-prev">${c.plate&&typeof plateHtml==="function"?plateHtml(c.plate):'<span class="adm2-note">госномер не указан</span>'}</div>
+          <div class="adm2-car-moves">
+            <button type="button" class="adm2-icon-btn" data-up="${i}" aria-label="Выше" title="Выше — назначается раньше" ${i===0?"disabled":""}>↑</button>
+            <button type="button" class="adm2-icon-btn" data-down="${i}" aria-label="Ниже" title="Ниже" ${i===fleet.length-1?"disabled":""}>↓</button>
+            <button type="button" class="adm2-icon-btn danger" data-delcar="${i}" aria-label="Удалить машину" title="Удалить">🗑</button>
+          </div>
+        </div>
+        <div class="adm2-form pad" style="padding:0">
+          <label class="adm2-fld"><span>Модель</span><input class="adm2-inp" data-car="${i}" data-f="model" list="admCarModels" value="${esc(c.model)}" placeholder="Например, ГАЗель Next"></label>
+          <label class="adm2-fld"><span>Госномер</span><input class="adm2-inp" data-car="${i}" data-f="plate" value="${esc(c.plate)}" placeholder="А123ВС89" autocapitalize="characters">
+            <em class="adm2-err" data-err="plate${i}"></em></label>
+          <label class="adm2-fld"><span>Цвет</span><input class="adm2-inp" data-car="${i}" data-f="color" value="${esc(c.color)}" placeholder="Например, белый"></label>
+          <label class="adm2-fld"><span>Водитель (необязательно)</span><input class="adm2-inp" data-car="${i}" data-f="driver" value="${esc(c.driver)}" placeholder="Фамилия И. О."></label>
+          <label class="adm2-check"><input type="checkbox" data-car="${i}" data-f="wheelchair" ${c.wheelchair?"checked":""}> ♿ Для инвалидных колясок</label>
+          <label class="adm2-check"><input type="checkbox" data-car="${i}" data-f="active" ${c.active!==false?"checked":""}> На линии (можно назначать)</label>
+        </div>
+      </article>`).join("");
+      list.querySelectorAll("[data-car]").forEach(inp=>{
+        const i=+inp.dataset.car,f=inp.dataset.f;
+        if(inp.type==="checkbox"){inp.onchange=()=>{fleet[i][f]=inp.checked;touch();draw();};return;}
+        inp.oninput=()=>{fleet[i][f]=inp.value.trim();if(f==="plate")checkPlate(i,inp.value);touch();};
+        if(f==="plate"){
+          checkPlate(i,inp.value);
+          inp.onblur=()=>{if(inp.value.trim()){const n=plateNormalize(inp.value);inp.value=n;fleet[i].plate=n;touch();draw();}};
+        }
+      });
+      list.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{const i=+b.dataset.up;[fleet[i-1],fleet[i]]=[fleet[i],fleet[i-1]];touch();draw();});
+      list.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{const i=+b.dataset.down;[fleet[i+1],fleet[i]]=[fleet[i],fleet[i+1]];touch();draw();});
+      list.querySelectorAll("[data-delcar]").forEach(b=>b.onclick=()=>{
+        const i=+b.dataset.delcar,c=fleet[i];
+        const sh=shiftsOf(editCity),gone=sh.filter(x=>x.car===c.id);
+        if(gone.length&&!confirm("У машины "+gone.length+" "+plural(gone.length,["смена","смены","смен"])+" — они тоже удалятся. Продолжить?"))return;
+        fleet.splice(i,1);for(let k=sh.length-1;k>=0;k--)if(sh[k].car===c.id)sh.splice(k,1);
+        touch();draw();
+        undoable("Машина удалена",()=>{fleet.splice(i,0,c);gone.forEach(x=>sh.push(x));});
+      });
+    };
+    const checkPlate=(i,v)=>{
+      const e=list.querySelector(`[data-err="plate${i}"]`);if(!e)return;
+      e.textContent=v.trim()&&!plateValid(v)?"Формат: буква, 3 цифры, 2 буквы, регион — например А123ВС89":"";
+    };
+    const add=(p)=>{
+      fleet.push({model:p?p.model:"",plate:"",color:"",driver:"",wheelchair:p?!!p.wheelchair:false,active:true});touch();draw();
+      const inps=list.querySelectorAll(p?'[data-f="plate"]':'[data-f="model"]');const last=inps[inps.length-1];if(last){last.focus();last.scrollIntoView({block:"center"});}
+    };
+    body.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>add(FLEET_PRESETS[+b.dataset.preset]));
+    body.querySelector("#addCar").onclick=()=>add(null);
+    draw();
+  }
+
+  const DOW=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+  function renderShifts(sb,parentBody){
+    const b=branchContent[editCity];
+    const fleet=fleetOf(editCity),shifts=shiftsOf(editCity);
+    if(!fleet.length){sb.innerHTML='<div class="adm2-empty">Сначала добавьте машины во вкладке «Машины».</div>';return;}
+    let html=`<div class="adm2-banner ok" style="margin-bottom:14px"><span class="adm2-banner-ico">ℹ️</span><div><b>Как это работает</b>
+      <span>Жителю доступны только дни и часы, когда хотя бы одна машина на линии (обед ${WORK_BREAK.from}–${WORK_BREAK.to} — всегда закрыт). Нужна коляска — только смены машин «для колясок». Смен нет — действует обычное расписание 08:30–18:00.</span></div></div>`;
+    html+=`<div class="adm2-post"><b style="font-size:15px">Новая смена</b>
+      <div class="adm2-form pad" style="padding:0">
+        <label class="adm2-fld"><span>Машина</span><select class="adm2-inp" id="shCar">${fleet.map(c=>`<option value="${c.id}">${esc(c.model)}${c.plate?" · "+esc(c.plate):""}${c.wheelchair?" ♿":""}</option>`).join("")}</select></label>
+        <label class="adm2-fld"><span>Водитель (необязательно)</span><input class="adm2-inp" id="shDrv" placeholder="Фамилия И. О."></label>
+        <div class="adm2-fld wide"><span>Когда</span>
+          <div class="adm2-row"><label class="adm2-check"><input type="radio" name="shKind" value="week" checked> Каждую неделю</label><label class="adm2-check"><input type="radio" name="shKind" value="day"> Один день</label></div>
+          <div class="adm2-days" id="shDays">${DOW.map((d,i)=>`<button type="button" class="adm2-day${i<5?" on":""}" data-d="${i+1}" aria-pressed="${i<5}">${d}</button>`).join("")}</div>
+          <input type="date" class="adm2-inp date" id="shDate" style="display:none" value="${taxiIsoSafe()}"></div>
+        <div class="adm2-fld wide"><span>Время на линии</span><div class="adm2-row">
+          <label class="adm2-inline">с <input type="time" class="adm2-inp time" id="shFrom" value="08:30"></label>
+          <label class="adm2-inline">до <input type="time" class="adm2-inp time" id="shTo" value="18:00"></label>
+          <button type="button" class="adm2-btn" id="shAdd">+ Добавить смену</button></div></div>
+      </div></div>`;
+    /* Неделя: кто на линии */
+    const weekStart=(()=>{const d=new Date();const w=d.getDay()||7;d.setDate(d.getDate()-w+1);return d;})();
+    const days=[...Array(7)].map((_,i)=>{const d=new Date(weekStart);d.setDate(d.getDate()+i);return d;});
+    const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    const pct=t=>Math.max(0,Math.min(100,(tMin(t)-tMin("08:00"))/(tMin("19:00")-tMin("08:00"))*100));
+    html+=`<div class="adm2-sub">Эта неделя — кто на линии</div><div class="adm2-week">`;
+    days.forEach(d=>{
+      const on=shiftsOn(iso(d),{},editCity);
+      html+=`<div class="adm2-wday${iso(d)===taxiIsoSafe()?" today":""}"><div class="adm2-wday-h">${DOW[(d.getDay()+6)%7]} <b>${d.getDate()}</b></div><div class="adm2-wday-bars">`+
+        (on.length?on.map(sh=>{const c=fleetCarById(sh.car,editCity);return `<div class="adm2-bar-row" title="${esc(c.model)} ${sh.from}–${sh.to}"><span class="adm2-bar-lbl">${c.wheelchair?"♿ ":""}${esc(c.model)}</span><span class="adm2-bar-line"><i style="left:${pct(sh.from)}%;right:${100-pct(sh.to)}%"></i><em style="left:${pct(WORK_BREAK.from)}%;right:${100-pct(WORK_BREAK.to)}%"></em></span><span class="adm2-bar-t">${sh.from}–${sh.to}</span></div>`;}).join("")
+          :'<div class="adm2-wday-empty">машин нет</div>')+`</div></div>`;
+    });
+    html+=`</div>`;
+    html+=`<div class="adm2-sub">Все смены</div>`;
+    if(!shifts.length)html+='<div class="adm2-empty">Смен пока нет — действует обычное расписание 08:30–18:00.</div>';
+    else html+='<div class="adm2-table-wrap"><table class="adm2-table adm2-shifts"><thead><tr><th>Машина</th><th>Когда</th><th>Время</th><th>Водитель</th><th></th></tr></thead><tbody>'+
+      shifts.map((sh,i)=>{const c=fleetCarById(sh.car,editCity);return `<tr${c?"":" class=\"bad\""}><td>${c?esc(c.model)+(c.plate?" <small>"+esc(c.plate)+"</small>":""):"<b>машина удалена</b>"}</td>
+        <td>${sh.date?new Date(sh.date+"T00:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"long",weekday:"short"}):(sh.days||[]).map(d=>DOW[d-1]).join(", ")}</td>
+        <td>${sh.from}–${sh.to}</td><td>${esc(sh.driver||"—")}</td>
+        <td><button type="button" class="adm2-icon-btn danger" data-delsh="${i}" aria-label="Удалить смену">🗑</button></td></tr>`;}).join("")+'</tbody></table></div>';
+    sb.innerHTML=html;
+    const kindR=()=>sb.querySelector('input[name="shKind"]:checked').value;
+    sb.querySelectorAll('input[name="shKind"]').forEach(r=>r.onchange=()=>{const w=kindR()==="week";sb.querySelector("#shDays").style.display=w?"":"none";sb.querySelector("#shDate").style.display=w?"none":"";});
+    sb.querySelectorAll(".adm2-day").forEach(b=>b.onclick=()=>{b.classList.toggle("on");b.setAttribute("aria-pressed",b.classList.contains("on"));});
+    sb.querySelector("#shAdd").onclick=()=>{
+      const from=sb.querySelector("#shFrom").value,to=sb.querySelector("#shTo").value;
+      if(!from||!to||tMin(to)<=tMin(from)){showToast("Время окончания должно быть позже начала");return;}
+      const sh={id:"sh_"+Date.now().toString(36),car:sb.querySelector("#shCar").value,driver:sb.querySelector("#shDrv").value.trim(),from,to};
+      if(kindR()==="week"){sh.days=[...sb.querySelectorAll(".adm2-day.on")].map(b=>+b.dataset.d);if(!sh.days.length){showToast("Отметьте хотя бы один день");return;}}
+      else{sh.date=sb.querySelector("#shDate").value;if(!sh.date){showToast("Укажите дату");return;}}
+      /* пересечение смен одной машины */
+      const clash=shifts.find(x=>x.car===sh.car&&tMin(x.from)<tMin(sh.to)&&tMin(sh.from)<tMin(x.to)&&
+        ((x.date&&sh.date&&x.date===sh.date)||(x.days&&sh.days&&x.days.some(d=>sh.days.includes(d)))||(x.date&&sh.days&&sh.days.includes(isoDow(x.date)))||(sh.date&&x.days&&x.days.includes(isoDow(sh.date)))));
+      if(clash&&!confirm("У этой машины уже есть смена в это время ("+clash.from+"–"+clash.to+"). Всё равно добавить?"))return;
+      shifts.push(sh);touch();renderFleet(parentBody);showToast("Смена добавлена");
+    };
+    sb.querySelectorAll("[data-delsh]").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.delsh,sh=shifts[i];shifts.splice(i,1);touch();renderFleet(parentBody);
+      undoable("Смена удалена",()=>shifts.splice(i,0,sh));
+    });
+  }
+  function renderPlaces(sb){
+    const places=placesOf(editCity);
+    let html=`<div class="adm2-banner ok" style="margin-bottom:14px"><span class="adm2-banner-ico">ℹ️</span><div><b>Быстрые адреса для жителей</b>
+      <span>Кнопки под полем «Куда везти» в заказе такси. Нажал — и точный адрес подставился. Пока список пуст, показываются стандартные кнопки (больница, поликлиника, аптека…) с поиском по карте.</span></div></div>`;
+    html+=`<div class="adm2-post"><b style="font-size:15px">Новый соцобъект</b><div class="adm2-row">
+      <select class="adm2-inp" id="plType" style="max-width:190px" aria-label="Тип">${PLACE_TYPES.map(t=>`<option value="${t[0]}">${t[1]} ${t[2]}</option>`).join("")}</select>
+      <input class="adm2-inp grow" id="plName" placeholder="Название, например Городская больница" style="flex:1;min-width:200px">
+      <input class="adm2-inp grow" id="plAddr" placeholder="Адрес: улица, дом" style="flex:1;min-width:200px">
+      <button type="button" class="adm2-btn" id="plAdd">+ Добавить</button></div></div>`;
+    if(!places.length)html+='<div class="adm2-empty">Соцобъектов пока нет.</div>';
+    else html+='<div class="adm2-places">'+places.map((pl,i)=>`<div class="adm2-place">
+      <select class="adm2-inp" data-pl="${i}" data-f="type" aria-label="Тип">${PLACE_TYPES.map(t=>`<option value="${t[0]}"${pl.type===t[0]?" selected":""}>${t[1]}</option>`).join("")}</select>
+      <input class="adm2-inp strong" data-pl="${i}" data-f="name" value="${esc(pl.name)}" aria-label="Название">
+      <input class="adm2-inp" data-pl="${i}" data-f="address" value="${esc(pl.address)}" aria-label="Адрес">
+      <div class="adm2-car-moves"><button type="button" class="adm2-icon-btn" data-plup="${i}" ${i===0?"disabled":""} aria-label="Выше">↑</button>
+      <button type="button" class="adm2-icon-btn danger" data-delpl="${i}" aria-label="Удалить">🗑</button></div></div>`).join("")+'</div>';
+    sb.innerHTML=html;
+    sb.querySelector("#plAdd").onclick=()=>{
+      const name=sb.querySelector("#plName").value.trim(),address=sb.querySelector("#plAddr").value.trim();
+      if(!name||!address){showToast("Укажите название и адрес");return;}
+      places.push({type:sb.querySelector("#plType").value,name,address});touch();renderPlaces(sb);
+      const cnt=document.querySelector('.adm2-seg-b[data-sub="places"] .adm2-count');if(cnt)cnt.textContent=places.length;
+    };
+    sb.querySelectorAll("[data-pl]").forEach(inp=>{const h=()=>{places[+inp.dataset.pl][inp.dataset.f]=inp.value.trim();touch();};inp.oninput=h;inp.onchange=h;});
+    sb.querySelectorAll("[data-plup]").forEach(b=>b.onclick=()=>{const i=+b.dataset.plup;[places[i-1],places[i]]=[places[i],places[i-1]];touch();renderPlaces(sb);});
+    sb.querySelectorAll("[data-delpl]").forEach(b=>b.onclick=()=>{const i=+b.dataset.delpl,pl=places[i];places.splice(i,1);touch();renderPlaces(sb);undoable("Соцобъект удалён",()=>places.splice(i,0,pl));});
   }
 
   /* ═══ Новости ═══ */
@@ -5455,11 +5851,13 @@ function showTaxi(keepState,prefillTo){
     </div>
     <div class="taxi-quick-dest">
       <div class="taxi-quick-dest-chips" id="taxiQuickDest">
-        <button type="button" class="taxi-chip" data-q="Больница">🏥 Больница</button>
+        ${placesOf().length
+          ? placesOf().map(function(pl,i){return '<button type="button" class="taxi-chip" data-place="'+i+'" title="'+String(pl.address||"").replace(/"/g,"&quot;")+'">'+placeIcon(pl.type)+' '+String(pl.name||"").replace(/</g,"&lt;")+'</button>';}).join("")
+          : `<button type="button" class="taxi-chip" data-q="Больница">🏥 Больница</button>
         <button type="button" class="taxi-chip" data-q="Поликлиника">🩺 Поликлиника</button>
         <button type="button" class="taxi-chip" data-q="Аптека">💊 Аптека</button>
         <button type="button" class="taxi-chip" data-q="МФЦ">📄 МФЦ</button>
-        <button type="button" class="taxi-chip" data-q="Пенсионный фонд">💰 Пенсионный фонд</button>
+        <button type="button" class="taxi-chip" data-q="Пенсионный фонд">💰 Пенсионный фонд</button>`}
         <button type="button" class="taxi-chip" data-cson="1">🏢 ЦСОН «Гармония»</button>
       </div>
     </div>
@@ -5477,6 +5875,12 @@ function showTaxi(keepState,prefillTo){
         const cd=cityData[currentCity]||cityData.gubkin;
         toInput.value=cleanAddressLabel(cd.address);
         toSuggest.classList.add("gone");
+      }else if(chip.dataset.place!=null){
+        // Соцобъект из админки: точный адрес, без поиска на карте
+        const pl=placesOf()[+chip.dataset.place];
+        toInput.value=pl.name+", "+pl.address;
+        toSuggest.classList.add("gone");
+        taxiState.to=toInput.value;
       }else{
         toInput.value=chip.dataset.q+" "+currentCityName;
         taxiFetchSuggestions(chip.dataset.q,toSuggest,toInput);
@@ -5590,6 +5994,7 @@ function showTaxiDateTime(tariffs){
       <input type="hidden" id="taxiDate" value="${today}">
       <input type="hidden" id="taxiTime" value="">
     </div>
+    ${fleetHasWheelchair()?`<label class="taxi-wheel"><input type="checkbox" id="taxiWheel"${taxiState.wheelchair?" checked":""}><span><b>♿ Нужна машина для инвалидной коляски</b><small>Назначим машину, приспособленную для коляски</small></span></label>`:""}
     <div class="taxi-rcp" id="taxiRcp"></div>
     <div class="eq-field"><span class="eq-field-ico">👥</span><div class="eq-field-body"><label class="eq-field-lbl">Количество пассажиров</label>
       <div class="taxi-pax-stepper">
@@ -5690,15 +6095,40 @@ function taxiRenderDateTimePicker(){
   }).join("");
   dateHidden.value=taxiIso(days[0]);
 
+  function wheelNeeded(){const w=document.getElementById("taxiWheel");return !!(w&&w.checked);}
+  /* Дни без машин на линии (по сменам из админки) — неактивны. */
+  function markDates(){
+    let firstOk=null;
+    dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(btn){
+      const sl=taxiSlotsFor(btn.dataset.iso,{wheelchair:wheelNeeded()});
+      const off=sl!==null&&!Object.keys(sl).length;
+      btn.classList.toggle("off",off);btn.disabled=off;
+      btn.title=off?"В этот день машин на линии нет":"";
+      if(!off&&!firstOk)firstOk=btn;
+    });
+    const sel=dateScroll.querySelector(".taxi-date-chip.sel");
+    if((!sel||sel.disabled)&&firstOk){
+      dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(b){b.classList.remove("sel");});
+      firstOk.classList.add("sel");dateHidden.value=firstOk.dataset.iso;
+    }
+  }
   function renderTimeGrid(){
     // Слоты по 30 минут с 08:30 до 18:00; обеденные (12:30–13:30) — неактивны.
+    // Если в админке заданы смены — доступны только часы, когда машина на линии.
     const slots=taxiTimeSlots();
-    const free=slots.filter(function(t){return !isBreakTime(t);});
-    const cur=free.indexOf(timeHidden.value)>=0?timeHidden.value:free[0];
+    const shiftOk=taxiSlotsFor(dateHidden.value,{wheelchair:wheelNeeded()});
+    const avail=function(t){return !isBreakTime(t)&&(shiftOk===null||!!shiftOk[t]);};
+    const free=slots.filter(avail);
+    const cur=free.indexOf(timeHidden.value)>=0?timeHidden.value:(free[0]||"");
+    if(!free.length){
+      timeGrid.innerHTML='<div class="taxi-break-note taxi-noslots">🚫 На эту дату свободных машин нет'+(wheelNeeded()?" для коляски":"")+' — выберите другой день.</div>';
+      timeHidden.value="";return;
+    }
     timeGrid.innerHTML=slots.map(function(t){
-      const br=isBreakTime(t);
-      return '<button type="button" class="taxi-time-chip'+(br?" busy":"")+(t===cur?" sel":"")+'"'+(br?' disabled aria-disabled="true" title="Обеденный перерыв"':'')+' data-time="'+t+'" aria-label="Подача в '+t+(br?' — обеденный перерыв':'')+'">'+t+'</button>';
-    }).join("")+'<div class="taxi-break-note">🍽 '+TAXI_RULES.breakFrom+'–'+TAXI_RULES.breakTo+' — обеденный перерыв, машину не подают</div>';
+      const br=isBreakTime(t),na=!br&&!avail(t),dis=br||na;
+      const why=br?"Обеденный перерыв":"Машин на линии нет";
+      return '<button type="button" class="taxi-time-chip'+(dis?" busy":"")+(t===cur?" sel":"")+'"'+(dis?' disabled aria-disabled="true" title="'+why+'"':'')+' data-time="'+t+'" aria-label="Подача в '+t+(dis?' — '+why.toLowerCase():'')+'">'+t+'</button>';
+    }).join("")+'<div class="taxi-break-note">🍽 '+TAXI_RULES.breakFrom+'–'+TAXI_RULES.breakTo+' — обеденный перерыв, машину не подают'+(shiftOk!==null?'<br>🚐 Показано время, когда машины на линии':'')+'</div>';
     timeHidden.value=cur;
     timeGrid.querySelectorAll(".taxi-time-chip:not(.busy)").forEach(function(b){
       b.onclick=function(){
@@ -5707,7 +6137,10 @@ function taxiRenderDateTimePicker(){
       };
     });
   }
+  markDates();
   renderTimeGrid();
+  window.taxiRefreshAvailability=function(){markDates();renderTimeGrid();};
+  setTimeout(function(){const w=document.getElementById("taxiWheel");if(w)w.addEventListener("change",function(){window.taxiRefreshAvailability();});},0);
 
   dateScroll.querySelectorAll(".taxi-date-chip").forEach(function(btn){
     btn.onclick=function(){
@@ -5939,16 +6372,19 @@ function taxiSubmitOrder(o){
   const cd=cityData[currentCity]||cityData.gubkin;
   const passengerNames=o.passengerNames||[];
   const r=o.recipient||{name:clientName,phone:clientPhone,snils:clientSnils};
-  const body=`Заказ социального такси\nНомер заявки: ${ticketNum}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nЗАКАЗЧИК\nФИО: ${r.name}\nТелефон: ${r.phone}${isFree&&r.snils?"\nСНИЛС: "+r.snils:""}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
+  const car=fleetPick({wheelchair:!!o.wheelchair,date:o.date,time:o.time});
+  const carTxt=`\nМашина (предварительно): ${car?carLine(car):"не назначена — назначьте при подтверждении"}${o.wheelchair?"\nНужна машина для инвалидной коляски: ДА":""}`;
+  const body=`Заказ социального такси\nНомер заявки: ${ticketNum}${carTxt}\nТариф: ${t.label} (${t.duration} мин)\nСтоимость: ${isFree?"Бесплатно (льготная поездка)":price+" ₽"}\nПассажиров: ${o.pax||1} (${passengerNames.join(", ")||"—"})\nОткуда: ${o.from}\nКуда: ${o.to}\nДата подачи: ${o.date}, время: ${o.time}\nКомментарий: ${o.comment||"—"}\n\nЗАКАЗЧИК\nФИО: ${r.name}\nТелефон: ${r.phone}${isFree&&r.snils?"\nСНИЛС: "+r.snils:""}\n\nЗаявка принята предварительно. Диспетчер свяжется по телефону или пришлёт ответ на эту заявку по почте для подтверждения поездки.`;
   window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Заказ такси № "+ticketNum+" — "+r.name)}&body=${encodeURIComponent(body)}`;
   const taxiHistory=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   taxiHistory.unshift({
     num:ticketNum,tariff:t.label,duration:t.duration,price:price,isFree:isFree,from:o.from,to:o.to,
     pax:o.pax||1,passengerNames:passengerNames,date:o.date,time:o.time,comment:o.comment||"",
-    createdAt:new Date().toISOString(),cityName:currentCityName,recipient:r.name,status:"new"
+    createdAt:new Date().toISOString(),cityName:currentCityName,recipient:r.name,status:"new",
+    car:car,wheelchair:!!o.wheelchair
   });
   localStorage.setItem("taxiHistory",JSON.stringify(taxiHistory));
-  return {ticketNum:ticketNum,price:price,tariff:t,isFree:isFree,
+  return {ticketNum:ticketNum,price:price,tariff:t,isFree:isFree,car:car,tx:taxiHistory[0],
           freeQuotaAfter:isFree?getFreeTaxiQuota():null};
 }
 
@@ -5976,6 +6412,8 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const comment=document.getElementById("taxiComment").value.trim();
   const paxEl=document.getElementById("taxiPax");
   const pax=paxEl?parseInt(paxEl.value)||1:1;
+  const wheelEl=document.getElementById("taxiWheel");
+  const wheelchair=!!(wheelEl&&wheelEl.checked);taxiState.wheelchair=wheelchair;
   const rcpRes=taxiRcpCtl?taxiRcpCtl.validate():{ok:recipientHasName()&&recipientHasPhone(),data:{name:clientName,phone:clientPhone,snils:clientSnils},message:"Укажите ФИО и телефон"};
   if(!rcpRes.ok){showToast(rcpRes.message||"Проверьте данные заказчика");return;}
   const rcp=rcpRes.data;
@@ -5984,7 +6422,7 @@ function taxiConfirmBooking(tariffIdx,isFree){
   const passengerNames=[pax1Name,pax2Name].filter(Boolean);
   if(!from||!to){showToast("Укажите адрес отправления и назначения");return;}
   if(!date||!time){showToast("Укажите дату и время поездки");return;}
-  const rules=taxiCheckRide(date,time);
+  const rules=taxiCheckRide(date,time,{wheelchair:wheelchair});
   if(!rules.ok){showToast(rules.message);return;}
   const existingTaxi=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
   const timeConflict=existingTaxi.find(function(o){return o.date===date&&o.time===time&&o.status!=="cancelled";});
@@ -6001,7 +6439,7 @@ function taxiConfirmBooking(tariffIdx,isFree){
 
   const useMor0=taxiState.moroshkaView&&t.moroshka!=null;
   const res=taxiSubmitOrder({tariff:t,isFree:isFree,price:useMor0?t.moroshka:t.base,
-    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames,recipient:rcp});
+    from:from,to:to,date:date,time:time,comment:comment,pax:pax,passengerNames:passengerNames,recipient:rcp,wheelchair:wheelchair});
   const ticketNum=res.ticketNum, price=res.price;
 
   chatEl.innerHTML="";
@@ -6014,7 +6452,8 @@ function taxiConfirmBooking(tariffIdx,isFree){
       <div class="taxi-confirm-check">✅</div>
       <div class="taxi-confirm-title">Заявка отправлена</div>
       <div class="taxi-confirm-ticket">Заявка № ${ticketNum}</div>
-      <div class="taxi-eta-banner"><span class="taxi-eta-ico">📞</span><div><span class="taxi-eta-lbl">Что дальше</span><span class="taxi-eta-val">Диспетчер свяжется с вами по телефону или пришлёт ответ на почту для подтверждения поездки</span></div></div>
+      ${carCardHtml(res.tx)}
+      <div class="taxi-eta-banner"><span class="taxi-eta-ico">📞</span><div><span class="taxi-eta-lbl">Что дальше</span><span class="taxi-eta-val">Диспетчер позвонит, чтобы подтвердить поездку${res.car?" и машину":" и назвать машину"}. Если машину заменят — сообщит.</span></div></div>
       <div class="taxi-confirm-row"><span>Тариф</span><b>${t.label}</b></div>
       <div class="taxi-confirm-row"><span>Стоимость</span><b>${isFree?"Бесплатно 🎁":price+" ₽"}</b></div>
       ${freeQuotaAfter?`<div class="taxi-confirm-row"><span>Осталось поездок</span><b>${freeQuotaAfter.remaining} из ${freeQuotaAfter.limit}</b></div>`:""}
@@ -6573,18 +7012,21 @@ function renderOrdersPanel(filter){
         <div class="ord-ico ord-ico-taxi">🚕</div>
         <div class="ord-card-main">
           <div class="ord-card-title">Такси ${ticketLabel(tx.num)}</div>
-          <div class="ord-card-date">📅 ${tx.date} в ${tx.time}</div>
+          <div class="ord-card-date">📅 ${rideDateHuman(tx.date,tx.time)}</div>
         </div>
-        <span class="st-badge st-new">Заказано</span>
+        ${(function(){const st=taxiRideState(tx);return `<span class="st-badge st-taxi-${st.key}" data-eta-badge="${tx.num}">${st.label}</span>`;})()}
       </div>
       <div class="ord-card-body">
+        ${tx.status!=="cancelled"?carCardHtml(tx):""}
         <div class="ord-card-sum">${tx.isFree?"Бесплатно 🎁":tx.price+" ₽"} <span class="ord-card-pax">· 👥 ${tx.pax||1}</span></div>
         ${tx.isFree?'<div class="taxi-ord-free-badge">Льготная поездка</div>':""}
         <div class="taxi-ord-route"><span class="taxi-ord-route-from">📍 ${tx.from}</span><span class="taxi-ord-route-to">🏁 ${tx.to}</span></div>
         ${tx.driverName?`<div class="ord-card-detail">🚗 Водитель: ${tx.driverName}</div>`:""}
       </div>
       <div class="ord-card-actions">
-        <button class="ord-act danger" onclick="removeTaxiOrder(${i})">🗑 Удалить</button>
+        ${(function(){const k=taxiRideState(tx).key;return (k==="upcoming"||k==="soon")
+          ?`<button class="ord-act danger" data-taxi-cancel="${i}" onclick="cancelTaxiOrder(${i})">✕ Отменить поездку</button>`
+          :`<button class="ord-act danger" onclick="removeTaxiOrder(${i})">🗑 Убрать из списка</button>`;})()}
       </div>
     </div>`
   }));
@@ -6622,6 +7064,25 @@ function removeOneOrder(idx){
   localStorage.setItem("ordersHistory",JSON.stringify(oh));
   ordersHistory=oh;
   showToast("Заявка удалена");
+  const activeF=document.querySelector(".of-btn.active");
+  renderOrdersPanel(activeF?activeF.dataset.f:"all");
+}
+function cancelTaxiOrder(idx){
+  const btn=document.querySelector('[data-taxi-cancel="'+idx+'"]');
+  if(btn&&!btn.dataset.confirm){
+    btn.dataset.confirm="1";btn.textContent="⚠️ Точно отменить?";btn.classList.add("confirm");
+    setTimeout(()=>{if(btn.dataset.confirm){delete btn.dataset.confirm;btn.textContent="✕ Отменить поездку";btn.classList.remove("confirm");}},4000);
+    return;
+  }
+  const th=JSON.parse(localStorage.getItem("taxiHistory")||"[]");
+  const tx=th[idx];if(!tx)return;
+  tx.status="cancelled";tx.cancelledAt=new Date().toISOString();
+  localStorage.setItem("taxiHistory",JSON.stringify(th));
+  if(tx.isFree&&typeof refundFreeTaxiTrip==="function")refundFreeTaxiTrip();
+  const cd=cityData[currentCity]||cityData.gubkin;
+  const body=`ОТМЕНА ЗАКАЗА ТАКСИ\nНомер заявки: ${tx.num}\nЗаказчик: ${tx.recipient||clientName}\nТелефон: ${clientPhone}\nБыло запланировано: ${tx.date} в ${tx.time}\nМаршрут: ${tx.from} → ${tx.to}${tx.car?"\nМашина: "+carLine(tx.car):""}`;
+  window.location.href=`mailto:${cd.orderEmail||cd.email}?subject=${encodeURIComponent("Отмена такси № "+tx.num)}&body=${encodeURIComponent(body)}`;
+  showToast("Поездка отменена — письмо в центр готово к отправке");
   const activeF=document.querySelector(".of-btn.active");
   renderOrdersPanel(activeF?activeF.dataset.f:"all");
 }
@@ -8438,6 +8899,7 @@ function selectCity(cityKey,silent){
       '<div class="cf-card"><div class="cf-row"><span>Маршрут</span><b>' + esc(d.from) + " → " + esc(d.to) + "</b></div>" +
       '<div class="cf-row"><span>Подача</span><b>' + fmtDate(d.date) + ", " + d.time + "</b></div>" +
       '<div class="cf-row"><span>Стоимость</span><b>' + (d.isFree ? "Бесплатно" : money(d.price)) + "</b></div></div>" +
+      (res.tx && typeof carCardHtml === "function" ? carCardHtml(res.tx) : "") +
       "Открылся почтовый клиент — нажмите «Отправить», и заявка уйдёт диспетчеру. Он свяжется с вами для подтверждения." +
       row([ btn("Мои заказы", function(){ openOrdersPanel(); return ""; }, { cl:"outline" }) ]);
   }
@@ -8507,6 +8969,8 @@ function selectCity(cityKey,silent){
           if (check.code === "hours")
             return '<div class="cf-warn">Машина работает с ' + TAXI_RULES.rideFrom + " до " + TAXI_RULES.rideTo +
               ", позже подачи нет.</div>Напишите время в этом промежутке — например, 09:30 или 17:00.";
+          if (check.code === "noshift")
+            return '<div class="cf-warn">' + esc(check.message) + "</div>Напишите другое время или другую дату.";
           if (check.code === "break")
             return '<div class="cf-warn">С ' + TAXI_RULES.breakFrom + " до " + TAXI_RULES.breakTo +
               " обеденный перерыв — машину не подают.</div>Напишите время до " + TAXI_RULES.breakFrom +
@@ -9286,7 +9750,7 @@ function selectCity(cityKey,silent){
     [/(какие документы|что взять с собой|нужен ли паспорт|паспорт нужен|снилс нужен)/, function(){
       return "Обычно нужны паспорт и СНИЛС. Точный список для конкретной услуги уточнит специалист, когда свяжется по заявке, или по телефону <b>" + esc(cd().phone||"") + "</b>.";
     }],
-    [/(сколько ждать|когда (мне )?(позвонят|перезвонят|ответят)|срок рассмотрения|как быстро)/, function(){
+    [/(сколько ждать|(когда|через сколько|как скоро)[а-яa-z0-9 ]*(позвонят|перезвонят|ответят|свяжутся|обработают)|срок рассмотрения|как быстро)/, function(){
       return "Заявки обрабатываются в рабочее время филиала (" + esc(cd().hours||"") + "). Если ответа долго нет — позвоните: <b>" + esc(cd().phone||"") + "</b>.";
     }],
     [/(перезвон|обратн[а-яa-z0-9]* звонок|позвоните мне|свяжитесь со мной)/, function(){
@@ -9367,6 +9831,15 @@ function selectCity(cityKey,silent){
 
   function coreAnswer(t, raw){
     var u = urgent(t); if (u) return u;
+
+    /* Моя поездка: какая машина, номер, когда приедет */
+    if (/(как[а-яa-z0-9]* машин[а-я]* (приедет|будет|подадут)|номер машин|госномер|(когда|через сколько)[а-яa-z0-9 ]*(приедет|подадут|подъедет|такси|машин)|где (машина|такси)|моя поездка|мое такси|какое такси приедет)/.test(t)) {
+      var ride = (typeof nextTaxiRide === "function") ? nextTaxiRide() : null;
+      if (!ride) return "У вас нет предстоящих поездок на такси." + row([btn("🚕 Заказать такси", function(){ return C.startTaxi(); }, { echo: "Заказать такси" })]);
+      return "Ваша поездка № " + esc(ride.num) + ": " + esc(ride.from) + " → " + esc(ride.to) + "." + carCardHtml(ride) +
+        "Отследить машину на карте в пути нельзя — диспетчер позвонит перед подачей, если что-то изменится." +
+        row([navBtn("📋 Мои заявки", function(){ openOrdersPanel(); }, "teal")]);
+    }
 
     /* Такси: вопросы о правилах/цене — справка; иначе — оформление диалогом */
     if (/(такси|подвез|довез|отвез|поездк|трансфер|перевозк|вызвать машину|заказать машину)/.test(t)) {

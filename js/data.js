@@ -641,6 +641,11 @@ function taxiCheckRide(date,time){
     return {ok:false,code:"hours",message:"Машина работает с "+TAXI_RULES.rideFrom+" до "+TAXI_RULES.rideTo+" — выберите время в этом промежутке"};
   if(isBreakTime(time))
     return {ok:false,code:"break",message:"С "+TAXI_RULES.breakFrom+" до "+TAXI_RULES.breakTo+" обеденный перерыв — машину не подают. Выберите время до "+TAXI_RULES.breakFrom+" или с "+TAXI_RULES.breakTo};
+  if(typeof taxiSlotsFor==="function"){
+    var sl=taxiSlotsFor(date,{wheelchair:!!(arguments[2]&&arguments[2].wheelchair)});
+    if(sl!==null&&!sl[time])return {ok:false,code:"noshift",
+      message:Object.keys(sl).length?"В "+time+" машин на линии нет. Свободное время: "+Object.keys(sl).slice(0,6).join(", ")+(Object.keys(sl).length>6?"…":""):"На эту дату машин на линии нет — выберите другой день"};
+  }
   return {ok:true,min:min};
 }
 // Слоты подачи по 30 минут от 08:30 до 18:00 (включая обеденные — они показываются неактивными).
@@ -668,6 +673,11 @@ function useFreeTaxiTrip(){
   if(q.remaining<=0)return false;
   localStorage.setItem(getFreeTaxiQuotaKey(),String(q.used+1));
   return true;
+}
+// Отменили льготную поездку — возвращаем её в годовой лимит.
+function refundFreeTaxiTrip(){
+  var q=getFreeTaxiQuota();
+  if(q.used>0)localStorage.setItem(getFreeTaxiQuotaKey(),String(q.used-1));
 }
 // over — необязательные данные, введённые прямо в заявке: {snils, category}.
 function checkFreeTaxiEligibility(over){

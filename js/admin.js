@@ -27,6 +27,9 @@
       const o=ov.branchContent[c];
       if(o.services){b.services.length=0;o.services.forEach(x=>b.services.push(x));}
       if(o.staff){b.staff.length=0;o.staff.forEach(x=>b.staff.push(x));}
+      if(Array.isArray(o.fleet))b.fleet=o.fleet.slice();
+      if(Array.isArray(o.shifts))b.shifts=o.shifts.slice();
+      if(Array.isArray(o.places))b.places=o.places.slice();
     }
     if(ov.newsData&&typeof newsData!=="undefined"){newsData.length=0;ov.newsData.forEach(x=>newsData.push(x));}
     if(ov.eventsData&&typeof eventsData!=="undefined"){eventsData.length=0;ov.eventsData.forEach(x=>eventsData.push(x));}
@@ -46,7 +49,7 @@
       TIME_FIELDS.forEach(f=>{if(cityData[c][f]!=null)ov.cityData[c][f]=cityData[c][f];});
     }
     for(const c in branchContent){
-      ov.branchContent[c]={services:branchContent[c].services,staff:branchContent[c].staff};
+      ov.branchContent[c]={services:branchContent[c].services,staff:branchContent[c].staff,fleet:branchContent[c].fleet||[],shifts:branchContent[c].shifts||[],places:branchContent[c].places||[]};
     }
     if(typeof newsData!=="undefined")ov.newsData=newsData;
     if(typeof eventsData!=="undefined")ov.eventsData=eventsData;
@@ -275,6 +278,7 @@
     ["contacts","📍","Контакты",true],
     ["services","📋","Услуги",true],
     ["staff","👥","Сотрудники",true],
+    ["fleet","🚐","Соц. такси",true],
     ["news","📰","Новости"],
     ["events","🎟️","Мероприятия"],
     ["gallery","🖼️","Галерея"],
@@ -393,7 +397,7 @@
     const body=document.getElementById("admBody");
     if(!body)return;
     body.scrollTop=0;
-    ({overview:renderOverview,contacts:renderContacts,services:renderServices,staff:renderStaff,news:renderNews,
+    ({overview:renderOverview,contacts:renderContacts,services:renderServices,staff:renderStaff,fleet:renderFleet,news:renderNews,
       events:renderEvents,gallery:renderGallery,templates:renderTemplates,stats:renderStats,publish:renderPublish}[editTab]||renderOverview)(body);
   }
   function head(title,sub){
@@ -419,6 +423,16 @@
         if(k&&seen[k]!=null&&seen[k]!==it.p)out.push(["services","Одна услуга с разными ценами ("+seen[k]+" и "+it.p+" ₽): «"+n.slice(0,60)+"»",n.slice(0,30)]);
         if(k)seen[k]=it.p;
       });
+    });
+    const hasTaxi=b.services.some(cat=>/перевозк/i.test(cat.name)&&cat.items.length);
+    const fl=(b.fleet||[]).filter(x=>x.active!==false&&String(x.model||"").trim());
+    if(hasTaxi&&!fl.length)out.push(["fleet","Не заполнен автопарк такси — клиенты не видят, какая машина приедет",""]);
+    if(hasTaxi&&fl.length&&!(b.shifts||[]).length)out.push(["fleet","Смены такси не заданы — жители видят всё время 08:30–18:00",""]);
+    (b.shifts||[]).forEach(sh=>{if(!(b.fleet||[]).some(c=>c.id===sh.car))out.push(["fleet","Смена без машины (машину удалили)",""]);});
+    (b.fleet||[]).forEach(x=>{
+      if(!String(x.model||"").trim())out.push(["fleet","Машина без модели",""]);
+      else if(!x.plate)out.push(["fleet","Нет госномера: "+x.model,""]);
+      else if(typeof plateValid==="function"&&!plateValid(x.plate))out.push(["fleet","Госномер записан с ошибкой: "+x.model+" "+x.plate,""]);
     });
     b.staff.forEach(p=>{
       if(!String(p.name||"").trim()||p.name==="Новый сотрудник")out.push(["staff","Сотрудник без ФИО",""]);
@@ -691,6 +705,174 @@
     body.querySelector("#staffSearch").oninput=e=>{staffFilter=e.target.value;draw();};
     body.querySelector("#addSt").onclick=()=>add("");
     draw();
+  }
+
+  /* ═══ Соц. такси: машины, смены, соцобъекты ═══ */
+  let taxiSub="cars";
+  function renderFleet(body){
+    if(typeof fleetOf==="function")fleetOf(editCity); /* выдаём машинам id */
+    const subs=[["cars","🚗","Машины",(branchContent[editCity].fleet||[]).length],["shifts","🗓️","Смены",(branchContent[editCity].shifts||[]).length],["places","📍","Соцобъекты",(branchContent[editCity].places||[]).length]];
+    body.innerHTML=head("Соц. такси — "+CITY_NAMES[editCity],"Машины, смены и быстрые адреса. После изменений опубликуйте данные — жители увидят их в приложении.")+
+      `<div><div class="adm2-seg" role="tablist">${subs.map(([k,i,l,n])=>`<button type="button" role="tab" class="adm2-seg-b${k===taxiSub?" on":""}" data-sub="${k}" aria-selected="${k===taxiSub}">${i} ${l}<span class="adm2-count">${n}</span></button>`).join("")}</div></div><div id="taxiSubBody"></div>`;
+    body.querySelectorAll("[data-sub]").forEach(b=>b.onclick=()=>{flushSave();taxiSub=b.dataset.sub;renderFleet(body);});
+    const sb=body.querySelector("#taxiSubBody");
+    if(taxiSub==="shifts")return renderShifts(sb,body);
+    if(taxiSub==="places")return renderPlaces(sb);
+    renderCars(sb);
+  }
+  function renderCars(body){
+    const b=branchContent[editCity];if(!Array.isArray(b.fleet))b.fleet=[];
+    const fleet=b.fleet;
+    let html=`<div class="adm2-banner ok" style="margin-bottom:14px"><span class="adm2-banner-ico">ℹ️</span><div><b>Как назначается машина</b>
+      <span>Если клиенту нужна машина для коляски — назначается машина с отметкой «Для колясок». Иначе — первая обычная машина «на линии» (порядок — как в списке). Это предварительное назначение: диспетчер подтверждает его по телефону.</span></div></div>`;
+    html+=`<div class="adm2-toolbar">${FLEET_PRESETS.map((p,i)=>`<button type="button" class="adm2-btn ghost" data-preset="${i}">+ ${p.model}</button>`).join("")}
+      <button type="button" class="adm2-btn" id="addCar">+ Другая машина</button></div>
+      <datalist id="admCarModels">${FLEET_PRESETS.map(p=>`<option value="${p.model}">`).join("")}<option value="Лада Гранта"><option value="Hyundai Solaris"><option value="Volkswagen Caddy"></datalist>
+      <div id="flList"></div>`;
+    body.innerHTML=html;
+    const list=body.querySelector("#flList");
+    const draw=()=>{
+      if(!fleet.length){list.innerHTML='<div class="adm2-empty">Машин пока нет. Добавьте ГАЗель Next, Ладу Ларгус или другую машину кнопками выше.</div>';return;}
+      list.innerHTML=fleet.map((c,i)=>`<article class="adm2-post adm2-car${c.active===false?" off":""}">
+        <div class="adm2-car-head">
+          <span class="adm2-car-ico">${c.wheelchair?"🚐":"🚗"}</span>
+          <div class="adm2-car-prev">${c.plate&&typeof plateHtml==="function"?plateHtml(c.plate):'<span class="adm2-note">госномер не указан</span>'}</div>
+          <div class="adm2-car-moves">
+            <button type="button" class="adm2-icon-btn" data-up="${i}" aria-label="Выше" title="Выше — назначается раньше" ${i===0?"disabled":""}>↑</button>
+            <button type="button" class="adm2-icon-btn" data-down="${i}" aria-label="Ниже" title="Ниже" ${i===fleet.length-1?"disabled":""}>↓</button>
+            <button type="button" class="adm2-icon-btn danger" data-delcar="${i}" aria-label="Удалить машину" title="Удалить">🗑</button>
+          </div>
+        </div>
+        <div class="adm2-form pad" style="padding:0">
+          <label class="adm2-fld"><span>Модель</span><input class="adm2-inp" data-car="${i}" data-f="model" list="admCarModels" value="${esc(c.model)}" placeholder="Например, ГАЗель Next"></label>
+          <label class="adm2-fld"><span>Госномер</span><input class="adm2-inp" data-car="${i}" data-f="plate" value="${esc(c.plate)}" placeholder="А123ВС89" autocapitalize="characters">
+            <em class="adm2-err" data-err="plate${i}"></em></label>
+          <label class="adm2-fld"><span>Цвет</span><input class="adm2-inp" data-car="${i}" data-f="color" value="${esc(c.color)}" placeholder="Например, белый"></label>
+          <label class="adm2-fld"><span>Водитель (необязательно)</span><input class="adm2-inp" data-car="${i}" data-f="driver" value="${esc(c.driver)}" placeholder="Фамилия И. О."></label>
+          <label class="adm2-check"><input type="checkbox" data-car="${i}" data-f="wheelchair" ${c.wheelchair?"checked":""}> ♿ Для инвалидных колясок</label>
+          <label class="adm2-check"><input type="checkbox" data-car="${i}" data-f="active" ${c.active!==false?"checked":""}> На линии (можно назначать)</label>
+        </div>
+      </article>`).join("");
+      list.querySelectorAll("[data-car]").forEach(inp=>{
+        const i=+inp.dataset.car,f=inp.dataset.f;
+        if(inp.type==="checkbox"){inp.onchange=()=>{fleet[i][f]=inp.checked;touch();draw();};return;}
+        inp.oninput=()=>{fleet[i][f]=inp.value.trim();if(f==="plate")checkPlate(i,inp.value);touch();};
+        if(f==="plate"){
+          checkPlate(i,inp.value);
+          inp.onblur=()=>{if(inp.value.trim()){const n=plateNormalize(inp.value);inp.value=n;fleet[i].plate=n;touch();draw();}};
+        }
+      });
+      list.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{const i=+b.dataset.up;[fleet[i-1],fleet[i]]=[fleet[i],fleet[i-1]];touch();draw();});
+      list.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{const i=+b.dataset.down;[fleet[i+1],fleet[i]]=[fleet[i],fleet[i+1]];touch();draw();});
+      list.querySelectorAll("[data-delcar]").forEach(b=>b.onclick=()=>{
+        const i=+b.dataset.delcar,c=fleet[i];
+        const sh=shiftsOf(editCity),gone=sh.filter(x=>x.car===c.id);
+        if(gone.length&&!confirm("У машины "+gone.length+" "+plural(gone.length,["смена","смены","смен"])+" — они тоже удалятся. Продолжить?"))return;
+        fleet.splice(i,1);for(let k=sh.length-1;k>=0;k--)if(sh[k].car===c.id)sh.splice(k,1);
+        touch();draw();
+        undoable("Машина удалена",()=>{fleet.splice(i,0,c);gone.forEach(x=>sh.push(x));});
+      });
+    };
+    const checkPlate=(i,v)=>{
+      const e=list.querySelector(`[data-err="plate${i}"]`);if(!e)return;
+      e.textContent=v.trim()&&!plateValid(v)?"Формат: буква, 3 цифры, 2 буквы, регион — например А123ВС89":"";
+    };
+    const add=(p)=>{
+      fleet.push({model:p?p.model:"",plate:"",color:"",driver:"",wheelchair:p?!!p.wheelchair:false,active:true});touch();draw();
+      const inps=list.querySelectorAll(p?'[data-f="plate"]':'[data-f="model"]');const last=inps[inps.length-1];if(last){last.focus();last.scrollIntoView({block:"center"});}
+    };
+    body.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>add(FLEET_PRESETS[+b.dataset.preset]));
+    body.querySelector("#addCar").onclick=()=>add(null);
+    draw();
+  }
+
+  const DOW=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+  function renderShifts(sb,parentBody){
+    const b=branchContent[editCity];
+    const fleet=fleetOf(editCity),shifts=shiftsOf(editCity);
+    if(!fleet.length){sb.innerHTML='<div class="adm2-empty">Сначала добавьте машины во вкладке «Машины».</div>';return;}
+    let html=`<div class="adm2-banner ok" style="margin-bottom:14px"><span class="adm2-banner-ico">ℹ️</span><div><b>Как это работает</b>
+      <span>Жителю доступны только дни и часы, когда хотя бы одна машина на линии (обед ${WORK_BREAK.from}–${WORK_BREAK.to} — всегда закрыт). Нужна коляска — только смены машин «для колясок». Смен нет — действует обычное расписание 08:30–18:00.</span></div></div>`;
+    html+=`<div class="adm2-post"><b style="font-size:15px">Новая смена</b>
+      <div class="adm2-form pad" style="padding:0">
+        <label class="adm2-fld"><span>Машина</span><select class="adm2-inp" id="shCar">${fleet.map(c=>`<option value="${c.id}">${esc(c.model)}${c.plate?" · "+esc(c.plate):""}${c.wheelchair?" ♿":""}</option>`).join("")}</select></label>
+        <label class="adm2-fld"><span>Водитель (необязательно)</span><input class="adm2-inp" id="shDrv" placeholder="Фамилия И. О."></label>
+        <div class="adm2-fld wide"><span>Когда</span>
+          <div class="adm2-row"><label class="adm2-check"><input type="radio" name="shKind" value="week" checked> Каждую неделю</label><label class="adm2-check"><input type="radio" name="shKind" value="day"> Один день</label></div>
+          <div class="adm2-days" id="shDays">${DOW.map((d,i)=>`<button type="button" class="adm2-day${i<5?" on":""}" data-d="${i+1}" aria-pressed="${i<5}">${d}</button>`).join("")}</div>
+          <input type="date" class="adm2-inp date" id="shDate" style="display:none" value="${taxiIsoSafe()}"></div>
+        <div class="adm2-fld wide"><span>Время на линии</span><div class="adm2-row">
+          <label class="adm2-inline">с <input type="time" class="adm2-inp time" id="shFrom" value="08:30"></label>
+          <label class="adm2-inline">до <input type="time" class="adm2-inp time" id="shTo" value="18:00"></label>
+          <button type="button" class="adm2-btn" id="shAdd">+ Добавить смену</button></div></div>
+      </div></div>`;
+    /* Неделя: кто на линии */
+    const weekStart=(()=>{const d=new Date();const w=d.getDay()||7;d.setDate(d.getDate()-w+1);return d;})();
+    const days=[...Array(7)].map((_,i)=>{const d=new Date(weekStart);d.setDate(d.getDate()+i);return d;});
+    const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    const pct=t=>Math.max(0,Math.min(100,(tMin(t)-tMin("08:00"))/(tMin("19:00")-tMin("08:00"))*100));
+    html+=`<div class="adm2-sub">Эта неделя — кто на линии</div><div class="adm2-week">`;
+    days.forEach(d=>{
+      const on=shiftsOn(iso(d),{},editCity);
+      html+=`<div class="adm2-wday${iso(d)===taxiIsoSafe()?" today":""}"><div class="adm2-wday-h">${DOW[(d.getDay()+6)%7]} <b>${d.getDate()}</b></div><div class="adm2-wday-bars">`+
+        (on.length?on.map(sh=>{const c=fleetCarById(sh.car,editCity);return `<div class="adm2-bar-row" title="${esc(c.model)} ${sh.from}–${sh.to}"><span class="adm2-bar-lbl">${c.wheelchair?"♿ ":""}${esc(c.model)}</span><span class="adm2-bar-line"><i style="left:${pct(sh.from)}%;right:${100-pct(sh.to)}%"></i><em style="left:${pct(WORK_BREAK.from)}%;right:${100-pct(WORK_BREAK.to)}%"></em></span><span class="adm2-bar-t">${sh.from}–${sh.to}</span></div>`;}).join("")
+          :'<div class="adm2-wday-empty">машин нет</div>')+`</div></div>`;
+    });
+    html+=`</div>`;
+    html+=`<div class="adm2-sub">Все смены</div>`;
+    if(!shifts.length)html+='<div class="adm2-empty">Смен пока нет — действует обычное расписание 08:30–18:00.</div>';
+    else html+='<div class="adm2-table-wrap"><table class="adm2-table adm2-shifts"><thead><tr><th>Машина</th><th>Когда</th><th>Время</th><th>Водитель</th><th></th></tr></thead><tbody>'+
+      shifts.map((sh,i)=>{const c=fleetCarById(sh.car,editCity);return `<tr${c?"":" class=\"bad\""}><td>${c?esc(c.model)+(c.plate?" <small>"+esc(c.plate)+"</small>":""):"<b>машина удалена</b>"}</td>
+        <td>${sh.date?new Date(sh.date+"T00:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"long",weekday:"short"}):(sh.days||[]).map(d=>DOW[d-1]).join(", ")}</td>
+        <td>${sh.from}–${sh.to}</td><td>${esc(sh.driver||"—")}</td>
+        <td><button type="button" class="adm2-icon-btn danger" data-delsh="${i}" aria-label="Удалить смену">🗑</button></td></tr>`;}).join("")+'</tbody></table></div>';
+    sb.innerHTML=html;
+    const kindR=()=>sb.querySelector('input[name="shKind"]:checked').value;
+    sb.querySelectorAll('input[name="shKind"]').forEach(r=>r.onchange=()=>{const w=kindR()==="week";sb.querySelector("#shDays").style.display=w?"":"none";sb.querySelector("#shDate").style.display=w?"none":"";});
+    sb.querySelectorAll(".adm2-day").forEach(b=>b.onclick=()=>{b.classList.toggle("on");b.setAttribute("aria-pressed",b.classList.contains("on"));});
+    sb.querySelector("#shAdd").onclick=()=>{
+      const from=sb.querySelector("#shFrom").value,to=sb.querySelector("#shTo").value;
+      if(!from||!to||tMin(to)<=tMin(from)){showToast("Время окончания должно быть позже начала");return;}
+      const sh={id:"sh_"+Date.now().toString(36),car:sb.querySelector("#shCar").value,driver:sb.querySelector("#shDrv").value.trim(),from,to};
+      if(kindR()==="week"){sh.days=[...sb.querySelectorAll(".adm2-day.on")].map(b=>+b.dataset.d);if(!sh.days.length){showToast("Отметьте хотя бы один день");return;}}
+      else{sh.date=sb.querySelector("#shDate").value;if(!sh.date){showToast("Укажите дату");return;}}
+      /* пересечение смен одной машины */
+      const clash=shifts.find(x=>x.car===sh.car&&tMin(x.from)<tMin(sh.to)&&tMin(sh.from)<tMin(x.to)&&
+        ((x.date&&sh.date&&x.date===sh.date)||(x.days&&sh.days&&x.days.some(d=>sh.days.includes(d)))||(x.date&&sh.days&&sh.days.includes(isoDow(x.date)))||(sh.date&&x.days&&x.days.includes(isoDow(sh.date)))));
+      if(clash&&!confirm("У этой машины уже есть смена в это время ("+clash.from+"–"+clash.to+"). Всё равно добавить?"))return;
+      shifts.push(sh);touch();renderFleet(parentBody);showToast("Смена добавлена");
+    };
+    sb.querySelectorAll("[data-delsh]").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.delsh,sh=shifts[i];shifts.splice(i,1);touch();renderFleet(parentBody);
+      undoable("Смена удалена",()=>shifts.splice(i,0,sh));
+    });
+  }
+  function renderPlaces(sb){
+    const places=placesOf(editCity);
+    let html=`<div class="adm2-banner ok" style="margin-bottom:14px"><span class="adm2-banner-ico">ℹ️</span><div><b>Быстрые адреса для жителей</b>
+      <span>Кнопки под полем «Куда везти» в заказе такси. Нажал — и точный адрес подставился. Пока список пуст, показываются стандартные кнопки (больница, поликлиника, аптека…) с поиском по карте.</span></div></div>`;
+    html+=`<div class="adm2-post"><b style="font-size:15px">Новый соцобъект</b><div class="adm2-row">
+      <select class="adm2-inp" id="plType" style="max-width:190px" aria-label="Тип">${PLACE_TYPES.map(t=>`<option value="${t[0]}">${t[1]} ${t[2]}</option>`).join("")}</select>
+      <input class="adm2-inp grow" id="plName" placeholder="Название, например Городская больница" style="flex:1;min-width:200px">
+      <input class="adm2-inp grow" id="plAddr" placeholder="Адрес: улица, дом" style="flex:1;min-width:200px">
+      <button type="button" class="adm2-btn" id="plAdd">+ Добавить</button></div></div>`;
+    if(!places.length)html+='<div class="adm2-empty">Соцобъектов пока нет.</div>';
+    else html+='<div class="adm2-places">'+places.map((pl,i)=>`<div class="adm2-place">
+      <select class="adm2-inp" data-pl="${i}" data-f="type" aria-label="Тип">${PLACE_TYPES.map(t=>`<option value="${t[0]}"${pl.type===t[0]?" selected":""}>${t[1]}</option>`).join("")}</select>
+      <input class="adm2-inp strong" data-pl="${i}" data-f="name" value="${esc(pl.name)}" aria-label="Название">
+      <input class="adm2-inp" data-pl="${i}" data-f="address" value="${esc(pl.address)}" aria-label="Адрес">
+      <div class="adm2-car-moves"><button type="button" class="adm2-icon-btn" data-plup="${i}" ${i===0?"disabled":""} aria-label="Выше">↑</button>
+      <button type="button" class="adm2-icon-btn danger" data-delpl="${i}" aria-label="Удалить">🗑</button></div></div>`).join("")+'</div>';
+    sb.innerHTML=html;
+    sb.querySelector("#plAdd").onclick=()=>{
+      const name=sb.querySelector("#plName").value.trim(),address=sb.querySelector("#plAddr").value.trim();
+      if(!name||!address){showToast("Укажите название и адрес");return;}
+      places.push({type:sb.querySelector("#plType").value,name,address});touch();renderPlaces(sb);
+      const cnt=document.querySelector('.adm2-seg-b[data-sub="places"] .adm2-count');if(cnt)cnt.textContent=places.length;
+    };
+    sb.querySelectorAll("[data-pl]").forEach(inp=>{const h=()=>{places[+inp.dataset.pl][inp.dataset.f]=inp.value.trim();touch();};inp.oninput=h;inp.onchange=h;});
+    sb.querySelectorAll("[data-plup]").forEach(b=>b.onclick=()=>{const i=+b.dataset.plup;[places[i-1],places[i]]=[places[i],places[i-1]];touch();renderPlaces(sb);});
+    sb.querySelectorAll("[data-delpl]").forEach(b=>b.onclick=()=>{const i=+b.dataset.delpl,pl=places[i];places.splice(i,1);touch();renderPlaces(sb);undoable("Соцобъект удалён",()=>places.splice(i,0,pl));});
   }
 
   /* ═══ Новости ═══ */

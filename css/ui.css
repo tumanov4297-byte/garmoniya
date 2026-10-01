@@ -227,3 +227,47 @@ html body .mc input.qz-inp,html body .mc textarea.qz-inp{font-size:18px !importa
 html body .mc textarea.qz-inp{font-size:16px !important;min-height:80px !important}
 html body .mc input.qz-inp.bad,html body .mc textarea.qz-inp.bad,html body input.rcp-inp.bad,html body .mc input.rcp-inp.bad{
   border-color:var(--it-red) !important;background:#FFF8F5 !important}
+
+/* ═══ Такси: машина, госномер, отсчёт до подачи ═══ */
+html body .car-card{display:flex;gap:12px;align-items:flex-start;margin:12px 0;padding:14px;border-radius:18px;
+  background:linear-gradient(135deg,#F3FAF8,#E9F4F1);border:1px solid var(--it-line);text-align:left}
+html body .car-card.car-now{border-color:var(--it-accent);box-shadow:0 0 0 3px rgba(63,143,135,.15)}
+html body .car-card.car-none{background:var(--it-surface2)}
+html body .car-ico{width:48px;height:48px;flex:0 0 48px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;
+  box-shadow:0 2px 6px -2px rgba(43,101,112,.25)}
+html body .car-main{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+html body .car-lbl{font-size:12px;font-weight:700;color:var(--it-muted)}
+html body .car-main > b{font-size:16px;font-weight:800;color:var(--it-ink);line-height:1.25}
+html body .car-model em{font-style:normal;font-weight:600;color:var(--it-muted);font-size:14px}
+html body .car-main > span:not(.plate):not(.car-lbl){font-size:13px;color:var(--it-muted);line-height:1.4}
+html body .car-eta{display:inline-flex;align-items:center;gap:6px;margin-top:2px;padding:4px 10px;border-radius:999px;
+  background:#fff;color:var(--it-accent-d,#2B6570) !important;font-weight:800 !important;font-size:13px !important;border:1px solid var(--it-line)}
+html body .car-eta::before{content:"⏱";font-size:12px}
+html body .car-tag{font-weight:700 !important;color:var(--it-ink) !important}
+html body .car-note{color:#B7791F !important}
+html body .car-noplate{font-style:italic}
+/* Российский госномер */
+html body .plate{display:inline-flex;align-items:stretch;height:34px;border:2px solid #1F2B2D;border-radius:6px;background:#fff;overflow:hidden;
+  font-family:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace;color:#111;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+html body .plate-main{display:flex;align-items:center;gap:1px;padding:0 8px;font-size:19px;font-weight:700;letter-spacing:1px;line-height:1}
+html body .plate-main b{font-size:22px;margin:0 2px}
+html body .plate-reg{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px;border-left:2px solid #1F2B2D;line-height:1}
+html body .plate-reg b{font-size:14px}
+html body .plate-reg i{font-style:normal;font-size:8px;font-weight:700;letter-spacing:.5px;margin-top:1px}
+html body .plate-raw{padding:0 8px;align-items:center;font-size:16px}
+/* Чекбокс «машина для коляски» */
+html body .taxi-wheel{display:flex;gap:12px;align-items:flex-start;margin:14px 0 4px;padding:12px 14px;border-radius:16px;
+  background:var(--it-surface);border:1.5px solid var(--it-line);cursor:pointer}
+html body .taxi-wheel:has(input:checked){border-color:var(--it-accent);background:var(--it-accent-soft)}
+html body .taxi-wheel input{margin-top:2px}
+html body .taxi-wheel b{display:block;font-size:15px;color:var(--it-ink)}
+html body .taxi-wheel small{display:block;font-size:13px;color:var(--it-muted);margin-top:2px}
+/* Статусы поездки */
+html body .st-taxi-upcoming{background:var(--it-accent-soft) !important;color:#2B6570 !important}
+html body .st-taxi-soon{background:#FFF3DC !important;color:#9A6512 !important}
+html body .st-taxi-now{background:#2B6570 !important;color:#fff !important}
+html body .st-taxi-done{background:#EEF2F1 !important;color:#7A9294 !important}
+html body .st-taxi-cancelled{background:#FDEDEA !important;color:#B35A3E !important}
+/* Даты без машин на линии */
+html body .taxi-date-chip.off{opacity:.4;cursor:not-allowed;text-decoration:line-through}
+html body .taxi-noslots{padding:14px;border-radius:14px;background:#FFF6E6;color:#9A6512 !important;font-weight:600}

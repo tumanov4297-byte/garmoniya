@@ -4,7 +4,7 @@
 Порядок подключения важен — он такой же, каким был в index.html."""
 import os, datetime
 
-ORDER = ["enhance","data","booking","db","extras","features","admin",
+ORDER = ["enhance","data","fleet","booking","db","extras","features","admin",
          "icons","app","header","polish","extra","tabdrag","navfix","chatflow","botbrain","ui","desktop"]
 
 def main():
