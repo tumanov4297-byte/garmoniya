@@ -5,7 +5,7 @@
 import os, datetime
 
 ORDER = ["enhance","data","booking","db","extras","features","admin",
-         "icons","app","header","polish","extra","tabdrag","navfix","chatflow","botbrain","ui"]
+         "icons","app","header","polish","extra","tabdrag","navfix","chatflow","botbrain","ui","desktop"]
 
 def main():
     base = os.path.dirname(os.path.abspath(__file__))

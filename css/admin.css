@@ -1,0 +1,273 @@
+/* ═══════════════════════════════════════════════════════════════
+   Админпанель «Гармонии» (класс .adm2).
+   ПК: боковое меню слева + рабочая область по центру (до 1000px).
+   Телефон: филиал и вкладки сверху, вкладки листаются пальцем.
+   ═══════════════════════════════════════════════════════════════ */
+.admin-fs.adm2{
+  --a-ink:#21434A;--a-muted:#5E7C80;--a-faint:#94ABAD;--a-line:#DCE8E6;--a-bg:#F3F7F6;--a-surface:#fff;
+  --a-accent:#3F8F87;--a-accent-d:#2B6570;--a-soft:#E6F2F0;--a-warn:#B7791F;--a-warn-bg:#FFF6E6;
+  --a-red:#C2553A;--a-red-bg:#FDF1EE;--a-ok:#2F855A;--a-ok-bg:#EAF6EF;
+  position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:var(--a-bg);
+  color:var(--a-ink);font-family:inherit;animation:none;
+}
+.adm2 *{box-sizing:border-box}
+.adm2 :focus-visible{outline:3px solid rgba(63,143,135,.45)!important;outline-offset:2px!important}
+
+/* ── Шапка ── */
+.adm2-hdr{display:flex;align-items:center;gap:12px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));
+  background:var(--a-surface);border-bottom:1px solid var(--a-line);flex:0 0 auto}
+.adm2-logo{width:36px;height:36px;border-radius:10px;object-fit:contain;flex:0 0 auto}
+.adm2-ttl{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+.adm2-ttl b{font-size:16px;font-weight:800}
+.adm2-ttl span{font-size:12px;color:var(--a-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adm2-save{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--a-muted);white-space:nowrap}
+.adm2-save i{width:8px;height:8px;border-radius:50%;background:var(--a-ok)}
+.adm2-save.saving i{background:var(--a-warn);animation:admPulse 1s infinite}
+.adm2-save.error{color:var(--a-red)}.adm2-save.error i{background:var(--a-red)}
+.adm2-unpub{color:var(--a-warn);font-weight:700}
+@keyframes admPulse{50%{opacity:.3}}
+.adm2-x{width:40px;height:40px;border-radius:12px;border:1px solid var(--a-line);background:var(--a-surface);
+  color:var(--a-muted);font-size:16px;cursor:pointer;flex:0 0 auto}
+.adm2-x:hover{background:var(--a-soft);color:var(--a-ink)}
+
+/* ── Каркас ── */
+.adm2-wrap{flex:1;display:flex;min-height:0}
+.adm2-nav{width:244px;flex:0 0 244px;background:var(--a-surface);border-right:1px solid var(--a-line);
+  display:flex;flex-direction:column;gap:12px;padding:14px 12px;overflow-y:auto}
+.adm2-city{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:var(--a-muted)}
+.adm2-city select{height:42px;border:1.5px solid var(--a-line);border-radius:12px;padding:0 10px;font:inherit;font-size:15px;
+  font-weight:700;color:var(--a-ink);background:var(--a-soft);cursor:pointer}
+.adm2-tabs{display:flex;flex-direction:column;gap:2px}
+.adm2-tab{position:relative;display:flex;align-items:center;gap:10px;min-height:42px;padding:8px 10px;border:0;border-radius:10px;
+  background:transparent;font:inherit;font-size:14.5px;font-weight:600;color:var(--a-ink);text-align:left;cursor:pointer}
+.adm2-tab:hover{background:var(--a-bg)}
+.adm2-tab.active{background:var(--a-soft);color:var(--a-accent-d);font-weight:800}
+.adm2-tab.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--a-accent)}
+.adm2-tab-ico{width:22px;text-align:center;font-size:16px}
+.adm2-tab-br{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--a-faint);text-transform:none}
+.adm2-dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--a-warn)}
+.adm2-logout{margin-top:auto;min-height:40px;border:1px solid var(--a-line);border-radius:10px;background:var(--a-surface);
+  color:var(--a-red);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.adm2-logout:hover{background:var(--a-red-bg)}
+.adm2-main{flex:1;overflow-y:auto;padding:22px 24px 90px;outline:none}
+.adm2-main > *{max-width:1000px;margin-left:auto;margin-right:auto}
+
+/* ── Заголовки, подсказки ── */
+.adm2-head{margin-bottom:16px}
+.adm2-head h2{font-size:22px;font-weight:800;margin:0 0 4px;letter-spacing:-.02em;color:var(--a-ink)}
+.adm2-head p{margin:0;font-size:14px;color:var(--a-muted);line-height:1.45}
+.adm2-sub{display:flex;align-items:center;gap:8px;margin:24px auto 10px;font-size:15px;font-weight:800}
+.adm2-empty{padding:22px;text-align:center;color:var(--a-muted);font-size:14px;background:var(--a-surface);border:1px dashed var(--a-line);border-radius:14px}
+.adm2-note{font-size:13px;color:var(--a-muted);margin-top:8px}
+.adm2-count{display:inline-flex;min-width:24px;height:22px;padding:0 7px;align-items:center;justify-content:center;border-radius:11px;
+  background:var(--a-bg);color:var(--a-muted);font-size:12px;font-weight:800}
+.adm2-count.warn{background:var(--a-warn-bg);color:var(--a-warn)}
+.adm2-count.ok{background:var(--a-ok-bg);color:var(--a-ok)}
+
+/* ── Баннер статуса ── */
+.adm2-banner{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;margin-bottom:16px;border:1px solid}
+.adm2-banner.warn{background:var(--a-warn-bg);border-color:#F2DDB6}
+.adm2-banner.ok{background:var(--a-ok-bg);border-color:#CDE9D7}
+.adm2-banner-ico{font-size:22px}
+.adm2-banner > div{flex:1;display:flex;flex-direction:column;gap:2px;font-size:13.5px;color:var(--a-muted)}
+.adm2-banner b{font-size:14.5px;color:var(--a-ink)}
+
+/* ── Кнопки ── */
+.adm2-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 16px;border-radius:12px;
+  border:0;background:var(--a-accent-d);color:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.adm2-btn:hover{background:#235660}
+.adm2-btn.ghost{background:var(--a-surface);color:var(--a-ink);border:1px solid var(--a-line)}
+.adm2-btn.ghost:hover{border-color:var(--a-accent);background:var(--a-soft)}
+.adm2-btn.danger{background:var(--a-surface);color:var(--a-red);border:1px solid #F0CFC6}
+.adm2-btn.danger:hover{background:var(--a-red-bg)}
+.adm2-btn.sm{min-height:34px;padding:0 12px;font-size:13px;border-radius:10px}
+.adm2-btn.wide{width:100%;margin-top:18px}
+.adm2-icon-btn{width:36px;height:36px;flex:0 0 36px;border-radius:10px;border:1px solid transparent;background:transparent;
+  color:var(--a-faint);font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.adm2-icon-btn.danger:hover{background:var(--a-red-bg);color:var(--a-red);border-color:#F0CFC6}
+.adm2-link{border:0;background:none;padding:4px 0;color:var(--a-accent);font:inherit;font-size:13px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.adm2-mini-btn{height:32px;padding:0 8px;border-radius:8px;border:1px solid var(--a-line);background:var(--a-surface);
+  font:inherit;font-size:12px;font-weight:700;color:var(--a-accent);cursor:pointer}
+.adm2-mini-btn:hover{background:var(--a-soft)}
+
+/* ── Поля ── */
+.adm2-inp{width:100%;min-height:40px;padding:8px 11px;border:1.5px solid var(--a-line);border-radius:10px;background:#fff;
+  font:inherit;font-size:15px;color:var(--a-ink);transition:border-color .15s,box-shadow .15s}
+.adm2-inp:hover{border-color:#C6D8D5}
+.adm2-inp:focus{outline:none;border-color:var(--a-accent);box-shadow:0 0 0 3px rgba(63,143,135,.18)}
+.adm2-inp::placeholder{color:#A9BDBC}
+textarea.adm2-inp{resize:vertical;line-height:1.4;min-height:40px;overflow:hidden}
+.adm2-inp.strong{font-weight:700}
+.adm2-inp.bad{border-color:#E7A28F;background:var(--a-red-bg)}
+.adm2-inp.price{width:92px;flex:0 0 92px;text-align:right;font-variant-numeric:tabular-nums}
+.adm2-inp.ico{width:48px;flex:0 0 48px;text-align:center;padding:6px 4px;font-size:18px}
+.adm2-inp.date{width:160px;flex:0 0 160px}
+.adm2-inp.time{width:120px;flex:0 0 120px}
+.adm2-inp.grow{flex:1;min-width:0}
+.adm2-form{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;background:var(--a-surface);border:1px solid var(--a-line);border-radius:16px;padding:18px}
+.adm2-form.pad{border:0;border-radius:0;padding:4px 14px 14px;background:transparent}
+.adm2-fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.adm2-fld.wide{grid-column:1/-1}
+.adm2-fld > span{font-size:13px;font-weight:700;color:var(--a-muted)}
+.adm2-fld small{font-size:12.5px;color:var(--a-faint);line-height:1.35}
+.adm2-err{font-style:normal;font-size:12.5px;color:var(--a-red);font-weight:600}
+.adm2-err:empty{display:none}
+.adm2-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.adm2-inline{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--a-muted);font-weight:600}
+.adm2-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.adm2-search{flex:1;min-width:200px;min-height:44px;padding-left:38px;
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%2394ABAD' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='m13 13 4 4'/%3E%3C/svg%3E") no-repeat 12px center}
+
+/* ── Обзор ── */
+.adm2-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.adm2-card{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;border:1px solid var(--a-line);background:var(--a-surface);
+  font:inherit;color:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .1s}
+.adm2-card:hover{border-color:var(--a-accent);box-shadow:0 8px 20px -14px rgba(33,67,74,.5)}
+.adm2-card:active{transform:scale(.99)}
+.adm2-card.cur{border-color:var(--a-accent);box-shadow:inset 0 0 0 1px var(--a-accent)}
+.adm2-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.adm2-card-top b{font-size:16px;font-weight:800}
+.adm2-card-stats{display:flex;gap:14px;font-size:12.5px;color:var(--a-muted)}
+.adm2-card-stats span{display:flex;flex-direction:column}
+.adm2-card-stats b{font-size:20px;font-weight:800;color:var(--a-ink);font-variant-numeric:tabular-nums}
+.adm2-badge{font-size:11.5px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.adm2-badge.on{background:var(--a-ok-bg);color:var(--a-ok)}
+.adm2-badge.warn{background:var(--a-warn-bg);color:var(--a-warn)}
+.adm2-badge.off{background:var(--a-bg);color:var(--a-muted)}
+.adm2-mini{display:flex;gap:10px;flex-wrap:wrap}
+.adm2-mini button{flex:1;min-width:120px;padding:12px 14px;border-radius:14px;border:1px solid var(--a-line);background:var(--a-surface);
+  font:inherit;font-size:13px;color:var(--a-muted);text-align:left;cursor:pointer}
+.adm2-mini button:hover{border-color:var(--a-accent)}
+.adm2-mini b{display:block;font-size:20px;color:var(--a-ink)}
+.adm2-issues{background:var(--a-surface);border:1px solid var(--a-line);border-radius:14px;overflow:hidden}
+.adm2-issue{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--a-line);font-size:13.5px}
+.adm2-issue:last-child{border-bottom:0}
+.adm2-issue-city{flex:0 0 110px;font-weight:700;color:var(--a-muted);font-size:12.5px}
+.adm2-issue-msg{flex:1;min-width:0;overflow-wrap:anywhere}
+
+/* ── Разделы (услуги, сотрудники, шаблоны) ── */
+.adm2-sec{background:var(--a-surface);border:1px solid var(--a-line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.adm2-sec-head{display:flex;align-items:center;gap:8px;padding:8px 10px}
+.adm2-sec.open > .adm2-sec-head{border-bottom:1px solid var(--a-line);background:#FBFDFC}
+.adm2-sec-name{flex:1;font-size:15px;font-weight:800;cursor:pointer;padding:8px 2px}
+.adm2-chev{width:32px;height:32px;flex:0 0 32px;border:0;border-radius:8px;background:transparent;color:var(--a-muted);
+  font-size:14px;cursor:pointer;transition:transform .15s}
+.adm2-chev:hover{background:var(--a-bg)}
+.adm2-sec.open > .adm2-sec-head .adm2-chev{transform:rotate(90deg)}
+.adm2-items{padding:6px 10px 10px}
+.adm2-items-head{display:grid;grid-template-columns:1fr 92px 136px 36px;gap:8px;padding:4px 2px 6px;font-size:12px;font-weight:700;color:var(--a-faint)}
+.adm2-item{display:grid;grid-template-columns:1fr 92px 136px 36px;gap:8px;align-items:start;padding:5px 0;border-bottom:1px dashed #EAF1EF}
+.adm2-item:last-of-type{border-bottom:0}
+.adm2-mor{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.adm2-pw{display:flex;flex-direction:column}
+.adm2-pw .adm2-inp.price{width:100%;flex:none}
+.adm2-m-lbl{display:none;flex-basis:100%;font-size:11.5px;font-weight:700;color:var(--a-faint);margin-bottom:3px}
+.adm2-person{position:relative}
+.adm2-mor .adm2-inp.price{width:auto;flex:1;min-width:0}
+.adm2-sec-foot{display:flex;gap:8px;flex-wrap:wrap;padding-top:8px}
+.adm2-people{padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px}
+.adm2-person{display:grid;grid-template-columns:1.3fr 1fr 1fr 70px 1fr 36px;gap:8px;align-items:end;padding:10px;border:1px solid #EAF1EF;border-radius:12px;background:#FBFDFC}
+.adm2-person .adm2-fld > span{font-size:11.5px}
+.adm2-chips{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:-6px}
+.adm2-chip{padding:4px 10px;border-radius:999px;border:1px dashed var(--a-accent);background:var(--a-soft);color:var(--a-accent-d);
+  font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.adm2-preview{grid-column:1/-1;font-size:13px;color:var(--a-muted);background:var(--a-bg);border-radius:10px;padding:8px 12px}
+
+/* ── Новости, мероприятия ── */
+.adm2-post{display:flex;flex-direction:column;gap:8px;background:var(--a-surface);border:1px solid var(--a-line);border-radius:14px;padding:14px;margin-bottom:12px}
+.adm2-post .adm2-row select{flex:1;max-width:200px}
+.adm2-post .adm2-row .adm2-icon-btn{margin-left:auto}
+.adm2-thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.adm2-thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--a-line)}
+.adm2-thumb img{width:100%;height:100%;object-fit:cover}
+.adm2-thumb button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer}
+.adm2-add-photo{width:84px;height:84px;border-radius:10px;border:1.5px dashed #BBD3CF;background:var(--a-bg);color:var(--a-accent);
+  font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:6px}
+.adm2-add-photo:hover{background:var(--a-soft)}
+.adm2-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.adm2-photo{margin:0;position:relative;background:var(--a-surface);border:1px solid var(--a-line);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:8px}
+.adm2-photo img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px}
+.adm2-photo .adm2-icon-btn{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.92)}
+
+/* ── Статистика ── */
+.adm2-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.adm2-kpis div{background:var(--a-surface);border:1px solid var(--a-line);border-radius:14px;padding:14px;display:flex;flex-direction:column}
+.adm2-kpis b{font-size:24px;font-weight:800}
+.adm2-kpis span{font-size:12.5px;color:var(--a-muted)}
+.adm2-bars{display:flex;flex-direction:column;gap:6px}
+.adm2-bar{display:grid;grid-template-columns:minmax(0,2fr) 1fr 40px;gap:10px;align-items:center;font-size:13px}
+.adm2-bar-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm2-bar-t{height:10px;border-radius:5px;background:var(--a-bg);overflow:hidden}
+.adm2-bar-t i{display:block;height:100%;background:var(--a-accent);border-radius:5px}
+.adm2-bar b{text-align:right}
+.adm2-table-wrap{overflow-x:auto;background:var(--a-surface);border:1px solid var(--a-line);border-radius:14px}
+.adm2-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.adm2-table th,.adm2-table td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--a-line);white-space:nowrap}
+.adm2-table th:first-child,.adm2-table td:first-child{text-align:left}
+.adm2-table th{font-size:12px;color:var(--a-muted);font-weight:700;background:#FBFDFC}
+.adm2-reviews{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.adm2-review{background:var(--a-surface);border:1px solid var(--a-line);border-radius:14px;padding:12px}
+.adm2-review p{margin:6px 0;font-size:13.5px}
+.adm2-review small{color:var(--a-faint)}
+.adm2-stars{color:#E0A526;letter-spacing:1px}
+
+/* ── Публикация ── */
+.adm2-steps{counter-reset:s;list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.adm2-steps li{counter-increment:s;position:relative;background:var(--a-surface);border:1px solid var(--a-line);border-radius:14px;
+  padding:14px 16px 14px 56px;font-size:14px;line-height:1.5;color:var(--a-muted)}
+.adm2-steps li::before{content:counter(s);position:absolute;left:16px;top:14px;width:26px;height:26px;border-radius:50%;
+  background:var(--a-accent-d);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.adm2-steps b{color:var(--a-ink)}
+.adm2-steps .adm2-btn{display:flex;margin-top:10px;width:max-content}
+.adm2-steps code{background:var(--a-soft);padding:1px 6px;border-radius:6px;color:var(--a-accent-d);font-size:13px}
+.adm2-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ── Отмена удаления ── */
+.adm2-snack{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;
+  display:flex;align-items:center;gap:16px;padding:10px 10px 10px 18px;border-radius:14px;background:#21434A;color:#fff;
+  font-size:14px;box-shadow:0 14px 30px -12px rgba(0,0,0,.45);max-width:calc(100% - 32px)}
+.adm2-snack[hidden]{display:none}
+.adm2-snack button{min-height:36px;padding:0 14px;border-radius:10px;border:0;background:#fff;color:#21434A;font:inherit;font-weight:800;cursor:pointer}
+
+/* ═══ Телефон и узкие окна ═══ */
+@media (max-width:899px){
+  .adm2-wrap{flex-direction:column}
+  .adm2-nav{width:auto;flex:0 0 auto;border-right:0;border-bottom:1px solid var(--a-line);padding:10px 12px 0;gap:8px;overflow:visible}
+  .adm2-city{flex-direction:row;align-items:center;gap:10px}
+  .adm2-city select{flex:1;height:40px}
+  .adm2-tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 12px 8px;gap:6px}
+  .adm2-tabs::-webkit-scrollbar{display:none}
+  .adm2-tab{flex:0 0 auto;min-height:38px;padding:6px 12px;border-radius:999px;background:var(--a-bg);font-size:13.5px}
+  .adm2-tab.active{background:var(--a-accent-d);color:#fff}
+  .adm2-tab.active::before{display:none}
+  .adm2-tab-br{display:none}
+  .adm2-tab-ico{width:auto;font-size:15px}
+  .adm2-dot{position:absolute;top:4px;right:4px}
+  .adm2-logout{display:none}
+  .adm2-main{padding:16px 14px 90px}
+  .adm2-save{font-size:12px}
+  .adm2-ttl span{display:none}
+  .adm2-form{grid-template-columns:1fr;padding:14px}
+  .adm2-items-head{display:none}
+  .adm2-item{grid-template-columns:1fr 1fr 36px;grid-template-areas:"n n d" "p m m";padding:10px 0}
+  .adm2-item > textarea{grid-area:n}
+  .adm2-item > .adm2-pw{grid-area:p}
+  .adm2-m-lbl{display:block}
+  .adm2-toolbar .adm2-search{flex-basis:100%}
+  .adm2-person{padding-top:12px}
+  .adm2-item > .adm2-mor{grid-area:m}
+  .adm2-item > .adm2-icon-btn{grid-area:d}
+  .adm2-person{grid-template-columns:1fr 1fr;align-items:stretch}
+  .adm2-person .adm2-fld:first-child{grid-column:1/-1}
+  .adm2-person .adm2-icon-btn{position:absolute;top:6px;right:6px}
+  .adm2-person .adm2-fld:first-child{padding-right:40px}
+  .adm2-kpis{grid-template-columns:1fr 1fr}
+  .adm2-issue{flex-wrap:wrap}
+  .adm2-issue-city{flex-basis:100%}
+  .adm2-inp.date{width:auto;flex:1}
+  .adm2-head h2{font-size:20px}
+}
+@media (max-width:560px){
+  .adm2-save .adm2-unpub{display:none}
+}
+@media (prefers-reduced-motion:reduce){.adm2 *{transition:none!important;animation:none!important}}

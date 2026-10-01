@@ -2,14 +2,14 @@
    Стратегия network-first: всегда сначала сеть (никогда не отдаёт устаревшее,
    пока есть интернет), кэш — только резерв для офлайна. Это безопасно при
    частых обновлениях сайта: свежие файлы подхватываются сразу. */
-var CACHE = "garmoniya-v26";
+var CACHE = "garmoniya-v28";
 var CORE = [
   "./","./index.html","./js/bundle.js",
   "./css/styles.css",
   
   
   
-  "./css/enhance.css","./css/it-theme.css","./css/premium.css","./css/ui.css","./fonts/onest-cyrillic-400-normal.woff2","./fonts/onest-latin-400-normal.woff2","./fonts/onest-cyrillic-500-normal.woff2","./fonts/onest-latin-500-normal.woff2","./fonts/onest-cyrillic-600-normal.woff2","./fonts/onest-latin-600-normal.woff2","./fonts/onest-cyrillic-700-normal.woff2","./fonts/onest-latin-700-normal.woff2","./fonts/onest-cyrillic-800-normal.woff2","./fonts/onest-latin-800-normal.woff2",
+  "./css/enhance.css","./css/it-theme.css","./css/premium.css","./css/ui.css","./css/admin.css","./css/desktop.css","./fonts/onest-cyrillic-400-normal.woff2","./fonts/onest-latin-400-normal.woff2","./fonts/onest-cyrillic-500-normal.woff2","./fonts/onest-latin-500-normal.woff2","./fonts/onest-cyrillic-600-normal.woff2","./fonts/onest-latin-600-normal.woff2","./fonts/onest-cyrillic-700-normal.woff2","./fonts/onest-latin-700-normal.woff2","./fonts/onest-cyrillic-800-normal.woff2","./fonts/onest-latin-800-normal.woff2",
   "./manifest.json","./img/logo-icon.png"
 ];
 

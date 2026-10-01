@@ -653,8 +653,13 @@ const SERVICE_BOOKING_MAP=[
   {match:"правовые",pos:"юрис"},
   {match:"занятия в залах лфк",pos:"физкультур"}
 ];
-function plOpenCat(id,highlightUid){
+function plOpenCat(id,highlightUid,_try){
   var cat=servicesData.find(function(c){return c.id===id;});if(!cat)return;
+  // Список разделов дорисовывается с задержкой — если его ещё нет, подождём, а не упадём.
+  if(!document.getElementById("plCatList")){
+    if((_try||0)<15)setTimeout(function(){plOpenCat(id,highlightUid,(_try||0)+1);},60);
+    return;
+  }
   document.getElementById("plCatList").classList.add("gone");
   document.getElementById("plSearchResults").classList.add("gone");
   document.getElementById("plSearchInp").value="";
@@ -2300,8 +2305,17 @@ function showAuth(){
   document.body.appendChild(modal);
   const ni=modal.querySelector("#aName"),pi=modal.querySelector("#aPhone"),cb=modal.querySelector("#aCb"),btn=modal.querySelector("#aBtn"),ci=modal.querySelector("#aCity");
   const v=()=>{btn.disabled=!(ni.value.trim().length>3&&pi.value.replace(/\D/g,"").length>=11&&cb.checked);};
-  pi.oninput=e=>{let m="+7 (___) ___-__-__",i=0,d=m.replace(/\D/g,""),v2=e.target.value.replace(/\D/g,"");if(d.length>=v2.length)v2=d;e.target.value=m.replace(/./g,a=>/[_\d]/.test(a)&&i<v2.length?v2.charAt(i++):i>=v2.length?"":a);v();};
+  // Маска телефона. Раньше первая набранная цифра «съедалась»: «9991234567» превращалось в «+7 (991) 234-56-7».
+  pi.oninput=e=>{
+    // Набирают «+7…» по символу: после «+» поле уже показывает «+7 (», и следующая «7» — это код страны, а не номер.
+    if(e.data==="+"&&e.target.value.replace(/\D/g,"")===""){pi.dataset.plus="1";e.target.value="+7 (";return;}
+    if(pi.dataset.plus==="1"&&e.data==="7"&&e.target.value.replace(/\D/g,"")==="77"){pi.dataset.plus="";e.target.value="+7 (";return;}
+    if(e.data&&/\d/.test(e.data))pi.dataset.plus="";
+    e.target.value=maskRuPhone(e.target.value,e.inputType);
+  };
   ni.oninput=v;cb.onchange=v;
+  // Проверка и при вводе телефона: раньше кнопка не включалась, если телефон вводили последним.
+  pi.addEventListener("input",v);pi.addEventListener("change",v);
   btn.onclick=()=>{
     clientName=ni.value.trim();clientPhone=pi.value.trim();clientSnils="";
     localStorage.setItem("clientName",clientName);localStorage.setItem("clientPhone",clientPhone);
@@ -2311,6 +2325,20 @@ function showAuth(){
   };
   ni.addEventListener("keydown",e=>{if(e.key==="Enter")pi.focus();});
   pi.addEventListener("keydown",e=>{if(e.key==="Enter")btn.click();});
+}
+function maskRuPhone(raw,inputType){
+  raw=String(raw||"");
+  let dg=raw.replace(/\D/g,"");
+  if(/^\s*\+7/.test(raw))dg=dg.slice(1);                       // «+7» — это префикс, а не цифра номера
+  else if(dg.length>10&&(dg[0]==="8"||dg[0]==="7"))dg=dg.slice(1);  // вставили 8XXXXXXXXXX или 7XXXXXXXXXX
+  else if(dg.length===1&&(dg==="8"||dg==="7"))dg="";               // начали набирать с 8 или 7
+  dg=dg.slice(0,10);
+  if(!dg)return (inputType&&inputType.indexOf("delete")===0)?"":"+7 (";
+  let out="+7 ("+dg.slice(0,3);
+  if(dg.length>=3)out+=") "+dg.slice(3,6);
+  if(dg.length>=6)out+="-"+dg.slice(6,8);
+  if(dg.length>=8)out+="-"+dg.slice(8,10);
+  return out;
 }
 function skipAuth(el){
   clientName="Гость";clientPhone="—";clientSnils="";

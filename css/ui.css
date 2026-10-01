@@ -66,7 +66,7 @@ html body .pl-search,html body .pl-search-inp,html body textarea.eq-input,
 html body .chat input[type="text"],html body .chat input[type="tel"],html body .chat input[type="email"],
 html body .chat input[type="date"],html body .chat input[type="number"],html body .chat textarea,html body .chat select,
 html body .mc input[type="text"],html body .mc input[type="tel"],html body .mc input[type="email"],html body .mc input[type="date"],
-html body .mc textarea,html body .mc select,html body .admin-fs input[type="text"],html body .admin-fs textarea,html body .admin-fs select{
+html body .mc textarea,html body .mc select{
   font-size:16px !important;font-family:inherit !important;color:var(--it-ink) !important;
   background:#fff !important;border:1.5px solid var(--it-line) !important;border-radius:var(--ui-r) !important;
   box-shadow:none !important;transition:border-color .15s ease,box-shadow .15s ease !important;box-sizing:border-box;
@@ -78,8 +78,7 @@ html body .mc input[type="email"],html body .mc input[type="date"],html body .mc
 html body textarea{min-height:84px;line-height:1.45 !important;resize:vertical}
 html body .eq-input:focus,html body .auth-inp:focus,html body .admin-inp:focus,html body .fb-inp:focus,html body .rcp-inp:focus,
 html body .chat input:focus,html body .chat textarea:focus,html body .chat select:focus,
-html body .mc input:focus,html body .mc textarea:focus,html body .mc select:focus,
-html body .admin-fs input:focus,html body .admin-fs textarea:focus{
+html body .mc input:focus,html body .mc textarea:focus,html body .mc select:focus{
   border-color:var(--it-accent) !important;box-shadow:var(--ui-ring) !important;outline:none !important}
 html body ::placeholder{color:#9DB5B3 !important;opacity:1}
 html body input[type="checkbox"],html body input[type="radio"]{accent-color:var(--it-accent);width:20px;height:20px;flex-shrink:0}
