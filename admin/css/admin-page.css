@@ -1,0 +1,54 @@
+/* Отдельная страница админпанели: шрифт, фон, вход, уведомления. */
+@font-face{font-family:"Onest";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/onest-cyrillic-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Onest";font-style:normal;font-weight:600;font-display:swap;src:url(../fonts/onest-cyrillic-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Onest";font-style:normal;font-weight:700;font-display:swap;src:url(../fonts/onest-cyrillic-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Onest";font-style:normal;font-weight:800;font-display:swap;src:url(../fonts/onest-cyrillic-800-normal.woff2) format("woff2")}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bp-f3f7f6, #f3f7f6);color:var(--bp-21434a, #21434a)}
+:root{--it-ink:var(--bp-21434a, #21434a);--it-muted:var(--bp-5e7c80, #5e7c80);--it-line:var(--bp-dce8e6, #dce8e6);--it-accent:var(--bp-3f8f87, #3f8f87);--it-accent-soft:var(--bp-e6f2f0, #e6f2f0);--it-surface:#fff;--it-surface2:var(--bp-f4f8f7, #f4f8f7);--it-faint:var(--bp-94abad, #94abad);--it-red:#C2553A;--it-green:var(--bp-2f855a, #2f855a)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;z-index:5000;background:var(--bp-21434a, #21434a);color:#fff;
+  padding:12px 18px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.adm2-login-ovl{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:linear-gradient(135deg,var(--bp-eaf4f1, #eaf4f1),var(--bp-f7fbfa, #f7fbfa))}
+.adm2-login{width:100%;max-width:400px;background:#fff;border:1px solid var(--bp-dce8e6, #dce8e6);border-radius:24px;padding:28px 24px;
+  box-shadow:0 24px 60px -30px rgba(var(--bpr-21434a, 33,67,74),.45);display:flex;flex-direction:column;gap:12px}
+.adm2-login h3{margin:0;font-size:22px;font-weight:800;text-align:center}
+.adm2-login-logo{width:56px;height:56px;margin:0 auto;display:block}
+.adm2-login-sub{margin:0 0 4px;font-size:14px;color:var(--bp-5e7c80, #5e7c80);text-align:center;line-height:1.45}
+.adm2-login .adm2-inp{min-height:46px;font-size:16px}
+.adm2-login .adm2-err{min-height:18px;font-size:13.5px}
+
+/* Российский госномер */
+.plate{display:inline-flex;align-items:stretch;height:34px;border:2px solid var(--bp-1f2b2d, #1f2b2d);border-radius:6px;background:#fff;overflow:hidden;
+  font-family:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace;color:#111;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.plate-main{display:flex;align-items:center;gap:1px;padding:0 8px;font-size:19px;font-weight:700;letter-spacing:1px;line-height:1}
+.plate-main b{font-size:22px;margin:0 2px}
+.plate-reg{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px;border-left:2px solid var(--bp-1f2b2d, #1f2b2d);line-height:1}
+.plate-reg b{font-size:14px}
+.plate-reg i{font-style:normal;font-size:8px;font-weight:700;letter-spacing:.5px;margin-top:1px}
+.plate-raw{padding:0 8px;align-items:center;font-size:16px}
+
+/* Переменные панели нужны и форме входа (она стоит вне .adm2) — без них кнопка и рамки были невидимы */
+:root{
+  --a-ink:var(--bp-21434a, #21434a);--a-muted:var(--bp-5e7c80, #5e7c80);--a-faint:var(--bp-94abad, #94abad);--a-line:var(--bp-dce8e6, #dce8e6);--a-bg:var(--bp-f3f7f6, #f3f7f6);--a-surface:#fff;
+  --a-accent:var(--bp-3f8f87, #3f8f87);--a-accent-d:var(--bp-2b6570, #2b6570);--a-soft:var(--bp-e6f2f0, #e6f2f0);--a-warn:#B7791F;--a-warn-bg:#FFF6E6;
+  --a-red:#C2553A;--a-red-bg:#FDF1EE;--a-ok:var(--bp-2f855a, #2f855a);--a-ok-bg:var(--bp-eaf6ef, #eaf6ef);
+}
+.adm2-login .adm2-inp{border:1.5px solid var(--bp-c9dad7, #c9dad7);background:#fff}
+.adm2-login .adm2-inp:focus{border-color:var(--a-accent);box-shadow:0 0 0 3px rgba(var(--bpr-3f8f87, 63,143,135),.18)}
+.adm2-login .adm2-btn{background:var(--a-accent-d);color:#fff;min-height:48px;font-size:15px}
+.adm2-login .adm2-btn:hover{background:var(--bp-235660, #235660)}
+.adm2-login .adm2-btn:disabled{opacity:.6;cursor:wait}
+.adm2-login .adm2-err{color:var(--a-red);font-weight:600}
+.adm2-login .adm2-note{font-size:12.5px;color:var(--a-muted);text-align:center;margin:0}
+.adm2-test-banner{position:fixed;top:0;left:0;right:0;z-index:3000;background:#FFF3DC;color:#7A4E0B;border-bottom:1px solid #F2D9A6;
+  font-size:13px;font-weight:700;text-align:center;padding:6px 12px}
+body.adm2-testing .admin-fs{top:var(--adm-tb,31px)}
+.adm2-login-alt{border:0;background:none;color:var(--a-accent-d);font:inherit;font-size:13.5px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}
+.adm2-login-logo{width:96px !important;height:96px !important;border-radius:24px;box-shadow:0 16px 36px -18px rgba(16,40,90,.55);object-fit:cover}
+.adm2-login-k{margin:-6px 0 2px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7fa3}
+.adm2-login-ovl{background:radial-gradient(120% 80% at 50% 0%,#e8f0ff 0%,#f6f9ff 60%,#ffffff 100%) !important}
+.adm2-login .adm2-btn{background:#1d5fd0 !important}
+.adm2-login .adm2-btn:hover{background:#164db0 !important}
+.adm2-login .adm2-inp:focus{border-color:#1d5fd0 !important;box-shadow:0 0 0 3px rgba(29,95,208,.18) !important}

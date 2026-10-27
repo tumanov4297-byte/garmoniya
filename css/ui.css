@@ -11,19 +11,19 @@
 :root{
   --ui-h:48px;
   --ui-r:14px;
-  --ui-ring:0 0 0 3px rgba(63,143,135,.28);
+  --ui-ring:0 0 0 3px rgba(var(--bpr-3f8f87, 63,143,135),.28);
   --dock-h:140px;
 }
 
 /* ── Фокус с клавиатуры: видно всегда, мышью — не мешает ── */
 html body :focus{outline:none}
-html body :focus-visible{outline:3px solid rgba(63,143,135,.55) !important;outline-offset:2px !important;border-radius:10px}
+html body :focus-visible{outline:3px solid rgba(var(--bpr-3f8f87, 63,143,135),.55) !important;outline-offset:2px !important;border-radius:10px}
 html body [role="button"]{cursor:pointer}
 
 /* ── Второстепенная кнопка (в т.ч. «← Назад в меню») ── */
 html body .act-btn:not(.teal):not(.green):not(.gold):not(.red):not(.outline):not(.logout){
   background:var(--it-surface) !important;color:var(--it-ink) !important;
-  border:1px solid var(--it-line) !important;box-shadow:0 1px 2px rgba(43,101,112,.05) !important;
+  border:1px solid var(--it-line) !important;box-shadow:0 1px 2px rgba(var(--bpr-2b6570, 43,101,112),.05) !important;
 }
 html body .act-btn{min-height:var(--ui-h) !important;height:auto !important;font-size:15px !important;
   font-weight:700 !important;letter-spacing:-.005em;line-height:1.25 !important;padding:12px 18px !important;
@@ -44,7 +44,7 @@ html body .book-send,html body .eq-save-btn,html body .cart-send,html body .auth
 html body .admin-btn:not(.ghost),html body .fb-send,html body .taxi-order-bar-btn{
   min-height:var(--ui-h) !important;border-radius:999px !important;font-size:15px !important;font-weight:700 !important;
   background:var(--it-brand) !important;color:#fff !important;border:0 !important;
-  box-shadow:0 14px 30px -16px rgba(43,101,112,.85),inset 0 1px 0 rgba(255,255,255,.28) !important;
+  box-shadow:0 14px 30px -16px rgba(var(--bpr-2b6570, 43,101,112),.85),inset 0 1px 0 rgba(255,255,255,.28) !important;
 }
 html body .admin-btn.ghost,html body .cart-clr{
   min-height:var(--ui-h) !important;border-radius:999px !important;background:var(--it-surface) !important;
@@ -57,7 +57,7 @@ html body .pl-back{
   display:inline-flex !important;align-items:center;gap:6px;min-height:40px !important;padding:0 14px 0 12px !important;
   margin:0 0 14px !important;background:var(--it-surface) !important;border:1px solid var(--it-line) !important;
   border-radius:999px !important;color:var(--it-ink) !important;font-size:14px !important;font-weight:600 !important;
-  box-shadow:0 1px 2px rgba(43,101,112,.05) !important;cursor:pointer}
+  box-shadow:0 1px 2px rgba(var(--bpr-2b6570, 43,101,112),.05) !important;cursor:pointer}
 html body .pl-back:hover{background:var(--it-accent-soft) !important;color:var(--it-ink) !important;border-color:var(--it-accent) !important}
 
 /* ── Поля ввода: один стиль на всё приложение ── */
@@ -80,7 +80,7 @@ html body .eq-input:focus,html body .auth-inp:focus,html body .admin-inp:focus,h
 html body .chat input:focus,html body .chat textarea:focus,html body .chat select:focus,
 html body .mc input:focus,html body .mc textarea:focus,html body .mc select:focus{
   border-color:var(--it-accent) !important;box-shadow:var(--ui-ring) !important;outline:none !important}
-html body ::placeholder{color:#9DB5B3 !important;opacity:1}
+html body ::placeholder{color:var(--bp-9db5b3, #9db5b3) !important;opacity:1}
 html body input[type="checkbox"],html body input[type="radio"]{accent-color:var(--it-accent);width:20px;height:20px;flex-shrink:0}
 /* Поиск и чат-строка уже оформлены своей капсулой — рамку не дублируем */
 html body .search-bar input,html body .asst-input-row input,html body .asst-input-row textarea{
@@ -104,7 +104,7 @@ html body .news-text a,html body .cb-row a,html body .auth-card a{
   color:var(--it-accent) !important;text-decoration:underline !important;text-decoration-thickness:1px !important;
   text-underline-offset:3px !important;font-weight:600}
 html body .pinfo-val a[href^="tel:"],html body .pinfo-val a[href^="mailto:"]{text-decoration:none !important;
-  border-bottom:1px dashed rgba(63,143,135,.45)}
+  border-bottom:1px dashed rgba(var(--bpr-3f8f87, 63,143,135),.45)}
 
 /* ── Нижняя зона действий: аккуратная плашка над меню ── */
 html body .actions{padding:10px 12px 8px !important}
@@ -138,9 +138,9 @@ html body .taxi-h{font-size:20px !important;font-weight:700 !important;color:var
 /* ── Чипы выбора (даты, время, быстрые адреса) — зона нажатия 44px ── */
 html body .taxi-time-chip,html body .time-slot{min-height:44px !important;font-size:14px !important;border-radius:12px !important}
 html body .taxi-chip,html body .fb-chip,html body .of-btn{min-height:40px !important}
-html body .taxi-time-chip.sel,html body .time-slot.sel{box-shadow:0 8px 18px -10px rgba(43,101,112,.8) !important}
-html body .time-slot.busy{background:repeating-linear-gradient(-45deg,#F3F6F5 0 6px,#ECF1EF 6px 12px) !important;
-  color:#A9BDBB !important;border-color:#E3ECE9 !important;text-decoration:line-through}
+html body .taxi-time-chip.sel,html body .time-slot.sel{box-shadow:0 8px 18px -10px rgba(var(--bpr-2b6570, 43,101,112),.8) !important}
+html body .time-slot.busy{background:repeating-linear-gradient(-45deg,var(--bp-f3f6f5, #f3f6f5) 0 6px,var(--bp-ecf1ef, #ecf1ef) 6px 12px) !important;
+  color:var(--bp-a9bdbb, #a9bdbb) !important;border-color:var(--bp-e3ece9, #e3ece9) !important;text-decoration:line-through}
 
 /* ═══ Вход администратора: пин-пад ═══ */
 html body .pin-card{text-align:center;max-width:340px !important;padding:26px 22px 22px !important}
@@ -207,7 +207,7 @@ html body .qz-cat{display:flex;align-items:center;gap:10px;min-height:60px;paddi
   border:1.5px solid var(--it-line);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--it-ink);
   text-align:left;cursor:pointer;line-height:1.25}
 html body .qz-cat-ico{font-size:24px;flex:0 0 auto}
-html body .qz-cat.sel{border-color:var(--it-accent);background:var(--it-accent-soft);box-shadow:0 8px 18px -12px rgba(43,101,112,.7)}
+html body .qz-cat.sel{border-color:var(--it-accent);background:var(--it-accent-soft);box-shadow:0 8px 18px -12px rgba(var(--bpr-2b6570, 43,101,112),.7)}
 html body .qz-nav{margin-top:18px}
 html body .qz-nav .eq-save-btn{margin-top:0 !important;min-height:54px !important;font-size:16px !important}
 html body .qz-sum{border:1px solid var(--it-line);border-radius:18px;background:var(--it-surface2);padding:2px 14px}
@@ -230,28 +230,28 @@ html body .mc input.qz-inp.bad,html body .mc textarea.qz-inp.bad,html body input
 
 /* ═══ Такси: машина, госномер, отсчёт до подачи ═══ */
 html body .car-card{display:flex;gap:12px;align-items:flex-start;margin:12px 0;padding:14px;border-radius:18px;
-  background:linear-gradient(135deg,#F3FAF8,#E9F4F1);border:1px solid var(--it-line);text-align:left}
-html body .car-card.car-now{border-color:var(--it-accent);box-shadow:0 0 0 3px rgba(63,143,135,.15)}
+  background:linear-gradient(135deg,var(--bp-f3faf8, #f3faf8),var(--bp-e9f4f1, #e9f4f1));border:1px solid var(--it-line);text-align:left}
+html body .car-card.car-now{border-color:var(--it-accent);box-shadow:0 0 0 3px rgba(var(--bpr-3f8f87, 63,143,135),.15)}
 html body .car-card.car-none{background:var(--it-surface2)}
 html body .car-ico{width:48px;height:48px;flex:0 0 48px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;
-  box-shadow:0 2px 6px -2px rgba(43,101,112,.25)}
+  box-shadow:0 2px 6px -2px rgba(var(--bpr-2b6570, 43,101,112),.25)}
 html body .car-main{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
 html body .car-lbl{font-size:12px;font-weight:700;color:var(--it-muted)}
 html body .car-main > b{font-size:16px;font-weight:800;color:var(--it-ink);line-height:1.25}
 html body .car-model em{font-style:normal;font-weight:600;color:var(--it-muted);font-size:14px}
 html body .car-main > span:not(.plate):not(.car-lbl){font-size:13px;color:var(--it-muted);line-height:1.4}
 html body .car-eta{display:inline-flex;align-items:center;gap:6px;margin-top:2px;padding:4px 10px;border-radius:999px;
-  background:#fff;color:var(--it-accent-d,#2B6570) !important;font-weight:800 !important;font-size:13px !important;border:1px solid var(--it-line)}
-html body .car-eta::before{content:"⏱";font-size:12px}
+  background:#fff;color:var(--it-accent-d,var(--bp-2b6570, #2b6570)) !important;font-weight:800 !important;font-size:13px !important;border:1px solid var(--it-line)}
+html body .car-eta::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid currentColor;box-sizing:border-box}
 html body .car-tag{font-weight:700 !important;color:var(--it-ink) !important}
 html body .car-note{color:#B7791F !important}
 html body .car-noplate{font-style:italic}
 /* Российский госномер */
-html body .plate{display:inline-flex;align-items:stretch;height:34px;border:2px solid #1F2B2D;border-radius:6px;background:#fff;overflow:hidden;
+html body .plate{display:inline-flex;align-items:stretch;height:34px;border:2px solid var(--bp-1f2b2d, #1f2b2d);border-radius:6px;background:#fff;overflow:hidden;
   font-family:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace;color:#111;box-shadow:0 1px 0 rgba(0,0,0,.08)}
 html body .plate-main{display:flex;align-items:center;gap:1px;padding:0 8px;font-size:19px;font-weight:700;letter-spacing:1px;line-height:1}
 html body .plate-main b{font-size:22px;margin:0 2px}
-html body .plate-reg{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px;border-left:2px solid #1F2B2D;line-height:1}
+html body .plate-reg{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px;border-left:2px solid var(--bp-1f2b2d, #1f2b2d);line-height:1}
 html body .plate-reg b{font-size:14px}
 html body .plate-reg i{font-style:normal;font-size:8px;font-weight:700;letter-spacing:.5px;margin-top:1px}
 html body .plate-raw{padding:0 8px;align-items:center;font-size:16px}
@@ -263,11 +263,61 @@ html body .taxi-wheel input{margin-top:2px}
 html body .taxi-wheel b{display:block;font-size:15px;color:var(--it-ink)}
 html body .taxi-wheel small{display:block;font-size:13px;color:var(--it-muted);margin-top:2px}
 /* Статусы поездки */
-html body .st-taxi-upcoming{background:var(--it-accent-soft) !important;color:#2B6570 !important}
+html body .st-taxi-upcoming{background:var(--it-accent-soft) !important;color:var(--bp-2b6570, #2b6570) !important}
 html body .st-taxi-soon{background:#FFF3DC !important;color:#9A6512 !important}
-html body .st-taxi-now{background:#2B6570 !important;color:#fff !important}
-html body .st-taxi-done{background:#EEF2F1 !important;color:#7A9294 !important}
+html body .st-taxi-now{background:var(--bp-2b6570, #2b6570) !important;color:#fff !important}
+html body .st-taxi-done{background:var(--bp-eef2f1, #eef2f1) !important;color:var(--bp-7a9294, #7a9294) !important}
 html body .st-taxi-cancelled{background:#FDEDEA !important;color:#B35A3E !important}
 /* Даты без машин на линии */
 html body .taxi-date-chip.off{opacity:.4;cursor:not-allowed;text-decoration:line-through}
 html body .taxi-noslots{padding:14px;border-radius:14px;background:#FFF6E6;color:#9A6512 !important;font-weight:600}
+/* Ответ центра в «Моих заявках» (серверный режим) */
+html body .ord-staff-note{margin:4px 0 8px;padding:8px 12px;border-radius:12px;background:var(--bp-eaf6ef, #eaf6ef);color:var(--bp-22543d, #22543d);font-size:13.5px;line-height:1.4}
+html body .ord-staff-note.err{background:#FDF1EE;color:#9B3D25}
+
+/* ═══ Иконки вместо эмодзи: единый линейный набор «Гармонии» ═══ */
+html body .ic{display:inline-block;vertical-align:middle;flex-shrink:0}
+html body .ic-inline{width:1em;height:1em;margin:-.15em .25em 0 0;color:var(--it-accent,var(--bp-3f8f87, #3f8f87))}
+html body .pinfo-ico,html body .eq-field-ico,html body .ord-ico,html body .car-ico,html body .taxi-tariff-ico,html body .qz-ico,
+html body .onb-emoji,html body .seasonal-emoji,html body .pl-catcard-ico,html body .taxi-eta-ico,html body .svc-book-ico,
+html body .taxi-redirect-ico,html body .pquick-ico,html body .hnc-ico,html body .hnf-ico,html body .ne-ico,html body .city-ph-ico,
+html body .prof-ico,html body .ch-icon,html body .qz-cat-ico,html body .search-ico{display:inline-flex;align-items:center;justify-content:center}
+html body .pinfo-ico .ic,html body .eq-field-ico .ic,html body .taxi-eta-ico .ic,html body .hnc-ico .ic,html body .hnf-ico .ic{width:18px;height:18px}
+html body .pinfo-ico,html body .eq-field-ico,html body .taxi-eta-ico,html body .hnf-ico,html body .prof-ico,html body .ch-icon{color:var(--it-accent,var(--bp-3f8f87, #3f8f87))}
+html body .ord-ico .ic,html body .car-ico .ic,html body .taxi-tariff-ico .ic,html body .pl-catcard-ico .ic,html body .svc-book-ico .ic,html body .taxi-redirect-ico .ic,html body .pquick-ico .ic{width:24px;height:24px}
+html body .pl-catcard-ico{color:var(--bp-2b6570, #2b6570)}
+html body .car-ico{color:var(--bp-2b6570, #2b6570)}
+html body .qz-ico .ic{width:28px;height:28px;color:var(--bp-2b6570, #2b6570)}
+html body .onb-emoji .ic{width:56px;height:56px;color:var(--bp-2b6570, #2b6570)}
+html body .seasonal-emoji .ic{width:26px;height:26px;color:#C2553A}
+html body .ne-ico .ic,html body .city-ph-ico .ic{width:40px;height:40px;color:var(--bp-3f8f87, #3f8f87)}
+html body .qz-cat-ico .ic,html body .rcp-cat .ic{width:24px;height:24px;color:var(--bp-2b6570, #2b6570)}
+html body .prof-icon-btn .ic{width:24px;height:24px;color:var(--bp-2b6570, #2b6570)}
+html body .ch-icon .ic{width:22px;height:22px}
+html body .search-ico{color:var(--it-muted,var(--bp-5e7c80, #5e7c80))}
+html body .asst-send .ic{width:20px;height:20px;color:#fff}
+html body .taxi-geo-btn{display:inline-flex;align-items:center;justify-content:center;color:var(--it-accent,var(--bp-3f8f87, #3f8f87))}
+html body .taxi-geo-btn .ic{width:18px;height:18px}
+html body .pquick-ico .ic{color:#fff}
+html body .ord-ico .ic{color:#fff}
+
+/* ═══ Визуальные эффекты — переключаются в «Оформлении» ═══ */
+html.fx-no-anim *,html.fx-no-anim *::before,html.fx-no-anim *::after{animation:none !important;transition-duration:0s !important}
+html.fx-no-seasonal .seasonal-card,html.fx-no-seasonal .msg-row:has(.seasonal-card),html.fx-no-seasonal .hdr-snow{display:none !important}
+html.fx-no-decor .shell-blobs,html.fx-no-decor .hdr-aurora,html.fx-no-decor .hdr-snow,html.fx-no-decor .hdr-sheen,html.fx-no-decor .hdr-blobs,html.fx-no-decor .bloom,
+html.fx-no-decor .ga-bot-halo,html.fx-no-decor .ga-bot-ring{display:none !important}
+html.fx-no-glass *{-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+/* Группа ВКонтакте не указана в «Оформлении» — разделы ВК скрыты */
+html.no-vk .news-tabs,html.no-vk .sp-g[data-a="vk"],html.no-vk .pquick-vk,html.no-vk .pinfo-vk{display:none !important}
+/* Разделы меню, скрытые центром в «Настройках» */
+html[data-hide-tiles~="gallery"] [data-a="gallery"],html[data-hide-tiles~="events"] [data-a="events"],html[data-hide-tiles~="news"] [data-a="news"],
+html[data-hide-tiles~="callback"] [data-a="callback"],html[data-hide-tiles~="feedback"] [data-a="feedback"],html[data-hide-tiles~="moroshka"] [data-a="moroshka"],
+html[data-hide-tiles~="staff"] [data-a="staff"],html[data-hide-tiles~="vk"] [data-a="vk"]{display:none !important}
+html body a.emg-row{text-decoration:none;color:inherit}
+/* Аватар без фото — значок пользователя */
+.ava-user{width:58%;height:58%;display:block}
+.hdr-ava-init,.prof-ava-init,.rcp-ava{display:flex !important;align-items:center;justify-content:center}
+.rcp-ava .ava-user{width:62%;height:62%}
+/* Отменено — серый статус; кнопка показа скрытых заявок */
+.st-cancel{background:#eef1f4;color:#6b7785}
+html body .ord-hidden-toggle{background:transparent;border-style:dashed;color:var(--muted,var(--bp-5b6b74, #5b6b74))}

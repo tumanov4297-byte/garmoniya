@@ -5,9 +5,9 @@
    один акцент (бирюза) и золотая волосяная линия как деталь.
    ═══════════════════════════════════════════════════════════════ */
 :root{
-  --pr-hair:rgba(43,101,112,.09);           /* волосяной контур карточек */
-  --pr-card:0 1px 1px rgba(43,101,112,.04), 0 10px 24px -16px rgba(43,101,112,.30);
-  --pr-card-hi:0 1px 1px rgba(43,101,112,.05), 0 20px 44px -24px rgba(43,101,112,.42);
+  --pr-hair:rgba(var(--bpr-2b6570, 43,101,112),.09);           /* волосяной контур карточек */
+  --pr-card:0 1px 1px rgba(var(--bpr-2b6570, 43,101,112),.04), 0 10px 24px -16px rgba(var(--bpr-2b6570, 43,101,112),.30);
+  --pr-card-hi:0 1px 1px rgba(var(--bpr-2b6570, 43,101,112),.05), 0 20px 44px -24px rgba(var(--bpr-2b6570, 43,101,112),.42);
   --pr-gold-line:linear-gradient(90deg,rgba(238,205,134,0),#EECD86,rgba(238,205,134,0));
 }
 
@@ -30,17 +30,17 @@ html body .news-card{border-radius:24px !important;overflow:hidden}
 html body .bot-btn{box-shadow:var(--pr-card-hi) !important}
 
 /* ── Шапка ── */
-html body .hdr{background:rgba(247,251,250,.86) !important;border-bottom:1px solid var(--pr-hair) !important}
+html body .hdr{background:rgba(var(--bpr-f7fbfa, 247,251,250),.86) !important;border-bottom:1px solid var(--pr-hair) !important}
 html body .hdr-logo img{width:38px;height:38px}
 html body .hdr-name{font-size:18px !important;font-weight:700 !important;letter-spacing:-.03em !important}
 html body .hdr-city{font-size:12px !important;color:var(--it-faint) !important}
-html body .hdr-ico-btn{box-shadow:0 1px 1px rgba(43,101,112,.05),0 6px 14px -10px rgba(43,101,112,.5) !important;border:1px solid var(--pr-hair) !important}
+html body .hdr-ico-btn{box-shadow:0 1px 1px rgba(var(--bpr-2b6570, 43,101,112),.05),0 6px 14px -10px rgba(var(--bpr-2b6570, 43,101,112),.5) !important;border:1px solid var(--pr-hair) !important}
 html body .hdr-status{border:1px solid var(--pr-hair) !important;font-weight:600 !important}
-html body .hdr-call{box-shadow:0 8px 20px -12px rgba(43,101,112,.75),inset 0 1px 0 rgba(255,255,255,.25) !important}
+html body .hdr-call{box-shadow:0 8px 20px -12px rgba(var(--bpr-2b6570, 43,101,112),.75),inset 0 1px 0 rgba(255,255,255,.25) !important}
 
 /* ── Приветственный блок: золотая линия сверху и мягкий свет ── */
 html body .greet-anim{position:relative;border:1px solid var(--pr-hair) !important;border-radius:26px !important;
-  background:linear-gradient(140deg,#FDF8D8 0%,#F2EEC8 22%,#DFF0EA 58%,#C7E2DE 100%) !important;
+  background:linear-gradient(140deg,#FDF8D8 0%,#F2EEC8 22%,var(--bp-dff0ea, #dff0ea) 58%,var(--bp-c7e2de, #c7e2de) 100%) !important;
   box-shadow:var(--pr-card-hi) !important;overflow:hidden}
 html body .greet-anim::after{content:"";position:absolute;left:18px;right:18px;top:0;height:1px;background:var(--pr-gold-line)}
 html body .ga-hi{color:var(--it-muted) !important;font-weight:600 !important;font-size:12.5px !important}
@@ -53,7 +53,7 @@ html body .tab-bar{
   background:rgba(255,255,255,.92) !important;backdrop-filter:saturate(1.6) blur(18px) !important;
   -webkit-backdrop-filter:saturate(1.6) blur(18px) !important;
   border:1px solid var(--pr-hair) !important;border-radius:18px !important;padding:3px 6px !important;
-  box-shadow:0 1px 1px rgba(43,101,112,.05),0 18px 38px -24px rgba(43,101,112,.55) !important;
+  box-shadow:0 1px 1px rgba(var(--bpr-2b6570, 43,101,112),.05),0 18px 38px -24px rgba(var(--bpr-2b6570, 43,101,112),.55) !important;
 }
 html body .tb::before{display:none !important}
 html body .tb{gap:2px !important;padding:3px 2px 2px !important}
@@ -64,7 +64,7 @@ html body .tb > svg, html body .tb .tb-cart-wrap{
 }
 html body .tb .tb-cart-wrap > svg{width:18px !important;height:18px !important;padding:0 !important;background:none !important;stroke-width:1.9}
 html body .tb.active > svg, html body .tb.active .tb-cart-wrap{
-  background:var(--it-brand) !important;box-shadow:0 6px 14px -8px rgba(43,101,112,.8) !important;
+  background:var(--it-brand) !important;box-shadow:0 6px 14px -8px rgba(var(--bpr-2b6570, 43,101,112),.8) !important;
 }
 html body .tb.active > svg, html body .tb.active .tb-cart-wrap > svg{stroke:#fff !important}
 html body .tb:not(.active) > svg, html body .tb:not(.active) .tb-cart-wrap > svg{stroke:var(--it-muted) !important}
@@ -76,7 +76,7 @@ html body .tb-badge{top:-4px !important;right:-7px !important;min-width:14px !im
 
 /* ── Кнопки ── */
 html body .act-btn.teal, html body .auth-btn, html body .svc-book-btn, html body .cart-send{
-  box-shadow:0 14px 30px -16px rgba(43,101,112,.85),inset 0 1px 0 rgba(255,255,255,.28) !important;
+  box-shadow:0 14px 30px -16px rgba(var(--bpr-2b6570, 43,101,112),.85),inset 0 1px 0 rgba(255,255,255,.28) !important;
   letter-spacing:-.01em !important;
 }
 html body .pl-add{width:38px !important;height:38px !important;border-radius:13px !important}
@@ -89,9 +89,9 @@ html body .pl-catcard-txt b{font-weight:600 !important;letter-spacing:-.015em !i
 /* ── Панели ── */
 html body .cart-hdr, html body .ord-hdr, html body .prof-hdr{border-bottom:1px solid var(--pr-hair) !important}
 html body .prof-cover{position:relative;border-radius:0 0 28px 28px !important;
-  background:linear-gradient(140deg,#FDF8D8 0%,#F2EEC8 24%,#DFF0EA 60%,#C7E2DE 100%) !important}
+  background:linear-gradient(140deg,#FDF8D8 0%,#F2EEC8 24%,var(--bp-dff0ea, #dff0ea) 60%,var(--bp-c7e2de, #c7e2de) 100%) !important}
 html body .prof-cover::after{content:"";position:absolute;left:24px;right:24px;bottom:0;height:1px;background:var(--pr-gold-line)}
-html body .prof-ava{box-shadow:0 0 0 4px #fff,0 16px 30px -18px rgba(43,101,112,.8) !important;border:0 !important}
+html body .prof-ava{box-shadow:0 0 0 4px #fff,0 16px 30px -18px rgba(var(--bpr-2b6570, 43,101,112),.8) !important;border:0 !important}
 html body .prof-chip{padding:10px 6px !important}
 
 /* ── Сообщения чата ── */
@@ -99,7 +99,7 @@ html body .bubble.bot{border:1px solid var(--pr-hair) !important;box-shadow:var(
 html body .bubble.usr{border-radius:20px 20px 6px 20px !important}
 
 /* ── Подсказка ── */
-html body .toast{box-shadow:0 16px 34px -18px rgba(43,101,112,.9) !important;padding:11px 18px !important;font-size:13.5px !important;
+html body .toast{box-shadow:0 16px 34px -18px rgba(var(--bpr-2b6570, 43,101,112),.9) !important;padding:11px 18px !important;font-size:13.5px !important;
   white-space:normal !important;line-height:1.35 !important;word-break:break-word !important}
 
 /* ── Поле ввода в чате ── */
@@ -110,17 +110,17 @@ html body .chat{padding-left:14px !important;padding-right:14px !important}
 
 /* ── Экран загрузки ── */
 html body .app-splash{
-  background:#F4F9F7 !important;
+  background:var(--bp-f4f9f7, #f4f9f7) !important;
   background-image:
     radial-gradient(760px 460px at -10% -8%,rgba(252,246,186,.75),transparent 60%),
-    radial-gradient(700px 460px at 110% -4%,rgba(182,214,213,.75),transparent 58%),
+    radial-gradient(700px 460px at 110% -4%,rgba(var(--bpr-b6d6d5, 182,214,213),.75),transparent 58%),
     radial-gradient(620px 430px at 50% 112%,rgba(188,215,180,.45),transparent 62%) !important;
 }
 html body .splash-core{width:124px;height:124px}
-html body .splash-ring{border:1.5px solid rgba(63,143,135,.22) !important;inset:-6px !important}
+html body .splash-ring{border:1.5px solid rgba(var(--bpr-3f8f87, 63,143,135),.22) !important;inset:-6px !important}
 html body .splash-logo{
   width:88px !important;height:88px !important;border-radius:26px !important;padding:12px !important;
-  background:#fff !important;box-shadow:0 2px 2px rgba(43,101,112,.04),0 26px 50px -26px rgba(43,101,112,.55) !important;
+  background:#fff !important;box-shadow:0 2px 2px rgba(var(--bpr-2b6570, 43,101,112),.04),0 26px 50px -26px rgba(var(--bpr-2b6570, 43,101,112),.55) !important;
 }
 html body .splash-name{
   margin-top:22px !important;color:var(--it-ink) !important;font-weight:700 !important;
@@ -137,12 +137,12 @@ html body .splash-sub::before{
 }
 html body .splash-sub::after{
   content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
-  width:132px;height:3px;border-radius:3px;background:rgba(63,143,135,.14);overflow:hidden;
+  width:132px;height:3px;border-radius:3px;background:rgba(var(--bpr-3f8f87, 63,143,135),.14);overflow:hidden;
 }
 html body .app-splash::after{
   content:"";position:absolute;left:50%;bottom:calc(50% - 116px);
   width:132px;height:3px;border-radius:3px;overflow:hidden;
-  background:linear-gradient(90deg,rgba(63,143,135,0) 0%,#5BAA93 35%,#2B6570 65%,rgba(63,143,135,0) 100%);
+  background:linear-gradient(90deg,rgba(var(--bpr-3f8f87, 63,143,135),0) 0%,var(--bp-5baa93, #5baa93) 35%,var(--bp-2b6570, #2b6570) 65%,rgba(var(--bpr-3f8f87, 63,143,135),0) 100%);
   background-size:220% 100%;animation:splashBar 1.25s ease-in-out infinite;
   transform:translateX(-50%);
 }
@@ -241,6 +241,6 @@ html body .chk-total{display:flex;justify-content:space-between;padding:10px 0 2
 html body .chk-note{font-size:12px;color:var(--it-muted);text-align:center;margin-top:6px;line-height:1.4;overflow-wrap:anywhere}
 
 /* Такси: обеденный перерыв в сетке времени */
-html body .taxi-time-chip.busy{background:repeating-linear-gradient(-45deg,#F3F6F5 0 6px,#ECF1EF 6px 12px);
-  color:#A9BDBB;border-color:#E3ECE9;cursor:not-allowed;text-decoration:line-through}
+html body .taxi-time-chip.busy{background:repeating-linear-gradient(-45deg,var(--bp-f3f6f5, #f3f6f5) 0 6px,var(--bp-ecf1ef, #ecf1ef) 6px 12px);
+  color:var(--bp-a9bdbb, #a9bdbb);border-color:var(--bp-e3ece9, #e3ece9);cursor:not-allowed;text-decoration:line-through}
 html body .taxi-break-note{grid-column:1/-1;font-size:12.5px;color:var(--it-muted);padding:2px 2px 0}
