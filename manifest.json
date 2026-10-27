@@ -1,7 +1,7 @@
 {
-  "name": "Гармония — помощник ЦСОН",
-  "short_name": "Гармония",
-  "description": "Социальные услуги центра «Гармония»: запись, заявки, новости.",
+  "name": "Социальные услуги ЯНАО",
+  "short_name": "Соцуслуги ЯНАО",
+  "description": "Центры социального обслуживания Ямала: услуги, запись к специалистам, социальное такси, заявки и их статусы.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -10,8 +10,11 @@
   "theme_color": "#F4F9F7",
   "lang": "ru",
   "icons": [
-    { "src": "img/logo-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "img/logo-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "img/logo-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "img/socuslugi-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }

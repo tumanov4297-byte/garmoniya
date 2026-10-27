@@ -1,15 +1,15 @@
-/* Service worker «Гармония».
+/* Service worker «Социальные услуги ЯНАО».
    Стратегия network-first: всегда сначала сеть (никогда не отдаёт устаревшее,
    пока есть интернет), кэш — только резерв для офлайна. Это безопасно при
    частых обновлениях сайта: свежие файлы подхватываются сразу. */
-var CACHE = "garmoniya-v29";
+var CACHE = "socuslugi-v2";
 var CORE = [
   "./","./index.html","./js/bundle.js",
   "./css/styles.css",
   
   
   
-  "./css/enhance.css","./css/it-theme.css","./css/premium.css","./css/ui.css","./css/admin.css","./css/desktop.css","./fonts/onest-cyrillic-400-normal.woff2","./fonts/onest-latin-400-normal.woff2","./fonts/onest-cyrillic-500-normal.woff2","./fonts/onest-latin-500-normal.woff2","./fonts/onest-cyrillic-600-normal.woff2","./fonts/onest-latin-600-normal.woff2","./fonts/onest-cyrillic-700-normal.woff2","./fonts/onest-latin-700-normal.woff2","./fonts/onest-cyrillic-800-normal.woff2","./fonts/onest-latin-800-normal.woff2",
+  "./css/enhance.css","./css/it-theme.css","./css/premium.css","./css/ui.css","./css/socuslugi.css","./css/desktop.css","./fonts/onest-cyrillic-400-normal.woff2","./fonts/onest-latin-400-normal.woff2","./fonts/onest-cyrillic-500-normal.woff2","./fonts/onest-latin-500-normal.woff2","./fonts/onest-cyrillic-600-normal.woff2","./fonts/onest-latin-600-normal.woff2","./fonts/onest-cyrillic-700-normal.woff2","./fonts/onest-latin-700-normal.woff2","./fonts/onest-cyrillic-800-normal.woff2","./fonts/onest-latin-800-normal.woff2",
   "./manifest.json","./img/logo-icon.png"
 ];
 
@@ -40,6 +40,8 @@ self.addEventListener("fetch", function(e){
       return res;
     }).catch(function(){
       return caches.match(req).then(function(hit){
+        /* для API — только сохранённый ответ (опубликованные данные), страница вместо JSON не подставляется */
+        if(url.pathname.indexOf("/api/")>=0)return hit || Response.error();
         return hit || caches.match("./index.html");
       });
     })

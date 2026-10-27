@@ -2,7 +2,7 @@
 <html lang="ru" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script>
 /* Облегчённый режим для слабых устройств и Android: отключает тяжёлые
    анимации/фильтры (источник лагов и мерцания), применяется до отрисовки. */
@@ -20,19 +20,19 @@
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Гармония">
-<link rel="icon" type="image/png" href="img/logo-icon.png">
-<link rel="apple-touch-icon" href="img/logo-icon.png">
-<title>Гармония — помощник ЦСОН</title>
+<meta name="apple-mobile-web-app-title" content="Соцуслуги ЯНАО">
+<link rel="icon" type="image/png" href="img/socuslugi-logo.png">
+<link rel="apple-touch-icon" href="img/socuslugi-logo.png">
+<title>Социальные услуги ЯНАО</title>
 <link rel="preload" href="fonts/onest-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/onest-cyrillic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/styles.css?v=20261001e">
-<link rel="stylesheet" href="css/enhance.css?v=20261001e">
-<link rel="stylesheet" href="css/it-theme.css?v=20261001e">
-<link rel="stylesheet" href="css/premium.css?v=20261001e">
-<link rel="stylesheet" href="css/ui.css?v=20261001e">
-<link rel="stylesheet" href="css/admin.css?v=20261001e">
-<link rel="stylesheet" href="css/desktop.css?v=20261001e">
+<link rel="stylesheet" href="css/styles.css?v=202610061500">
+<link rel="stylesheet" href="css/enhance.css?v=202610061500">
+<link rel="stylesheet" href="css/it-theme.css?v=202610061500">
+<link rel="stylesheet" href="css/premium.css?v=202610061500">
+<link rel="stylesheet" href="css/ui.css?v=202610061500">
+<link rel="stylesheet" href="css/socuslugi.css?v=202610061500">
+<link rel="stylesheet" href="css/desktop.css?v=202610061500">
 
 <!-- Leaflet больше не грузится в <head> (блокировал первую отрисовку).
      Карта маршрута такси подгружает его по требованию — см. ensureLeaflet(). -->
@@ -45,11 +45,12 @@
 <div class="app-splash" id="appSplash" aria-hidden="true">
   <div class="splash-core">
     <span class="splash-ring"></span>
-    <img src="img/logo-icon.png" alt="" class="splash-logo">
+    <img src="img/socuslugi-logo.png" alt="" class="splash-logo" id="splashLogo">
   </div>
-  <div class="splash-name">Гармония</div>
-  <div class="splash-sub">центр социального обслуживания</div>
+  <div class="splash-name" id="splashName">Социальные услуги ЯНАО</div>
+  <div class="splash-sub" id="splashSub">социальные услуги Ямала</div>
 </div>
+
 <div class="shell" id="shell" role="main">
   <div class="shell-blobs" aria-hidden="true"><i class="sb1"></i><i class="sb2"></i><i class="sb3"></i><i class="sb4"></i><i class="sb5"></i><i class="sb6"></i><i class="sb7"></i><i class="sb8"></i></div>
   <header class="hdr" id="appHdr" role="banner">
@@ -98,7 +99,7 @@
 
   <div class="search-bar gone" id="searchBar" role="search">
     <div class="search-wrap">
-      <span class="search-ico" aria-hidden="true">🔍</span>
+      <span class="search-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span>
       <input class="search-inp" id="searchInp" type="search" placeholder="Поиск услуги…" aria-label="Поиск по услугам">
       <button class="search-clear gone" id="searchClear" onclick="clearSearch()" aria-label="Очистить поиск">✕</button>
     </div>
@@ -160,6 +161,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="assertive"></div>
 <!-- Все скрипты собраны в js/bundle.js (см. build.py). defer — чтобы не блокировать отрисовку. -->
-<script defer src="js/bundle.js?v=20261001e"></script>
+<script src="config.js?v=202610061500"></script>
+<script defer src="js/bundle.js?v=202610061500"></script>
 </body>
 </html>
